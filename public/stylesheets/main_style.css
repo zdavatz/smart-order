@@ -1,0 +1,336 @@
+/*
+ * Some info goes here
+ */
+html, body {
+    min-height: 100%;
+    min-width: 1280px;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+a {
+    text-decoration: none;  /* removes underline from hrefs */
+}
+
+body {
+    width: auto;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+}
+
+nav {
+    display: block;
+    margin-top: 80px;
+}
+
+aside ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+aside li {
+    padding: 0.25em 0.25em 0.25em 0.5em;
+    vertical-align: middle;
+    /* transition-duration: 0.3s; */
+}
+
+header,
+footer {
+    background-color: white;
+    padding: 1.0em;
+    opacity: .92;
+    /* filter: Alpha(Opacity=50); */
+}
+
+header {
+    width: auto;
+    position: fixed;     /* make this position: fixed if header should not disappear */
+    z-index: 10;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 48px;
+    border-bottom: 1px solid #cccccc;
+    background-color: #cccccc;
+    transition: top 0.2s;
+}
+
+header .home {
+    float: left;
+}
+
+header .links {
+    float: right;
+}
+
+footer {
+    width: 100%;
+    position: relative; /*fixed*/
+    height: 48px;
+    text-align: center;
+    background-color: #cccccc;
+    color: black;
+    line-height: 1.5em;
+}
+
+.header-up {
+    top: -80px;
+}
+
+.header-down {
+}
+
+.section-ids-up {
+    margin-top: 0px;
+}
+
+.sections-ids-down {
+}
+
+article,
+aside {
+    margin-top: 80px;          /* add margin or padding if header is fixed */
+    padding: 1.0em;
+}
+
+#flex-container {
+    display: -webkit-box;      /* OLD - iOS 6-, Safari 3.1-6 */
+    display: -moz-box;         /* OLD - Firefox 19- (buggy but mostly works) */
+    display: -ms-flexbox;      /* TWEENER - IE 10 */
+    display: -webkit-flex;     /* NEW - Chrome */
+    display: flex;             /* NEW, Spec - Opera 12.1, Firefox 20+ */
+    background_color: white;
+}
+
+#flex-aside-one {
+    height: 100%;
+    flex: 0 0 320px;
+    max-width: 320px;   /* ensures that box does not RESIZE **/
+    box-orient: vertical;
+    box-ordinal-group: 1;
+    background-color: white;
+    transition: max-width 1s;
+    -webkit-transition: max-width 1s ease;
+}
+
+#flex-aside-one:hover,
+#flex-aside-one:focus,
+#flex-aside-one:active {
+    max-width: 640px;
+}
+
+#flex-main-content {
+    min-height: 320px;
+    min-width: 640px;
+    flex: 1;
+    box-orient: vertical;
+    box-ordinal-group: 2;
+    border-left: 16px solid #eeeeee;
+    border-right: 16px solid #eeeeee;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 1.2em;
+    line-height: 1.2em;
+    background-color: white;
+    overflow: hidden;
+}
+
+#flex-aside-two {
+    height: 100%;
+    flex: 0 0 200px;
+    box-orient: vertical;
+    box-ordinal-group: 3;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 0.9em;
+    line-height: 1.4em;
+    background-color: white;
+    overflow: hidden;
+    transition: margin-top 0.2s;
+}
+
+#section-ids {
+    position: fixed;
+}
+
+#section-ids li:hover {
+    width: 100%;
+    margin-left: -3px;
+    cursor: pointer;
+    display: block;
+    border-left: 3px solid #cccccc;
+    background-color: #FDE95E;
+    font-weight: bold;
+}
+
+#search-field {
+    width: 100%;
+    -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+    -moz-box-sizing: border-box;    /* Firefox, other Gecko */
+    box-sizing: border-box;         /* Opera/IE 8+ */
+}
+
+#search-field:hover {
+    color:#555555;
+    cursor: pointer;
+}
+
+#search-field:focus {
+    color:#555555;
+}
+
+.badge {
+    display: table-cell;
+    text-align: center;
+    border-left: 1px solid #aaaaaa;
+}
+
+#num-results {
+    float: right;
+}
+
+#input-form {
+    width: 100%;
+    display: block;
+    position: relative;
+}
+
+#input-form div {
+    z-index: 1;
+    position: absolute;
+    bottom: 6px;
+    top: 6px;
+    right: 8px;
+    padding-left: 4px;
+    color: #aaaaaa;
+    cursor: text;
+    pointer-events: none;
+    line-height: 24px;
+    font-size: 10px;
+}
+
+#input-form input, #input-form textarea, #input-form select {
+    z-index: 0;
+    font: inherit;
+    line-height: 24px;
+}
+
+#main-result {
+    color: #444444;
+}
+
+.rounded-button {
+    position: relative;
+    width: 100%;
+    margin-top: 8px;
+    padding: 0.3em 0.3em 0.3em 0.6em;
+    outline: none;
+    background-color: white;
+    border-radius: 4px;
+    border: 1px solid #dddddd;
+    transition-duration: 0.3s;
+    text-align: left;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 16px;
+}
+
+.rounded-button:hover {
+    margin-left: 0px;
+    cursor: pointer;
+}
+
+.rounded-button:active, .active {
+    background-color: #FDE95E;
+    border-radius: 4px;
+    border: 1px solid #dddddd;
+}
+
+#language-button {
+    position: relative;
+    float: left;
+    margin-left: 0.3em;
+    outline: none;
+    border: none;
+    color: #aaaaaa;
+    background-color: transparent;
+    text-decoration: none;
+    cursor: pointer;
+    font-size: 10px;
+    font-weight: normal;
+}
+
+#download-button {
+    float: right;
+    outline: none;
+    border: none;
+    background: transparent;
+}
+
+#download-button:hover {
+    cursor: pointer;
+}
+
+#download-links {
+    position: relative;
+    float: right;
+    opacity: .9;
+    color: green;
+    display: none;
+    text-align: right;
+
+}
+#download-links p {
+    font-size: 1em;
+    padding: 0.2em 1em 0.2em 3em;
+    background-color: gray;
+    border-radius: 16px;
+    border: 1px solid #dddddd;
+}
+
+#download-links a {
+    color: white;
+}
+
+/* Removes annoying 'x' from IE, Edge and Chrome */
+input[type=text]::-ms-clear {
+    display: none; width : 0; height: 0;
+}
+input[type=text]::-ms-reveal {
+    display: none; width : 0; height: 0;
+}
+input[type="search"]::-webkit-search-decoration,
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-results-button,
+input[type="search"]::-webkit-search-results-decoration {
+    display: none;
+}
+
+@media only screen and (max-width: 640px) {
+
+    #flex-main-content {
+        font-size: 1.0em;
+    }
+}
+
+
+/*
+@media screen and (max-device-width: 1024px) {
+    header {
+        width: 100%;
+        left: 0;
+        right: 0;
+        top: 0;
+        height: 48px;
+        position: relative;
+    }
+    #flex-aside-one {
+        max-width: 200px;
+    }
+    #flex-aside-two {
+        max-width: 540px;
+    }
+}
+*/
