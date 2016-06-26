@@ -8,3 +8,5 @@ target
 /RUNNING_PID
 sqlite/amiko_db_full_idx_de.db
 sqlite/amiko_db_full_idx_fr.db
+*.clear
+rose/rose_db_new_full.db

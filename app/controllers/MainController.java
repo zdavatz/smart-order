@@ -1,7 +1,7 @@
 /*
 Copyright (c) 2016 ML <cybrmx@gmail.com>
 
-This file is part of AmiKoWeb.
+This file is part of AmikoRose.
 
 AmiKoWeb is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -73,7 +73,7 @@ public class MainController extends Controller {
     @Inject @NamedDatabase("german") Database german_db;
     @Inject @NamedDatabase("french") Database french_db;
 
-     public Result index() {
+    public Result index() {
         return ok();
     }
 

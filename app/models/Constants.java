@@ -1,7 +1,7 @@
 /*
 Copyright (c) 2016 ML <cybrmx@gmail.com>
 
-This file is part of AmiKoWeb.
+This file is part of AmikoRose.
 
 AmiKoWeb is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
- */
+*/
 
 package models;
 
