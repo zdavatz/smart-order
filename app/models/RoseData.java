@@ -24,6 +24,9 @@ import com.maxl.java.shared.User;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+/**
+ * Created by maxl on 26.06.2016.
+ */
 public class RoseData {
 
     private static final String ROSE_DIR = "./rose/";

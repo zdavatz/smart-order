@@ -21,10 +21,16 @@ package modules;
 
 import com.google.inject.AbstractModule;
 
+/**
+ * Created by maxl on 26.06.2016.
+ */
 public class OnStartModule extends AbstractModule {
 
     @Override
     protected void configure() {
+        /* Create objects eagerly when the application starts up...
+           and not lazily when they are needed
+        */
         bind(OnStartTasks.class).asEagerSingleton();
         bind(OnFileWatch.class).asEagerSingleton();
     }

@@ -19,71 +19,33 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 package modules;
 
-import models.RoseData;
+import akka.actor.ActorRef;
+import akka.actor.ActorSystem;
+import akka.actor.Cancellable;
+import scala.concurrent.duration.Duration;
 
+import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
-import java.nio.file.*;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
-import static java.nio.file.StandardWatchEventKinds.*;
-
+/**
+ * Created by maxl on 26.06.2016.
+ */
 public class OnFileWatch {
 
-    private static final String ROSE_DIR = "./rose/";
-
     @Inject
-    public OnFileWatch() {
-        Path dir = Paths.get(ROSE_DIR);
-        WatchService watcher;
-        try {
-            watcher = FileSystems.getDefault().newWatchService();
-            dir.register(watcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
+    public OnFileWatch(ActorSystem system) {
 
-        } catch (java.io.IOException e) {
-            return;
-        }
+        // Get reference to FileWatchActor
+        ActorRef fileWatchActor = system.actorOf(FileWatchActor.props);
 
-        while (true) {
-            WatchKey key;
-            try {
-                // Wait for a key to be available
-                key = watcher.take();
-            } catch (InterruptedException ex) {
-                return;
-            }
-            for (WatchEvent<?> event : key.pollEvents()) {
-                // Get event type
-                WatchEvent.Kind<?> kind = event.kind();
-                // Get file name
-                @SuppressWarnings("unchecked")
-                /*
-                WatchEvent<Path> ev = (WatchEvent<Path>) event;
-                Path fileName = ev.context();
-                System.out.println(kind.name() + ": " + fileName);
-                */
-                DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-                Date date = new Date();
-                // Filter...
-                if (kind == OVERFLOW) {
-                    // Do nothing...
-                } else if (kind == ENTRY_CREATE) {
-                    // process create event
-                } else if (kind == ENTRY_DELETE) {
-                    // process delete event
-                } else if (kind == ENTRY_MODIFY) {
-                    // process modify event
-                    RoseData rd = new RoseData();
-                    rd.loadAllFiles();
-                    System.out.println("Re-loading all rose files... " + dateFormat.format(date));
-                }
-            }
-            // IMPORTANT: The key must be reset after processed
-            boolean valid = key.reset();
-            if (!valid) {
-                break;
-            }
-        }
+        // 'cancellable' can be used to cancel the execution of the scheduled operation
+        Cancellable cancellable = system.scheduler().schedule(
+                Duration.create(0, TimeUnit.MILLISECONDS),  // Initial delay 0 milliseconds
+                Duration.create(1, TimeUnit.MINUTES),       // Frequency 1 minute
+                fileWatchActor,
+                "tick",
+                system.dispatcher(),
+                null
+        );
     }
 }

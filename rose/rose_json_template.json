@@ -1,0 +1,32 @@
+{
+	"article": "ARTICLE_TITLE",
+	"ean": "ARTICLE_EAN",
+	"swissmed": "SL, SB 10%",
+	"rosePrice": "33.33",
+	"rebate": "2.00",
+	"prefs": "GP, ZRP",
+	"status": "",
+	"publicPrice": "35.00",
+	"alternatives" [
+		{
+			"article": "ALTERNATIVE_1_TITLE",
+			"ean": "ARTICLE_EAN",			
+			"swissmed": "SL, SB 10%",
+			"rosePrice": "33.33",
+			"rebate": "2.00",
+			"prefs": "GP, AG, ZRP",
+			"status": "",
+			"publicPrice": "35.00",		
+		},
+		{
+			"article": "ALTERNATIVE_2_TITLE",
+			"ean": "ARTICLE_EAN",			
+			"swissmed": "SL, SB 10%",
+			"rosePrice": "33.33",
+			"rebate": "2.00",
+			"prefs": "GP, AG, ZRP",
+			"status": "",
+			"publicPrice": "35.00",		
+		}
+	]
+}
