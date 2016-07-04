@@ -1,9 +1,30 @@
+/*
+Copyright (c) 2016 ML <cybrmx@gmail.com>
+
+This file is part of AmikoRose.
+
+AmikoRose is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package models;
+
+import java.text.DecimalFormat;
 
 /**
  * Created by maxl on 26.06.2016.
  */
-public class Article {
+public class GenericArticle {
 
     private long id;
     private String pack_title;
@@ -43,11 +64,11 @@ public class Article {
     private int visible;
     private int free_samples;
 
-    public Article() {
+    public GenericArticle() {
         //
     }
 
-    public Article(String[] entry, String author) {
+    public GenericArticle(String[] entry, String author) {
         if (entry!=null) {
             ean_code = pharma_code = pack_title = pack_size
                      = pack_unit = public_price = exfactory_price
@@ -232,6 +253,18 @@ public class Article {
         return public_price;
     }
 
+    public float getPublicPriceAsFloat() {
+        DecimalFormat df = new DecimalFormat("#.##");
+        float public_as_float = 0.0f;
+        String price_pruned = public_price.replaceAll("[^\\d.]", "");
+        if (!price_pruned.isEmpty() && !price_pruned.equals("..")) {
+            public_as_float = Float.parseFloat(price_pruned);
+        } else {
+            public_as_float = getExfactoryPriceAsFloat() * 1.80f;
+        }
+        return Float.valueOf(df.format(public_as_float));
+    }
+
     public void setPublicPrice(String public_price) {
         this.public_price = public_price;
     }
@@ -240,8 +273,41 @@ public class Article {
         return exfactory_price;
     }
 
+    public float getExfactoryPriceAsFloat() {
+        DecimalFormat df = new DecimalFormat("#.##");
+        float exfacto_as_float = 0.0f;
+        String price_pruned = exfactory_price.replaceAll("[^\\d.]", "");
+        if (!price_pruned.isEmpty() && !price_pruned.equals("..")) {
+            exfacto_as_float = Float.parseFloat(price_pruned);
+        }
+        return Float.valueOf(df.format(exfacto_as_float));
+    }
+
     public void setExfactoryPrice(String exfactory_price) {
         this.exfactory_price = exfactory_price;
+    }
+
+    public void setBuyingPrice(float buying_price) {
+        if (margin>=0.0f)
+            selling_price = (1.0f+margin)*buying_price;
+        else	// default
+            selling_price = 1.8f*buying_price;
+        this.buying_price = buying_price;
+    }
+
+    public void setCashRebate(float cash_rebate) {
+        if (cash_rebate>0)
+            draufgabe = 0;
+        this.cash_rebate = cash_rebate;
+    }
+
+    public float getCashRebate() {
+        if ((cash_rebate>=0.0f && cash_rebate<0.01f) || (cash_rebate<=0.0f && cash_rebate>-0.01f))
+            cash_rebate = 0.0f;
+        if (draufgabe>0)
+            return (100.0f*(float)draufgabe/(draufgabe+quantity));
+        else
+            return cash_rebate;
     }
 
     public void setMargin(float margin) {

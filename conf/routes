@@ -3,9 +3,12 @@
 # ~~~~
 
 # Home page
-GET     /                           controllers.MainController.index()
-GET     /records                    controllers.MainController.getNumRecords()
-GET     /ean                        controllers.MainController.getEan(ean: String)
+GET     /                                   controllers.MainController.index()
+GET     /records                            controllers.MainController.getNumRecords()
+GET     /gtin                               controllers.MainController.getGtin(gtin: String)
+GET     /testbasket                         controllers.MainController.getTestBasket(gtin: String)
+GET     /smart/full                         controllers.MainController.getSmartBasket(pretty: String?="off", limit: Int=0, glncode: String, basket:String)
+GET     /smart/compact                      controllers.MainController.getSmartBasket(pretty: String?="off", limit: Int=2, glncode: String, basket:String)
 
 # Map static resources from the /public folder to the /assets URL path
-GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
+GET     /assets/*file                       controllers.Assets.versioned(path="/public", file: Asset)

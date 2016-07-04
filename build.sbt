@@ -1,4 +1,4 @@
-name := """SmartOrder"""
+name := "SmartOrder"
 
 version := "1.0-SNAPSHOT"
 

@@ -3,7 +3,7 @@ Copyright (c) 2016 ML <cybrmx@gmail.com>
 
 This file is part of AmikoRose.
 
-AmiKoWeb is free software: you can redistribute it and/or modify
+AmikoRose is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
@@ -26,14 +26,36 @@ import java.util.HashMap;
 
 /**
  * Created by maxl on 26.06.2016.
+ * Singleton Pattern
  */
-public class RoseData {
+public final class RoseData {
+
+    private static volatile RoseData instance;
 
     private static final String ROSE_DIR = "./rose/";
 
     private HashMap<String, User> rose_user_map;
     private HashMap<String, Float> rose_sales_figs_map;
     private ArrayList<String> rose_autogenerika_list;
+
+    private RoseData() {
+        // loadAllFiles();
+    }
+
+    /**
+     * Get the only instance of this class.
+     * @return
+     */
+    public static RoseData getInstance() {
+        if (instance==null) {
+            synchronized (RoseData.class) {
+                if (instance==null) {
+                    instance = new RoseData();
+                }
+            }
+        }
+        return instance;
+    }
 
     public HashMap<String, User> user_map() {
         return this.rose_user_map;
@@ -52,14 +74,12 @@ public class RoseData {
         rose_sales_figs_map = loadRoseSalesFigures(ROSE_DIR + "rose_sales_fig.ser.clear");
         rose_autogenerika_list = loadRoseAutoGenerika(ROSE_DIR + "rose_autogenerika.ser.clear");
 
-        // Test
         /*
         for (Map.Entry<String, User> entry : rose_user_map.entrySet()) {
-            String id = entry.getKey();
+            String gln = entry.getKey();
             User user = entry.getValue();
-            System.out.println(user.gln_code);
+            System.out.println(gln + " -> " + user.name1);
         }
-        rose_autogenerika_list.forEach((String a) -> System.out.println(a));
         */
     }
 

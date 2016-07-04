@@ -76,8 +76,7 @@ public class FileWatchActor extends UntypedActor {
                     // process delete event
                 } else if (kind == ENTRY_MODIFY) {
                     // process modify event
-                    RoseData rd = new RoseData();
-                    rd.loadAllFiles();
+                    RoseData.getInstance().loadAllFiles();
                     System.out.println("Re-loading all rose files... " + dateFormat.format(date));
                 }
             }
