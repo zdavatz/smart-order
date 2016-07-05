@@ -32,8 +32,6 @@ public final class RoseData {
 
     private static volatile RoseData instance;
 
-    private static final String ROSE_DIR = "./rose/";
-
     private HashMap<String, User> rose_user_map;
     private HashMap<String, Float> rose_sales_figs_map;
     private ArrayList<String> rose_autogenerika_list;
@@ -43,7 +41,7 @@ public final class RoseData {
     }
 
     /**
-     * Get the only instance of this class.
+     * Get the only instance of this class. Singleton pattern.
      * @return
      */
     public static RoseData getInstance() {
@@ -70,17 +68,9 @@ public final class RoseData {
     }
 
     public void loadAllFiles() {
-        rose_user_map = loadRoseUserMap(ROSE_DIR + "rose_conditions.ser.clear");
-        rose_sales_figs_map = loadRoseSalesFigures(ROSE_DIR + "rose_sales_fig.ser.clear");
-        rose_autogenerika_list = loadRoseAutoGenerika(ROSE_DIR + "rose_autogenerika.ser.clear");
-
-        /*
-        for (Map.Entry<String, User> entry : rose_user_map.entrySet()) {
-            String gln = entry.getKey();
-            User user = entry.getValue();
-            System.out.println(gln + " -> " + user.name1);
-        }
-        */
+        rose_user_map = loadRoseUserMap(Constants.ROSE_DIR + "rose_conditions.ser.clear");
+        rose_sales_figs_map = loadRoseSalesFigures(Constants.ROSE_DIR + "rose_sales_fig.ser.clear");
+        rose_autogenerika_list = loadRoseAutoGenerika(Constants.ROSE_DIR + "rose_autogenerika.ser.clear");
     }
 
     /**

@@ -188,7 +188,7 @@ public class ShoppingRose {
     private float supplierDataForMap(GenericArticle article, LinkedHashMap<String, Float> map) {
         String supplier = article.getSupplier().toLowerCase();
         String short_supplier = "";
-        for (String p : Utilities.doctorPreferences.keySet()) {
+        for (String p : Constants.doctorPreferences.keySet()) {
             if (supplier.contains(p))
                 short_supplier = p;
         }
@@ -201,9 +201,9 @@ public class ShoppingRose {
 
     private int rosePreference(GenericArticle article) {
         String supplier = article.getSupplier().toLowerCase();
-        for (String p : Utilities.rosePreferences.keySet()) {
+        for (String p : Constants.rosePreferences.keySet()) {
             if (supplier.contains(p))
-                return Utilities.rosePreferences.get(p);
+                return Constants.rosePreferences.get(p);
         }
         // Else return a number bigger than 5!
         return 10;
