@@ -37,28 +37,25 @@ public class FileWatchActor extends UntypedActor {
 
     private static final String ROSE_DIR = "./rose/";
 
+    private WatchService _watcher;
+
     // The Props object describes how to create an actor
     public static Props props = Props.create(FileWatchActor.class);
 
-    @Override
-    public void onReceive(Object message) throws Exception {
+    public FileWatchActor() {
         Path dir = Paths.get(ROSE_DIR);
-        WatchService watcher;
         try {
-            watcher = FileSystems.getDefault().newWatchService();
-            dir.register(watcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
+            _watcher = FileSystems.getDefault().newWatchService();
+            dir.register(_watcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
 
         } catch (java.io.IOException e) {
             return;
         }
+    }
 
-        WatchKey key;
-        try {
-            // Wait for a key to be available
-            key = watcher.take();
-        } catch (InterruptedException ex) {
-            return;
-        }
+    @Override
+    public void onReceive(Object message) throws Exception {
+        WatchKey key = _watcher.poll();
 
         if (key != null) {
             for (WatchEvent<?> event : key.pollEvents()) {
@@ -76,6 +73,7 @@ public class FileWatchActor extends UntypedActor {
                     // process delete event
                 } else if (kind == ENTRY_MODIFY) {
                     // process modify event
+                    Thread.sleep(1000);
                     RoseData.getInstance().loadAllFiles();
                     System.out.println("Re-loading all rose files... " + dateFormat.format(date));
                 }

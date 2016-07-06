@@ -26,6 +26,7 @@ import play.db.NamedDatabase;
 import play.db.Database;
 import play.libs.Json;
 import play.mvc.*;
+import views.html.index;
 
 import java.util.*;
 import java.util.HashMap;
@@ -53,7 +54,7 @@ public class MainController extends Controller {
     @Inject @NamedDatabase("rose") Database rose_db;
 
     public Result index() {
-        return ok("Hello AmikoRose");
+        return ok("Welcome to AmikoRose");
     }
 
     public Result getGtin(String gtin) {
@@ -126,9 +127,9 @@ public class MainController extends Controller {
         List<RoseArticle> list_of_rose_articles = shopping_cart.updateShoppingCart();
 
         if (pretty.equals("on"))
-            return ok(Json.prettyPrint(toJson(list_of_rose_articles)));
+            return ok(Json.prettyPrint(toJson(list_of_rose_articles)).toString());
         else
-            return ok(toJson(list_of_rose_articles));
+            return ok(toJson(list_of_rose_articles).toString());
     }
 
     private RoseArticle genericArticleToRose(GenericArticle generic_article) {

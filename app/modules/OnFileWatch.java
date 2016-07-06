@@ -22,6 +22,7 @@ package modules;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Cancellable;
+import com.google.inject.Singleton;
 import scala.concurrent.duration.Duration;
 
 import java.util.concurrent.TimeUnit;
@@ -30,6 +31,7 @@ import javax.inject.Inject;
 /**
  * Created by maxl on 26.06.2016.
  */
+@Singleton
 public class OnFileWatch {
 
     @Inject
