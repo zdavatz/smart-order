@@ -186,17 +186,20 @@ public class ShoppingRose {
     }
 
     private float supplierDataForMap(GenericArticle article, LinkedHashMap<String, Float> map) {
-        String supplier = article.getSupplier().toLowerCase();
-        String short_supplier = "";
-        for (String p : Constants.doctorPreferences.keySet()) {
-            if (supplier.contains(p))
-                short_supplier = p;
+        if (map!=null) {
+            String supplier = article.getSupplier().toLowerCase();
+            String short_supplier = "";
+            for (String p : Constants.doctorPreferences.keySet()) {
+                if (supplier.contains(p))
+                    short_supplier = p;
+            }
+            float value = 0.0f;
+            if (!short_supplier.isEmpty())
+                if (map.containsKey(short_supplier))
+                    value = map.get(short_supplier);
+            return value;
         }
-        float value = 0.0f;
-        if (!short_supplier.isEmpty())
-            if (map.containsKey(short_supplier))
-                value = map.get(short_supplier);
-        return value;
+        return 0.0f;
     }
 
     private int rosePreference(GenericArticle article) {
