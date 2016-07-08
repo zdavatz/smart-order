@@ -21,6 +21,7 @@ package models;
 
 import com.maxl.java.shared.User;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -35,6 +36,7 @@ public final class RoseData {
     private HashMap<String, User> rose_user_map;
     private HashMap<String, Float> rose_sales_figs_map;
     private ArrayList<String> rose_autogenerika_list;
+    private ArrayList<String> rose_auth_keys_list;
 
     private RoseData() {
         // loadAllFiles();
@@ -67,10 +69,15 @@ public final class RoseData {
         return this.rose_autogenerika_list;
     }
 
+    public ArrayList<String> auth_keys_list() {
+        return this.rose_auth_keys_list;
+    }
+
     public void loadAllFiles() {
         rose_user_map = loadRoseUserMap(Constants.ROSE_DIR + "rose_conditions.ser.clear");
         rose_sales_figs_map = loadRoseSalesFigures(Constants.ROSE_DIR + "rose_sales_fig.ser.clear");
         rose_autogenerika_list = loadRoseAutoGenerika(Constants.ROSE_DIR + "rose_autogenerika.ser.clear");
+        rose_auth_keys_list = loadRoseAuthKeys(Constants.ROSE_DIR + "rose_auth_keys.txt");
     }
 
     /**
@@ -118,5 +125,10 @@ public final class RoseData {
             auto_generika_list = (ArrayList<String>)FileOps.deserialize(serialized_object);
         }
         return auto_generika_list;
+    }
+
+    private ArrayList<String> loadRoseAuthKeys(String file_name) {
+        ArrayList<String> auth_keys_list = FileOps.readFromTxtToList(file_name);
+        return auth_keys_list;
     }
 }

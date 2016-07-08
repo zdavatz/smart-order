@@ -82,54 +82,56 @@ public class MainController extends Controller {
         return ok(duration + res);
     }
 
-    public Result getSmartBasket(String pretty, int limit, String gln_code, String basket) {
-        // gln_code = "7601000234285";
+    public Result getSmartBasket(String pretty, int limit, String auth_key, String gln_code, String basket) {
         ShoppingRose shopping_cart = new ShoppingRose(gln_code);
 
-        Pattern p = Pattern.compile("\\((\\d{13}),(\\d+)\\)");
-        Matcher m = p.matcher(basket);
-        ArrayList<String> list_of_articles = new ArrayList<>();
-        HashMap<String, Integer> map_of_articles = new HashMap<>();
-        while (m.find()) {
-            if (!m.group(1).isEmpty() && !m.group(2).isEmpty()) {
-                list_of_articles.add(m.group(1));
-                map_of_articles.put(m.group(1), Integer.valueOf(m.group(2)));
-            }
-        }
-
-        List<GenericArticle> articles = list_of_articles.stream()
-                .map(this::searchSingleEan)
-                .collect(Collectors.toList());
-        if (limit <= 0)
-            shopping_cart.setResultsLimit(false);
-        if (articles.size() > 0) {
-            Map<String, GenericArticle> shopping_basket = new HashMap<>();
-            Map<String, List<GenericArticle>> map_of_similar_articles = new HashMap<>();
-            // Loop through all articles found
-            for (GenericArticle article : articles) {
-                String ean = article.getEanCode();
-                article.setQuantity(map_of_articles.get(ean));
-                shopping_basket.put(ean, article);
-                LinkedList<GenericArticle> la = listSimilarArticles(article);
-                if (la != null) {
-                    // Check if ean code is already part of the map...
-                    if (!map_of_similar_articles.containsKey(ean)) {
-                        map_of_similar_articles.put(ean, la);
-                    }
+        if (shopping_cart.checkAuthKey(auth_key)) {
+            Pattern p = Pattern.compile("\\((\\d{13}),(\\d+)\\)");
+            Matcher m = p.matcher(basket);
+            ArrayList<String> list_of_articles = new ArrayList<>();
+            HashMap<String, Integer> map_of_articles = new HashMap<>();
+            while (m.find()) {
+                if (!m.group(1).isEmpty() && !m.group(2).isEmpty()) {
+                    list_of_articles.add(m.group(1));
+                    map_of_articles.put(m.group(1), Integer.valueOf(m.group(2)));
                 }
             }
-            // Update shopping basket
-            shopping_cart.setShoppingBasket(shopping_basket);
-            // Update list of similar articles only for last insert article
-            shopping_cart.updateMapSimilarArticles(map_of_similar_articles);
+
+            List<GenericArticle> articles = list_of_articles.stream()
+                    .map(this::searchSingleEan)
+                    .collect(Collectors.toList());
+            if (limit <= 0)
+                shopping_cart.setResultsLimit(false);
+            if (articles.size() > 0) {
+                Map<String, GenericArticle> shopping_basket = new HashMap<>();
+                Map<String, List<GenericArticle>> map_of_similar_articles = new HashMap<>();
+                // Loop through all articles found
+                for (GenericArticle article : articles) {
+                    String ean = article.getEanCode();
+                    article.setQuantity(map_of_articles.get(ean));
+                    shopping_basket.put(ean, article);
+                    LinkedList<GenericArticle> la = listSimilarArticles(article);
+                    if (la != null) {
+                        // Check if ean code is already part of the map...
+                        if (!map_of_similar_articles.containsKey(ean)) {
+                            map_of_similar_articles.put(ean, la);
+                        }
+                    }
+                }
+                // Update shopping basket
+                shopping_cart.setShoppingBasket(shopping_basket);
+                // Update list of similar articles only for last insert article
+                shopping_cart.updateMapSimilarArticles(map_of_similar_articles);
+            }
+
+            List<RoseArticle> list_of_rose_articles = shopping_cart.updateShoppingCart();
+
+            if (pretty.equals("on"))
+                return ok(Json.prettyPrint(toJson(list_of_rose_articles)).toString());
+            else
+                return ok(toJson(list_of_rose_articles).toString());
         }
-
-        List<RoseArticle> list_of_rose_articles = shopping_cart.updateShoppingCart();
-
-        if (pretty.equals("on"))
-            return ok(Json.prettyPrint(toJson(list_of_rose_articles)).toString());
-        else
-            return ok(toJson(list_of_rose_articles).toString());
+        return ok("[]");
     }
 
     private RoseArticle genericArticleToRose(GenericArticle generic_article) {

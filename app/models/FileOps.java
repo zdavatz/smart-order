@@ -23,6 +23,7 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CodingErrorAction;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -82,6 +83,27 @@ public class FileOps {
         }
 
         return map;
+    }
+
+    static public ArrayList<String> readFromTxtToList(String filename) {
+        ArrayList<String> list = new ArrayList<>();
+        try {
+            File file = new File(filename);
+            if (!file.exists())
+                return null;
+            FileInputStream fis = new FileInputStream(filename);
+            BufferedReader br = new BufferedReader(new InputStreamReader(fis, "UTF-8"));
+            String line;
+            while ((line = br.readLine()) != null) {
+                line = line.replaceAll("\\s+", "");
+                list.add(line);
+            }
+            br.close();
+        } catch (Exception e) {
+            System.err.println(">> Error in reading txt file: " + filename);
+        }
+
+        return list;
     }
 
     static public byte[] readBytesFromFile(String path) {

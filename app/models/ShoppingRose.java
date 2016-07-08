@@ -40,6 +40,7 @@ public class ShoppingRose {
     private static LinkedHashMap<String, Float> m_expenses_map = null;
     private static HashMap<String, Float> m_sales_figures_map = null;
     private static ArrayList<String> m_auto_generika_list = null;
+    private static ArrayList<String> m_auth_keys_list = null;
     private static HashMap<String, List<GenericArticle>> m_map_similar_articles = null;
 
     private Map<String, GenericArticle> m_shopping_basket = null;
@@ -77,13 +78,22 @@ public class ShoppingRose {
         loadRoseData();
     }
 
+    public boolean checkAuthKey(String auth_key) {
+        if (m_auth_keys_list!=null)
+            return m_auth_keys_list.contains(auth_key);
+        return false;
+    }
+
     private void loadRoseData() {
+        RoseData rd = RoseData.getInstance();
         // Load sales figures file
-        m_sales_figures_map = RoseData.getInstance().sales_figs_map();
+        m_sales_figures_map = rd.sales_figs_map();
         // Load auto generika file
-        m_auto_generika_list = RoseData.getInstance().autogenerika_list();
+        m_auto_generika_list = rd.autogenerika_list();
+        // Retrieve authorization keys
+        m_auth_keys_list= rd.auth_keys_list();
         // Retrieve user-related information
-        HashMap<String, User> user_map = RoseData.getInstance().user_map();
+        HashMap<String, User> user_map = rd.user_map();
         if (user_map.containsKey(m_customer_gln_code)) {
             User user = user_map.get(m_customer_gln_code);
             if (user!=null) {
