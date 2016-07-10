@@ -452,7 +452,7 @@ public class ShoppingRose {
                                 shipping_ = shippingStatus(a, a.getQuantity());
                                 shipping_status = shippingStatusColor(shipping_);
 
-                                ra.setGtin(ean_code);
+                                ra.setGtin(a.getEanCode());
                                 ra.setPharma(a.getPharmaCode());
                                 ra.setTitle(a.getPackTitle());
                                 ra.setSupplier(a.getSupplier());
