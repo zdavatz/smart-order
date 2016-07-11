@@ -77,7 +77,7 @@ public final class RoseData {
         rose_user_map = loadRoseUserMap(Constants.ROSE_DIR + "rose_conditions.ser.clear");
         rose_sales_figs_map = loadRoseSalesFigures(Constants.ROSE_DIR + "rose_sales_fig.ser.clear");
         rose_autogenerika_list = loadRoseAutoGenerika(Constants.ROSE_DIR + "rose_autogenerika.ser.clear");
-        rose_auth_keys_list = loadRoseAuthKeys(Constants.ROSE_DIR + "rose.clear");
+        rose_auth_keys_list = loadRoseAuthKeys(Constants.ROSE_DIR + "rose_auth_keys.txt");
 
         System.out.println("====> Loaded rose_auth_keys.txt -> Num keys in file = ");// + rose_auth_keys_list.size());
     }

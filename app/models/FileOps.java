@@ -86,6 +86,23 @@ public class FileOps {
     }
 
     static public ArrayList<String> readFromTxtToList(String filename) {
+
+        System.out.println("================================");
+
+        File folder = new File(Constants.ROSE_DIR);
+        File[] listOfFiles = folder.listFiles();
+
+        for (int i = 0; i < listOfFiles.length; i++) {
+            if (listOfFiles[i].isFile()) {
+                System.out.println("File " + listOfFiles[i].getName());
+            } else if (listOfFiles[i].isDirectory()) {
+                System.out.println("Directory " + listOfFiles[i].getName());
+            }
+        }
+
+        System.out.println("================================");
+
+
         ArrayList<String> list = new ArrayList<>();
         try {
 
