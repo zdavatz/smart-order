@@ -54,10 +54,7 @@ public class FileWatchActor extends UntypedActor {
 
     @Override
     public void onReceive(Object message) throws Exception {
-        System.out.println("before watchkey");
         WatchKey key = _watcher.poll();
-        System.out.println("after watchkey");
-
         if (key != null) {
             for (WatchEvent<?> event : key.pollEvents()) {
                 // Get event type
@@ -77,6 +74,7 @@ public class FileWatchActor extends UntypedActor {
                     Thread.sleep(1000);
                     RoseData.getInstance().loadAllFiles();
                     System.out.println("Re-loading all rose files... " + dateFormat.format(date));
+                    key.reset();
                 }
             }
         }
