@@ -42,8 +42,8 @@ public class OnFileWatch {
 
         // 'cancellable' can be used to cancel the execution of the scheduled operation
         Cancellable cancellable = system.scheduler().schedule(
-                Duration.create(0, TimeUnit.MILLISECONDS),  // Initial delay 0 milliseconds
-                Duration.create(1, TimeUnit.MINUTES),       // Frequency 1 minute
+                Duration.create(30, TimeUnit.SECONDS),   // Initial delay 0 milliseconds
+                Duration.create(1, TimeUnit.MINUTES),   // Frequency 1 minute
                 fileWatchActor,
                 "tick",
                 system.dispatcher(),
