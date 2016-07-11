@@ -88,7 +88,13 @@ public class FileOps {
     static public ArrayList<String> readFromTxtToList(String filename) {
         ArrayList<String> list = new ArrayList<>();
         try {
+
+            System.out.println("====> Loading filename: " + filename);
+
             File file = new File(filename);
+
+            System.out.println("====> Does file exist? " + file.exists());
+
             if (!file.exists())
                 return null;
             FileInputStream fis = new FileInputStream(filename);
