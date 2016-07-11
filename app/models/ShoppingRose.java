@@ -79,6 +79,16 @@ public class ShoppingRose {
     }
 
     public boolean checkAuthKey(String auth_key) {
+
+        if (m_auth_keys_list==null)
+            System.out.println("====> checkAuthKey -> m_auth_keys_list IS null!!!");
+        else {
+            System.out.println("====> checkAuthKey -> NUM KEYS = " + m_auth_keys_list.size());
+            for (String k : m_auth_keys_list){
+                System.out.println("Key " + k + " -> " + auth_key);
+            }
+        }
+
         if (m_auth_keys_list!=null)
             return m_auth_keys_list.contains(auth_key);
         return false;
