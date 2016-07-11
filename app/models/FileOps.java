@@ -85,11 +85,11 @@ public class FileOps {
         return map;
     }
 
-    static public ArrayList<String> readFromTxtToList(String filename) {
+    static public ArrayList<String> readFromTxtToList(String path) {
 
         System.out.println("================================");
 
-        File folder = new File(Constants.ROSE_DIR);
+        File folder = new File("./");
         File[] listOfFiles = folder.listFiles();
 
         for (int i = 0; i < listOfFiles.length; i++) {
@@ -104,17 +104,17 @@ public class FileOps {
 
 
         ArrayList<String> list = new ArrayList<>();
+
+        System.out.println("====> Loading filename: " + path);
+
+        File file = new File(path);
+
+        System.out.println("====> Does file exist? " + file.exists());
+
+        if (!file.exists())
+            return null;
         try {
-
-            System.out.println("====> Loading filename: " + filename);
-
-            File file = new File(filename);
-
-            System.out.println("====> Does file exist? " + file.exists());
-
-            if (!file.exists())
-                return null;
-            FileInputStream fis = new FileInputStream(filename);
+            FileInputStream fis = new FileInputStream(path);
             BufferedReader br = new BufferedReader(new InputStreamReader(fis, "UTF-8"));
             String line;
             while ((line = br.readLine()) != null) {
@@ -123,7 +123,7 @@ public class FileOps {
             }
             br.close();
         } catch (Exception e) {
-            System.err.println(">> Error in reading txt file: " + filename);
+            System.err.println(">> Error in reading txt file: " + path);
         }
 
         return list;
