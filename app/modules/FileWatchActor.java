@@ -47,7 +47,6 @@ public class FileWatchActor extends UntypedActor {
         try {
             _watcher = FileSystems.getDefault().newWatchService();
             dir.register(_watcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
-
         } catch (java.io.IOException e) {
             return;
         }
@@ -55,7 +54,9 @@ public class FileWatchActor extends UntypedActor {
 
     @Override
     public void onReceive(Object message) throws Exception {
+        System.out.println("before watchkey");
         WatchKey key = _watcher.poll();
+        System.out.println("after watchkey");
 
         if (key != null) {
             for (WatchEvent<?> event : key.pollEvents()) {

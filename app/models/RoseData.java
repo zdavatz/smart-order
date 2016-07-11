@@ -79,7 +79,7 @@ public final class RoseData {
         rose_autogenerika_list = loadRoseAutoGenerika(Constants.ROSE_DIR + "rose_autogenerika.ser.clear");
         rose_auth_keys_list = loadRoseAuthKeys(Constants.ROSE_DIR + "rose_auth_keys.txt");
 
-        System.out.println("====> Loaded rose_auth_keys.txt -> Num keys in file = " + rose_auth_keys_list.size());
+        System.out.println("====> Loaded rose_auth_keys.txt -> Num keys in file = ");// + rose_auth_keys_list.size());
     }
 
     /**
