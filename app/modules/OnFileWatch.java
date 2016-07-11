@@ -41,6 +41,7 @@ public class OnFileWatch {
         ActorRef fileWatchActor = system.actorOf(FileWatchActor.props);
 
         // 'cancellable' can be used to cancel the execution of the scheduled operation
+        /*
         Cancellable cancellable = system.scheduler().schedule(
                 Duration.create(30, TimeUnit.SECONDS),   // Initial delay 0 milliseconds
                 Duration.create(1, TimeUnit.MINUTES),   // Frequency 1 minute
@@ -49,5 +50,6 @@ public class OnFileWatch {
                 system.dispatcher(),
                 null
         );
+        */
     }
 }
