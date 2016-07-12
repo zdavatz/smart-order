@@ -72,8 +72,8 @@ public class FileWatchActor extends UntypedActor {
                 } else if (kind == ENTRY_MODIFY) {
                     // process modify event
                     Thread.sleep(1000);
-                    RoseData.getInstance().loadAllFiles();
                     System.out.println("Re-loading all rose files... " + dateFormat.format(date));
+                    RoseData.getInstance().loadAllFiles();
                     key.reset();
                 }
             }

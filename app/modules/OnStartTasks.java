@@ -26,8 +26,7 @@ import javax.inject.Inject;
 public class OnStartTasks {
     @Inject
     public OnStartTasks() {
-        System.out.print("Loading all rose files... ");
+        System.out.println("Loading all rose files... ");
         RoseData.getInstance().loadAllFiles();
-        System.out.println("loaded.");
     }
 }

@@ -87,11 +87,10 @@ public class FileOps {
     }
 
     static public ArrayList<String> readFromTxtToList(String path) {
-        /*
         File file = new File(path);
         if (!file.exists())
             return null;
-        */
+
         ArrayList<String> list = new ArrayList<>();
         try {
             FileInputStream fis = new FileInputStream(path);
