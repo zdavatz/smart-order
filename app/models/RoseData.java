@@ -80,6 +80,10 @@ public final class RoseData {
         rose_auth_keys_list = loadRoseAuthKeys(Constants.ROSE_DIR + "rose_auth_keys.txt");
     }
 
+    private ArrayList<String> loadRoseAuthKeys(String file_name) {
+        return FileOps.readFromTxtToList(file_name);
+    }
+
     /**
      * Loads Rose users
      * Format: gln code -> user
@@ -125,10 +129,5 @@ public final class RoseData {
             auto_generika_list = (ArrayList<String>)FileOps.deserialize(serialized_object);
         }
         return auto_generika_list;
-    }
-
-    private ArrayList<String> loadRoseAuthKeys(String file_name) {
-        ArrayList<String> auth_keys_list = FileOps.readFromTxtToList(file_name);
-        return auth_keys_list;
     }
 }

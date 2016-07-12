@@ -70,6 +70,7 @@ public class FileOps {
             File file = new File(filename);
             if (!file.exists())
                 return null;
+
             FileInputStream fis = new FileInputStream(filename);
             BufferedReader br = new BufferedReader(new InputStreamReader(fis, "UTF-8"));
             String line;
@@ -91,7 +92,7 @@ public class FileOps {
         if (!file.exists())
             return null;
         try {
-            FileInputStream fis = new FileInputStream(path);
+            FileInputStream fis = new FileInputStream(file);
             BufferedReader br = new BufferedReader(new InputStreamReader(fis, "UTF-8"));
             String line;
             while ((line = br.readLine()) != null) {
@@ -99,7 +100,7 @@ public class FileOps {
                 list.add(line);
             }
             br.close();
-        } catch (Exception e) {
+        } catch (IOException e) {
             System.err.println(">> Error in reading txt file: " + path);
         }
 
