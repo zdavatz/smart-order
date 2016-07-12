@@ -87,10 +87,11 @@ public class FileOps {
     }
 
     static public ArrayList<String> readFromTxtToList(String path) {
-        ArrayList<String> list = new ArrayList<>();
         File file = new File(path);
         if (!file.exists())
             return null;
+
+        ArrayList<String> list = new ArrayList<>();
         try {
             FileInputStream fis = new FileInputStream(file);
             BufferedReader br = new BufferedReader(new InputStreamReader(fis, "UTF-8"));
@@ -100,10 +101,10 @@ public class FileOps {
                 list.add(line);
             }
             br.close();
+            fis.close();
         } catch (IOException e) {
             System.err.println(">> Error in reading txt file: " + path);
         }
-
         return list;
     }
 
@@ -111,6 +112,7 @@ public class FileOps {
         File file = new File(path);
         if (!file.exists())
             return null;
+
         byte[] buf = new byte[(int)file.length()];
         try {
             DataInputStream dis = new DataInputStream(new FileInputStream(file));
