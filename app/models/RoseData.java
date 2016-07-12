@@ -74,10 +74,10 @@ public final class RoseData {
     }
 
     public void loadAllFiles() {
-        rose_auth_keys_list = loadRoseAuthKeys(Constants.ROSE_DIR + "rose_auth_keys.txt");
         rose_user_map = loadRoseUserMap(Constants.ROSE_DIR + "rose_conditions.ser.clear");
         rose_sales_figs_map = loadRoseSalesFigures(Constants.ROSE_DIR + "rose_sales_fig.ser.clear");
         rose_autogenerika_list = loadRoseAutoGenerika(Constants.ROSE_DIR + "rose_autogenerika.ser.clear");
+        rose_auth_keys_list = loadRoseAuthKeys(Constants.ROSE_DIR + "rose_auth_keys.txt");
     }
 
     private ArrayList<String> loadRoseAuthKeys(String file_name) {

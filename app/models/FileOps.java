@@ -87,13 +87,14 @@ public class FileOps {
     }
 
     static public ArrayList<String> readFromTxtToList(String path) {
+        /*
         File file = new File(path);
         if (!file.exists())
             return null;
-
+        */
         ArrayList<String> list = new ArrayList<>();
         try {
-            FileInputStream fis = new FileInputStream(file);
+            FileInputStream fis = new FileInputStream(path);
             BufferedReader br = new BufferedReader(new InputStreamReader(fis, "UTF-8"));
             String line;
             while ((line = br.readLine()) != null) {
