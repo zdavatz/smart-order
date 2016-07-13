@@ -88,9 +88,6 @@ public class FileOps {
 
     static public ArrayList<String> readFromTxtToList(String path) {
         File file = new File(path);
-
-        System.out.println("---> file path = " + file.getAbsolutePath() + " / file name = " + file.getName());
-
         if (!file.exists())
             return null;
 

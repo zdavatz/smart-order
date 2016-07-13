@@ -39,13 +39,14 @@ public class ShoppingRose {
     private static LinkedHashMap<String, Float> m_rebate_map = null;
     private static LinkedHashMap<String, Float> m_expenses_map = null;
     private static HashMap<String, Float> m_sales_figures_map = null;
+    private static HashMap<String, String> m_rose_ids_map = null;
     private static ArrayList<String> m_auto_generika_list = null;
     private static ArrayList<String> m_auth_keys_list = null;
     private static HashMap<String, List<GenericArticle>> m_map_similar_articles = null;
 
     private Map<String, GenericArticle> m_shopping_basket = null;
 
-    private String m_customer_gln_code;
+    private String m_customer_gln_code = "";
 
     private static boolean m_filter_state = true;
     private static int m_min_articles = 2;
@@ -71,11 +72,23 @@ public class ShoppingRose {
 
     /**
      * Constructor!
-     * @param customer_gln_code
+     * @param customer_id
      */
-    public ShoppingRose(String customer_gln_code) {
-        m_customer_gln_code = customer_gln_code;
-        loadRoseData();
+    public ShoppingRose(String customer_id) {
+        // Get rose id map
+        RoseData rd = RoseData.getInstance();
+        m_rose_ids_map = rd.rose_ids_map();
+        // "Normalize" id
+        if (customer_id.length()==6) {
+            if (m_rose_ids_map!=null && m_rose_ids_map.containsKey(customer_id))
+                m_customer_gln_code = m_rose_ids_map.get(customer_id);
+        } else if (customer_id.length()==13) {
+            m_customer_gln_code = customer_id;
+        }
+        if (!m_customer_gln_code.isEmpty())
+            loadRoseData();
+        else
+            System.out.println(">> customer glncode or roseid is missing or wrong!");
     }
 
     public boolean checkAuthKey(String auth_key) {

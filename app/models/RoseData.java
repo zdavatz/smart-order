@@ -21,7 +21,6 @@ package models;
 
 import com.maxl.java.shared.User;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -35,6 +34,7 @@ public final class RoseData {
 
     private HashMap<String, User> rose_user_map;
     private HashMap<String, Float> rose_sales_figs_map;
+    private HashMap<String, String> rose_ids_map;
     private ArrayList<String> rose_autogenerika_list;
     private ArrayList<String> rose_auth_keys_list;
 
@@ -65,6 +65,10 @@ public final class RoseData {
         return this.rose_sales_figs_map;
     }
 
+    public HashMap<String, String> rose_ids_map() {
+        return this.rose_ids_map;
+    }
+
     public ArrayList<String> autogenerika_list() {
         return this.rose_autogenerika_list;
     }
@@ -76,25 +80,11 @@ public final class RoseData {
     public void loadAllFiles() {
         String rose_path = System.getProperty("user.dir") + Constants.ROSE_DIR;
 
-        System.out.print("# Loading rose_conditions.ser.clear... ");
         rose_user_map = loadRoseUserMap(rose_path + "rose_conditions.ser.clear");
-        if (rose_user_map!=null)
-            System.out.println("OK");
-
-        System.out.print("# Loading rose_sales_fig.ser.clear... ");
         rose_sales_figs_map = loadRoseSalesFigures(rose_path + "rose_sales_fig.ser.clear");
-        if (rose_sales_figs_map!=null)
-            System.out.println("OK");
-
-        System.out.print("# Loading rose_autogenerika.ser.clear... ");
+        rose_ids_map = loadRoseIds(rose_path + "rose_ids.ser.clear");
         rose_autogenerika_list = loadRoseAutoGenerika(rose_path + "rose_autogenerika.ser.clear");
-        if (rose_autogenerika_list!=null)
-            System.out.println("OK");
-
-        System.out.print("# Loading rose_auth_keys.txt... ");
         rose_auth_keys_list = loadRoseAuthKeys(rose_path + "rose_auth_keys.txt");
-        if (rose_auth_keys_list!=null)
-            System.out.println("OK");
     }
 
     private ArrayList<String> loadRoseAuthKeys(String file_name) {
@@ -131,6 +121,22 @@ public final class RoseData {
             sales_figures_map = (HashMap<String, Float>)FileOps.deserialize(serialized_object);
         }
         return sales_figures_map;
+    }
+
+    /**
+     * Loads Rose ids
+     * Format: gln_code -> rose id
+     * @param: ser_file_name
+     * @return: rose ids map
+     */
+    @SuppressWarnings("unchecked")
+    private HashMap<String, String> loadRoseIds(String ser_file_name) {
+        HashMap<String, String> rose_ids_map = new HashMap<>();
+        byte[] serialized_object = FileOps.readBytesFromFile(ser_file_name);
+        if (serialized_object!=null) {
+            rose_ids_map = (HashMap<String, String>)FileOps.deserialize(serialized_object);
+        }
+        return rose_ids_map;
     }
 
     /**

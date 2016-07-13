@@ -26,7 +26,6 @@ import play.db.NamedDatabase;
 import play.db.Database;
 import play.libs.Json;
 import play.mvc.*;
-import views.html.index;
 
 import java.util.*;
 import java.util.HashMap;
@@ -82,8 +81,8 @@ public class MainController extends Controller {
         return ok(duration + res);
     }
 
-    public Result getSmartBasket(String pretty, int limit, String auth_key, String gln_code, String basket) {
-        ShoppingRose shopping_cart = new ShoppingRose(gln_code);
+    public Result getSmartBasket(String pretty, int limit, String auth_key, String user_id, String basket) {
+        ShoppingRose shopping_cart = new ShoppingRose(user_id);
 
         if (shopping_cart.checkAuthKey(auth_key)) {
             Pattern p = Pattern.compile("\\((\\d{13}),(\\d+)\\)");
