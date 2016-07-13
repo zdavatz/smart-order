@@ -81,8 +81,8 @@ public class MainController extends Controller {
         return ok(duration + res);
     }
 
-    public Result getSmartBasket(String pretty, int limit, String auth_key, String user_id, String basket) {
-        ShoppingRose shopping_cart = new ShoppingRose(user_id);
+    public Result getSmartBasket(String pretty, int limit, String auth_key, String gln_code, String basket) {
+        ShoppingRose shopping_cart = new ShoppingRose(gln_code);
 
         if (shopping_cart.checkAuthKey(auth_key)) {
             Pattern p = Pattern.compile("\\((\\d{13}),(\\d+)\\)");
@@ -90,12 +90,13 @@ public class MainController extends Controller {
             ArrayList<String> list_of_articles = new ArrayList<>();
             HashMap<String, Integer> map_of_articles = new HashMap<>();
             while (m.find()) {
-                if (!m.group(1).isEmpty() && !m.group(2).isEmpty()) {
-                    list_of_articles.add(m.group(1));
-                    map_of_articles.put(m.group(1), Integer.valueOf(m.group(2)));
+                String ean = m.group(1);
+                String qty = m.group(2);
+                if (!ean.isEmpty() && !qty.isEmpty()) {
+                    list_of_articles.add(ean);
+                    map_of_articles.put(ean, Integer.valueOf(qty));
                 }
             }
-
             List<GenericArticle> articles = list_of_articles.stream()
                     .map(this::searchSingleEan)
                     .collect(Collectors.toList());
@@ -107,13 +108,15 @@ public class MainController extends Controller {
                 // Loop through all articles found
                 for (GenericArticle article : articles) {
                     String ean = article.getEanCode();
-                    article.setQuantity(map_of_articles.get(ean));
-                    shopping_basket.put(ean, article);
-                    LinkedList<GenericArticle> la = listSimilarArticles(article);
-                    if (la != null) {
-                        // Check if ean code is already part of the map...
-                        if (!map_of_similar_articles.containsKey(ean)) {
-                            map_of_similar_articles.put(ean, la);
+                    if (map_of_articles.containsKey(ean)) {
+                        article.setQuantity(map_of_articles.get(ean));
+                        shopping_basket.put(ean, article);
+                        LinkedList<GenericArticle> la = listSimilarArticles(article);
+                        if (la != null) {
+                            // Check if ean code is already part of the map...
+                            if (!map_of_similar_articles.containsKey(ean)) {
+                                map_of_similar_articles.put(ean, la);
+                            }
                         }
                     }
                 }
@@ -177,8 +180,14 @@ public class MainController extends Controller {
                     if (!article.isOffMarket()) {
                         if (!a.isOffMarket()) {
                             // Make sure that articles added to the list are NOT off-the-market
+                            // s AND size -> stückzahl, e.g. 12
+                            // u AND unit -> dosierung, e.g. 100mg
+                            if (size.equals(s) && (unit.contains(u) || u.contains(unit)))
+                                list_a.add(a);
+                            /*
                             if ((size.contains(s) || s.contains(size)) && (unit.contains(u) || u.contains(unit)) )
                                 list_a.add(a);
+                            */
                         }
                     } else {
                         // If the main article is off the market, get some replacements...
@@ -223,8 +232,6 @@ public class MainController extends Controller {
 
     private List<GenericArticle> searchEan(String code) {
         List<GenericArticle> list_of_articles = new ArrayList<>();
-
-        System.out.println("search ean = " + code);
 
         try {
             Connection conn = rose_db.getConnection();

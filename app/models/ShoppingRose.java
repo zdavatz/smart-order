@@ -21,15 +21,13 @@ package models;
 
 import com.maxl.java.shared.User;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * Created by maxl on 29.06.2016.
@@ -47,6 +45,8 @@ public class ShoppingRose {
     private Map<String, GenericArticle> m_shopping_basket = null;
 
     private String m_customer_gln_code = "";
+
+    private MessageDigest m_message_digest;
 
     private static boolean m_filter_state = true;
     private static int m_min_articles = 2;
@@ -116,6 +116,27 @@ public class ShoppingRose {
                 m_expenses_map = user.expenses_map;
             }
         }
+    }
+
+    private String randomHashCode(String hash_str) {
+        // Initialize crypto hash for basket
+        try {
+            m_message_digest = MessageDigest.getInstance("SHA-256");
+        } catch(NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        Random rand = new Random();
+        String hash_code = "";
+        hash_str += rand.nextLong();
+        try {
+            byte[] digest = m_message_digest.digest(hash_str.getBytes("UTF-8"));
+            digest = Arrays.copyOf(digest, 16); // 16 character hash!
+            BigInteger bigInt = new BigInteger(1, digest);
+            hash_code = bigInt.toString(16);    // 0-9a-f (hexadecimal)
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        return hash_code;
     }
 
     private String shortSupplier(String longSupplier) {
@@ -371,6 +392,11 @@ public class ShoppingRose {
 
         if (m_shopping_basket!=null && m_shopping_basket.size()>0) {
 
+            // Calc hash for order
+            DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+            Date date = new Date();
+            String hash = randomHashCode(dateFormat.format(date));
+
             for (Map.Entry<String, GenericArticle> entry : m_shopping_basket.entrySet()) {
                 GenericArticle article = entry.getValue();
 
@@ -411,6 +437,7 @@ public class ShoppingRose {
                 int shipping_ = shippingStatus(article, quantity);
                 Pair<String, Integer> shipping_status = shippingStatusColor(shipping_);
 
+                rose_article.setHash(hash);
                 rose_article.setGtin(ean_code);
                 rose_article.setPharma(article.getPharmaCode());
                 rose_article.setTitle(article.getPackTitle());
