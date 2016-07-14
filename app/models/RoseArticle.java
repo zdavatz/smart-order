@@ -34,9 +34,6 @@ import java.util.LinkedList;
  */
 public class RoseArticle {
 
-    @JsonProperty("hash")
-    private String hash;
-
     @JsonProperty("gtin")
     private String gtin;
 
@@ -75,10 +72,6 @@ public class RoseArticle {
 
     @JsonProperty("alternatives")
     public LinkedList<RoseArticle> alternatives;
-
-    public void setHash(String hash) {
-        this.hash = hash;
-    }
 
     public void setGtin(String gtin) {
         this.gtin = gtin;

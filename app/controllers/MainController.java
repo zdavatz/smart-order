@@ -21,12 +21,15 @@ package controllers;
 
 import models.GenericArticle;
 import models.RoseArticle;
+import models.RoseOrder;
 import models.ShoppingRose;
 import play.db.NamedDatabase;
 import play.db.Database;
 import play.libs.Json;
 import play.mvc.*;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
@@ -126,12 +129,24 @@ public class MainController extends Controller {
                 shopping_cart.updateMapSimilarArticles(map_of_similar_articles);
             }
 
+            // List of articles
             List<RoseArticle> list_of_rose_articles = shopping_cart.updateShoppingCart();
+            // Calc hash for order
+            DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            Date date = new Date();
+            String timestamp = dateFormat.format(date);
+            String hash = shopping_cart.randomHashCode(timestamp);
+
+            RoseOrder rose_order = new RoseOrder();
+            rose_order.setHash(hash);
+            rose_order.setTimestamp(timestamp);
+            rose_order.setGlncode(gln_code);
+            rose_order.setListArticles(list_of_rose_articles);
 
             if (pretty.equals("on"))
-                return ok(Json.prettyPrint(toJson(list_of_rose_articles)).toString());
+                return ok(Json.prettyPrint(toJson(rose_order)).toString());
             else
-                return ok(toJson(list_of_rose_articles).toString());
+                return ok(toJson(rose_order).toString());
         }
         return ok("[]");
     }

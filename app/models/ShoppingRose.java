@@ -97,6 +97,27 @@ public class ShoppingRose {
         return false;
     }
 
+    public String randomHashCode(String hash_str) {
+        // Initialize crypto hash for basket
+        try {
+            m_message_digest = MessageDigest.getInstance("SHA-256");
+        } catch(NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        Random rand = new Random();
+        String hash_code = "";
+        hash_str += rand.nextLong();
+        try {
+            byte[] digest = m_message_digest.digest(hash_str.getBytes("UTF-8"));
+            digest = Arrays.copyOf(digest, 16); // 16 character hash!
+            BigInteger bigInt = new BigInteger(1, digest);
+            hash_code = bigInt.toString(16);    // 0-9a-f (hexadecimal)
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        return hash_code;
+    }
+
     private void loadRoseData() {
         RoseData rd = RoseData.getInstance();
         // Load sales figures file
@@ -116,27 +137,6 @@ public class ShoppingRose {
                 m_expenses_map = user.expenses_map;
             }
         }
-    }
-
-    private String randomHashCode(String hash_str) {
-        // Initialize crypto hash for basket
-        try {
-            m_message_digest = MessageDigest.getInstance("SHA-256");
-        } catch(NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
-        Random rand = new Random();
-        String hash_code = "";
-        hash_str += rand.nextLong();
-        try {
-            byte[] digest = m_message_digest.digest(hash_str.getBytes("UTF-8"));
-            digest = Arrays.copyOf(digest, 16); // 16 character hash!
-            BigInteger bigInt = new BigInteger(1, digest);
-            hash_code = bigInt.toString(16);    // 0-9a-f (hexadecimal)
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-        return hash_code;
     }
 
     private String shortSupplier(String longSupplier) {
@@ -392,11 +392,6 @@ public class ShoppingRose {
 
         if (m_shopping_basket!=null && m_shopping_basket.size()>0) {
 
-            // Calc hash for order
-            DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-            Date date = new Date();
-            String hash = randomHashCode(dateFormat.format(date));
-
             for (Map.Entry<String, GenericArticle> entry : m_shopping_basket.entrySet()) {
                 GenericArticle article = entry.getValue();
 
@@ -437,7 +432,6 @@ public class ShoppingRose {
                 int shipping_ = shippingStatus(article, quantity);
                 Pair<String, Integer> shipping_status = shippingStatusColor(shipping_);
 
-                rose_article.setHash(hash);
                 rose_article.setGtin(ean_code);
                 rose_article.setPharma(article.getPharmaCode());
                 rose_article.setTitle(article.getPackTitle());
