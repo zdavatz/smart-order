@@ -137,16 +137,14 @@ public class MainController extends Controller {
             String timestamp = dateFormat.format(date);
             String hash = shopping_cart.randomHashCode(timestamp);
 
-            RoseOrder rose_order = new RoseOrder();
-            rose_order.setHash(hash);
-            rose_order.setTimestamp(timestamp);
-            rose_order.setGlncode(gln_code);
+            RoseOrder rose_order = new RoseOrder(hash, timestamp, gln_code);
             rose_order.setListArticles(list_of_rose_articles);
 
-            if (pretty.equals("on"))
+            if (pretty.equals("on")) {
                 return ok(Json.prettyPrint(toJson(rose_order)).toString());
-            else
+            } else {
                 return ok(toJson(rose_order).toString());
+            }
         }
         return ok("[]");
     }
