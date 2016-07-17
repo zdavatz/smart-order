@@ -19,6 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 package models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
@@ -50,7 +51,7 @@ public class RoseArticle {
     private int quantity;
 
     @JsonProperty("swissmed")
-    private String swissmed;
+    String swissmed;
 
     @JsonProperty("rose_price")
     @JsonSerialize(using = PriceSerializer.class)
@@ -72,6 +73,45 @@ public class RoseArticle {
 
     @JsonProperty("alternatives")
     public LinkedList<RoseArticle> alternatives;
+
+    private String size;
+
+    private String galen;
+
+    private String unit;
+
+    @JsonIgnore
+    public String getGtin() { return gtin; }
+
+    @JsonIgnore
+    public String getTitle() { return title; }
+
+    @JsonIgnore
+    public String getRosePrice() { return rose_price.setScale(2, BigDecimal.ROUND_HALF_UP).toString(); }
+
+    @JsonIgnore
+    public String getPublicPrice() { return public_price.setScale(2, BigDecimal.ROUND_HALF_UP).toString(); }
+
+    @JsonIgnore
+    public String getQuantity() { return Integer.toString(quantity); }
+
+    @JsonIgnore
+    public String getCashRebate() { return cash_rebate.toString(); }
+
+    @JsonIgnore
+    public String getPreferences() { return prefs; }
+
+    @JsonIgnore
+    public String getShippingStatus() { return shipping; }
+
+    @JsonIgnore
+    public String getSize() { return size; }
+
+    @JsonIgnore
+    public String getGalen() { return galen; }
+
+    @JsonIgnore
+    public String getUnit() { return unit; }
 
     public void setGtin(String gtin) {
         this.gtin = gtin;
@@ -116,6 +156,12 @@ public class RoseArticle {
     public void setShippingStatus(String shipping) {
         this.shipping = shipping;
     }
+
+    public void setSize(String size) { this.size = size; }
+
+    public void setGalen(String galen) { this.galen = galen; }
+
+    public void setUnit(String unit) { this.unit = unit; }
 }
 
 class PriceSerializer extends JsonSerializer<BigDecimal> {

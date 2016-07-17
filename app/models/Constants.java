@@ -24,6 +24,7 @@ import java.util.Map;
 
 public class Constants {
     static public final String ROSE_DIR = "/rose/";
+    static public final String LOG_DIR = "/orders/";
 
     static public final Map<String, Integer> doctorPreferences;
     static {

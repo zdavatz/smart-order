@@ -3,7 +3,7 @@ Copyright (c) 2016 ML <cybrmx@gmail.com>
 
 This file is part of AmikoRose.
 
-AmiKoWeb is free software: you can redistribute it and/or modify
+AmiKoRose is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
@@ -44,6 +44,20 @@ public class FileOps {
             System.err.println(">> Error reading file " + filename);
         }
         return file_str;
+    }
+
+    static public void appendToFile(String string_to_write, String dir_name, String file_name)
+            throws IOException {
+        File wdir = new File(dir_name);
+        if (!wdir.exists())
+            wdir.mkdirs();
+        File wfile = new File(dir_name+"/"+file_name);
+        if (!wfile.exists())
+            wfile.createNewFile();
+        FileWriter fw = new FileWriter(wfile.getAbsoluteFile(), true);  // append
+        BufferedWriter bw = new BufferedWriter(fw);
+        bw.write(string_to_write);
+        bw.close();
     }
 
     static public void writeToFile(String string_to_write, String dir_name, String file_name, String encoding)

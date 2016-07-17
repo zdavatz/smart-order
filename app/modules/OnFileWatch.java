@@ -3,7 +3,7 @@ Copyright (c) 2016 ML <cybrmx@gmail.com>
 
 This file is part of AmikoRose.
 
-AmiKoWeb is free software: you can redistribute it and/or modify
+AmiKoRose is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
@@ -23,6 +23,7 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Cancellable;
 import com.google.inject.Singleton;
+import myactors.FileWatchActor;
 import scala.concurrent.duration.Duration;
 
 import java.util.concurrent.TimeUnit;

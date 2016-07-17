@@ -89,6 +89,10 @@ public class ShoppingRose {
             System.out.println(">> customer glncode or roseid is missing or wrong!");
     }
 
+    public String getCustomerGlnCode() {
+        return m_customer_gln_code;
+    }
+
     public boolean checkAuthKey(String auth_key) {
         if (m_auth_keys_list!=null)
             return m_auth_keys_list.contains(auth_key);
@@ -433,6 +437,9 @@ public class ShoppingRose {
                 rose_article.setGtin(ean_code);
                 rose_article.setPharma(article.getPharmaCode());
                 rose_article.setTitle(article.getPackTitle());
+                rose_article.setSize(article.getPackSize());
+                rose_article.setGalen(article.getPackGalen());
+                rose_article.setUnit(article.getPackUnit());
                 rose_article.setSupplier(article.getSupplier());
                 rose_article.setRosePrice(rose_price);
                 rose_article.setPublicPrice(article.getPublicPriceAsFloat());
@@ -487,6 +494,9 @@ public class ShoppingRose {
                                 ra.setGtin(a.getEanCode());
                                 ra.setPharma(a.getPharmaCode());
                                 ra.setTitle(a.getPackTitle());
+                                ra.setSize(a.getPackSize());
+                                ra.setGalen(a.getPackGalen());
+                                ra.setUnit(a.getPackUnit());
                                 ra.setSupplier(a.getSupplier());
                                 ra.setRosePrice(rose_price);
                                 ra.setPublicPrice(a.getPublicPriceAsFloat());

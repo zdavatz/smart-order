@@ -19,15 +19,17 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 package controllers;
 
-import models.GenericArticle;
-import models.RoseArticle;
-import models.RoseOrder;
-import models.ShoppingRose;
+import akka.actor.ActorRef;
+import akka.actor.ActorSystem;
+import models.*;
+import myactors.OrderLogActor;
 import play.db.NamedDatabase;
 import play.db.Database;
 import play.libs.Json;
 import play.mvc.*;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -59,6 +61,30 @@ public class MainController extends Controller {
         return ok("Welcome to AmikoRose");
     }
 
+    public Result test() {
+        long starttime = java.lang.System.currentTimeMillis();
+        RoseData rd = RoseData.getInstance();
+        ArrayList<String> autogenerika = rd.autogenerika_list();
+        String basket = "";//"(7680573480114,10)(7680562090041,10)(7680333930248,10)(7680652370046,20)(7680546420598,1)";
+        int counter = 0;
+        for (String a : autogenerika) {
+            basket += "(" + a + ",10)";
+            if (counter++>20)
+                break;
+        }
+        String ip_addr = "127.0.0.1:9000/";
+        try {
+            URL url = new URL("http://" + ip_addr + "/smart/full/compact?pretty=on&authkey=1111&glncode=950757&basket=" + basket);
+        } catch(MalformedURLException e) {
+            e.printStackTrace();
+        }
+        Result result = getSmartBasket("on", 0, "1111", "950757", basket);
+        String duration = String.format("Duration: %dms\n", (System.currentTimeMillis() - starttime));
+        System.out.println(basket);
+        System.out.println("Test duration in [ms] = " + duration);
+        return result;
+    }
+
     public Result getGtin(String gtin) {
         CompletableFuture<List<GenericArticle>> articles = CompletableFuture.supplyAsync(()->searchEan(gtin));
         CompletableFuture<List<RoseArticle>> rose_articles = articles
@@ -84,6 +110,7 @@ public class MainController extends Controller {
         return ok(duration + res);
     }
 
+    @Inject ActorSystem actorSystem;
     public Result getSmartBasket(String pretty, int limit, String auth_key, String gln_code, String basket) {
         ShoppingRose shopping_cart = new ShoppingRose(gln_code);
 
@@ -103,8 +130,8 @@ public class MainController extends Controller {
             List<GenericArticle> articles = list_of_articles.stream()
                     .map(this::searchSingleEan)
                     .collect(Collectors.toList());
-            if (limit <= 0)
-                shopping_cart.setResultsLimit(false);
+            shopping_cart.setResultsLimit(limit>0);
+
             if (articles.size() > 0) {
                 Map<String, GenericArticle> shopping_basket = new HashMap<>();
                 Map<String, List<GenericArticle>> map_of_similar_articles = new HashMap<>();
@@ -137,14 +164,20 @@ public class MainController extends Controller {
             String timestamp = dateFormat.format(date);
             String hash = shopping_cart.randomHashCode(timestamp);
 
-            RoseOrder rose_order = new RoseOrder(hash, timestamp, gln_code);
+            RoseOrder rose_order = new RoseOrder(hash, timestamp, shopping_cart.getCustomerGlnCode());
             rose_order.setListArticles(list_of_rose_articles);
 
-            if (pretty.equals("on")) {
-                return ok(Json.prettyPrint(toJson(rose_order)).toString());
-            } else {
-                return ok(toJson(rose_order).toString());
-            }
+            // Save to file (append)
+            ActorRef myActor = actorSystem.actorOf(OrderLogActor.props);
+            myActor.tell(rose_order, ActorRef.noSender());
+
+            String order_json;
+            if (pretty.equals("on"))
+                order_json = Json.prettyPrint(toJson(rose_order)).toString();
+            else
+                order_json = toJson(rose_order).toString();
+
+            return ok(order_json);
         }
         return ok("[]");
     }
@@ -155,6 +188,9 @@ public class MainController extends Controller {
         rose_article.setGtin(generic_article.getEanCode());
         rose_article.setPharma(generic_article.getPharmaCode());
         rose_article.setTitle(generic_article.getPackTitle());
+        rose_article.setSize(generic_article.getPackSize());
+        rose_article.setGalen(generic_article.getPackGalen());
+        rose_article.setUnit(generic_article.getPackUnit());
         rose_article.setSupplier(generic_article.getSupplier());
         rose_article.setQuantity(1);
         rose_article.setSwissmed(generic_article.getFlags());
@@ -195,7 +231,7 @@ public class MainController extends Controller {
                             // Make sure that articles added to the list are NOT off-the-market
                             // s AND size -> stückzahl, e.g. 12
                             // u AND unit -> dosierung, e.g. 100mg
-                            if (size.equals(s) && (unit.contains(u) || u.contains(unit)))
+                            if (size.equals(s) && unit.equals(u))//(unit.contains(u) || u.contains(unit)))
                                 list_a.add(a);
                             /*
                             if ((size.contains(s) || s.contains(size)) && (unit.contains(u) || u.contains(unit)) )

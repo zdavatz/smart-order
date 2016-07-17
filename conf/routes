@@ -4,6 +4,7 @@
 
 # Home page
 GET     /                                   controllers.MainController.index()
+GET     /test                               controllers.MainController.test()
 GET     /records                            controllers.MainController.getNumRecords()
 GET     /gtin                               controllers.MainController.getGtin(gtin: String)
 GET     /testbasket                         controllers.MainController.getTestBasket(gtin: String)
