@@ -173,9 +173,42 @@ public class MainController extends Controller {
 
             String order_json;
             if (pretty.equals("on"))
-                order_json = Json.prettyPrint(toJson(rose_order)).toString();
+                order_json = Json.prettyPrint(toJson(rose_order));
             else
                 order_json = toJson(rose_order).toString();
+
+            return ok(order_json);
+        }
+        return ok("[]");
+    }
+
+    public Result getUserArticles(String pretty, String auth_key, String gln_code) {
+        ShoppingRose shopping_cart = new ShoppingRose(gln_code);
+
+        if (shopping_cart.checkAuthKey(auth_key)) {
+            // List all articles
+            List<GenericArticle> list_of_articles = retrieveAllArticles();
+            // Select all articles for which there are discounts for a particular user
+            ArrayList<GenericArticle> rebated_articles = new ArrayList<>();
+            list_of_articles.forEach( a ->
+            {
+                if (shopping_cart.getCashRebate(a)>0.0f) {
+                    a.setCashRebate(shopping_cart.getCashRebate(a));
+                    rebated_articles.add(a);
+                }
+            });
+            // Transform to rose articles
+            ArrayList<RoseArticle> rose_articles = rebated_articles.stream()
+                    .map(this::genericArticleToRose)
+                    .collect(Collectors.toCollection(ArrayList::new));
+
+            // System.out.println("num articles with rebate = " + rose_articles.size() + "/" + list_of_articles.size());
+
+            String order_json;
+            if (pretty.equals("on"))
+                order_json = Json.prettyPrint(toJson(rose_articles));
+            else
+                order_json = toJson(rose_articles).toString();
 
             return ok(order_json);
         }
@@ -196,7 +229,7 @@ public class MainController extends Controller {
         rose_article.setSwissmed(generic_article.getFlags());
         rose_article.setRosePrice(generic_article.getExfactoryPriceAsFloat());
         rose_article.setPublicPrice(generic_article.getPublicPriceAsFloat());
-        rose_article.setCashRebate(0.0f);
+        rose_article.setCashRebate(generic_article.getCashRebate());
         rose_article.setPreferences("");
         rose_article.setShippingStatus("");
         rose_article.alternatives = new LinkedList<>();
@@ -231,7 +264,7 @@ public class MainController extends Controller {
                             // Make sure that articles added to the list are NOT off-the-market
                             // s AND size -> stückzahl, e.g. 12
                             // u AND unit -> dosierung, e.g. 100mg
-                            if (size.equals(s) && unit.equals(u))//(unit.contains(u) || u.contains(unit)))
+                            if (checkSimilarity(size, s, unit, u))//(unit.contains(u) || u.contains(unit)))
                                 list_a.add(a);
                             /*
                             if ((size.contains(s) || s.contains(size)) && (unit.contains(u) || u.contains(unit)) )
@@ -264,6 +297,12 @@ public class MainController extends Controller {
         return list_a;
     }
 
+    private boolean checkSimilarity(String size_1, String size_2, String unit_1, String unit_2) {
+        if (size_1.equals(size_2) && unit_1.equals(unit_2))
+            return true;
+        return false;
+    }
+
     private int numRecords() {
         int num_rec = -1;
         try {
@@ -277,6 +316,26 @@ public class MainController extends Controller {
             System.err.println(">> SqlDatabase: SQLException in numRecords");
         }
         return num_rec;
+    }
+
+    private List<GenericArticle> retrieveAllArticles() {
+        List<GenericArticle> list_of_articles = new ArrayList<>();
+
+        try {
+            Connection conn = rose_db.getConnection();
+            Statement stat = conn.createStatement();
+            String query = "select * from " + ROSE_DB_TABLE;
+            ResultSet rs = stat.executeQuery(query);
+            while (rs.next()) {
+                list_of_articles.add(cursorToArticle(rs));
+            }
+            conn.close();
+        } catch(SQLException e) {
+            System.err.println(">> RoseSqlDb: SQLException in retrieveAllArticles!");
+        }
+
+        return list_of_articles;
+
     }
 
     private List<GenericArticle> searchEan(String code) {
@@ -385,6 +444,7 @@ public class MainController extends Controller {
                 genericArticle.setAvailability("-1");				// -1 -> not on the market anymore!
             genericArticle.setFlags(result.getString(18));
             genericArticle.setPublicPrice(result.getString(20));
+            genericArticle.setCashRebate(0.0f);
         } catch (SQLException e) {
             System.err.println(">> RoseDb: SQLException in cursorToArticle");
         }

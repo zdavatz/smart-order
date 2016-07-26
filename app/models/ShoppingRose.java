@@ -120,6 +120,16 @@ public class ShoppingRose {
         return hash_code;
     }
 
+    public float getCashRebate(GenericArticle article) {
+        if (m_rebate_map != null) {
+            String supplier = shortSupplier(article.getSupplier());
+            if (m_rebate_map.containsKey(supplier)) {
+                return m_rebate_map.get(supplier);
+            }
+        }
+        return 0.0f;
+    }
+
     private void loadRoseData() {
         RoseData rd = RoseData.getInstance();
         // Load sales figures file
@@ -147,16 +157,6 @@ public class ShoppingRose {
                 return s;
         }
         return "";
-    }
-
-    private float getCashRebate(GenericArticle article) {
-        if (m_rebate_map != null) {
-            String supplier = shortSupplier(article.getSupplier());
-            if (m_rebate_map.containsKey(supplier)) {
-               return m_rebate_map.get(supplier);
-            }
-        }
-        return 0.0f;
     }
 
     /**
