@@ -115,18 +115,20 @@ public class MainController extends Controller {
         ShoppingRose shopping_cart = new ShoppingRose(gln_code);
 
         if (shopping_cart.checkAuthKey(auth_key)) {
-            Pattern p = Pattern.compile("\\((\\d{13}),(\\d+)\\)");
+            // Match ean codes (13 digits) and pharma codes (7 digits)
+            Pattern p = Pattern.compile("\\((\\d{13}|\\d{7}),(\\d+)\\)");
             Matcher m = p.matcher(basket);
             ArrayList<String> list_of_articles = new ArrayList<>();
             HashMap<String, Integer> map_of_articles = new HashMap<>();
             while (m.find()) {
-                String ean = m.group(1);
+                String code = m.group(1);
                 String qty = m.group(2);
-                if (!ean.isEmpty() && !qty.isEmpty()) {
-                    list_of_articles.add(ean);
-                    map_of_articles.put(ean, Integer.valueOf(qty));
+                if (!code.isEmpty() && !qty.isEmpty()) {
+                    list_of_articles.add(code);
+                    map_of_articles.put(code, Integer.valueOf(qty));
                 }
             }
+            // Search for ean/pharma codes
             List<GenericArticle> articles = list_of_articles.stream()
                     .map(this::searchSingleEan)
                     .collect(Collectors.toList());
@@ -138,8 +140,14 @@ public class MainController extends Controller {
                 // Loop through all articles found
                 for (GenericArticle article : articles) {
                     String ean = article.getEanCode();
-                    if (map_of_articles.containsKey(ean)) {
-                        article.setQuantity(map_of_articles.get(ean));
+                    String pharma = article.getPharmaCode();
+                    // Check for ean/pharma code
+                    if (map_of_articles.containsKey(ean) || map_of_articles.containsKey(pharma)) {
+                        // Set quantities when found
+                        if (map_of_articles.containsKey(ean))
+                            article.setQuantity(map_of_articles.get(ean));
+                        else
+                            article.setQuantity(map_of_articles.get(pharma));
                         shopping_basket.put(ean, article);
                         LinkedList<GenericArticle> la = listSimilarArticles(article);
                         if (la != null) {
@@ -193,7 +201,8 @@ public class MainController extends Controller {
             list_of_articles.forEach( a ->
             {
                 if (shopping_cart.getCashRebate(a)>0.0f) {
-                    a.setCashRebate(shopping_cart.getCashRebate(a));
+                    float rbp = a.getExfactoryPriceAsFloat();
+                    a.setCashRebate(rbp * shopping_cart.getCashRebate(a)/100.0f);
                     rebated_articles.add(a);
                 }
             });
@@ -348,6 +357,9 @@ public class MainController extends Controller {
                     + KEY_EAN + " like " + "'" + code + "%' or "
                     + KEY_EAN + " like " + "'%;" + code + "%' or "
                     + KEY_PHARMA + " like " + "'" + code + "%'";
+
+            System.out.println(code);
+
             ResultSet rs = stat.executeQuery(query);
             while (rs.next()) {
                 list_of_articles.add(cursorToArticle(rs));
