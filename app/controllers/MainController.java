@@ -234,13 +234,15 @@ public class MainController extends Controller {
         rose_article.setGalen(generic_article.getPackGalen());
         rose_article.setUnit(generic_article.getPackUnit());
         rose_article.setSupplier(generic_article.getSupplier());
-        rose_article.setQuantity(1);
-        rose_article.setSwissmed(generic_article.getFlags());
         rose_article.setRosePrice(generic_article.getExfactoryPriceAsFloat());
         rose_article.setPublicPrice(generic_article.getPublicPriceAsFloat());
         rose_article.setCashRebate(generic_article.getCashRebate());
+        rose_article.setQuantity(1);
+        rose_article.setSwissmed(generic_article.getFlags());
         rose_article.setPreferences("");
         rose_article.setShippingStatus("");
+        rose_article.setAvailability(generic_article.getAvailability());
+        rose_article.setNettoPriceList(generic_article.isNplArticle());
         rose_article.alternatives = new LinkedList<>();
 
         return rose_article;

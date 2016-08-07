@@ -83,6 +83,8 @@ public class RoseArticle {
 
     private String unit;
 
+    private String availability;
+
     @JsonIgnore
     public String getGtin() { return gtin; }
 
@@ -115,6 +117,9 @@ public class RoseArticle {
 
     @JsonIgnore
     public String getUnit() { return unit; }
+
+    @JsonIgnore
+    public String getAvailability() { return availability; }
 
     public void setGtin(String gtin) {
         this.gtin = gtin;
@@ -167,6 +172,8 @@ public class RoseArticle {
     public void setGalen(String galen) { this.galen = galen; }
 
     public void setUnit(String unit) { this.unit = unit; }
+
+    public void setAvailability(String availability) { this.availability = availability; }
 }
 
 class PriceSerializer extends JsonSerializer<BigDecimal> {
