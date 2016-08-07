@@ -62,6 +62,7 @@ public class GenericArticle {
     private int likes;
     private int visible;
     private int free_samples;
+    private boolean npl_article;
 
     public GenericArticle() {
         //
@@ -160,9 +161,7 @@ public class GenericArticle {
         return regnr;
     }
 
-    public String getEanCode() {
-        return ean_code;
-    }
+    public String getEanCode() { return ean_code; }
 
     public void setEanCode(String ean_code) {
         this.ean_code = ean_code;
@@ -349,10 +348,6 @@ public class GenericArticle {
         return availability;
     }
 
-    public boolean isOffMarket() {
-        return availability.equals("-1");
-    }
-
     public void setReplaceEan(String ean) {
         this.replace_ean_code = ean;
     }
@@ -369,11 +364,19 @@ public class GenericArticle {
         return replace_pharma_code;
     }
 
-    public void setFlags(String flags) {
-        this.flags = flags;
-    }
+    public void setNplArticle(boolean npl_article) { this.npl_article = npl_article; }
+
+    public boolean isNplArticle() { return npl_article; }
+
+    public void setFlags(String flags) { this.flags = flags; }
 
     public String getFlags() {
         return flags;
+    }
+
+    public boolean isNotAvailable() { return availability.contains(".2153"); }
+
+    public boolean isOffMarket() {
+        return availability.equals("-1");
     }
 }

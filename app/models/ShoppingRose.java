@@ -184,17 +184,19 @@ public class ShoppingRose {
      * @return shipping status
      */
     private int shippingStatus(GenericArticle article, int quantity) {
-        // Beschaffungsartikel sind immer orange
+        // Diese Artikel sind ausser handel -> SCHWARZ
+        if (article.isOffMarket())
+            return 10;
+        // Diese Artikel fehlen auf unbestimmte Zeit -> ROT
+        if (article.isNotAvailable())
+            return 5;
+        // Beschaffungsartikel sind immer ORANGE
         if (article.getSupplier().toLowerCase().contains("voigt")) {
             return 4;
         }
         // Calculate min stock
         int mstock = minStock(article);
         int curstock = article.getItemsOnStock();
-        boolean offmarket = article.getAvailability().equals("-1");
-
-        if (offmarket)
-            return 10;
 
         // @maxl 18.Jan.2016: empirical rule (see emails)
         if (mstock < 0 && curstock >= 0)
@@ -342,8 +344,10 @@ public class ShoppingRose {
                 Collections.sort(list_of_similar_articles, new Comparator<GenericArticle>() {
                     @Override
                     public int compare(GenericArticle a1, GenericArticle a2) {
+                        int c = 0;
                         // GP 1 - Präferenz Arzt - Rabatt (%)
-                        int c = sortRebate(a1, a2);
+                        if (c == 0)
+                            c = sortRebate(a1, a2);
                         // GP 2 - Präferenz Arzt - Umsatz (CHF)
                         if (c == 0)
                             c = sortSales(a1, a2);
@@ -448,6 +452,7 @@ public class ShoppingRose {
                 rose_article.setSwissmed(flags_str);
                 rose_article.setPreferences(preference_str);
                 rose_article.setShippingStatus(shipping_status.first);
+                rose_article.setNettoPriceList(article.isNplArticle());
 
                 // article points to object which was inserted last...
                 if (article!=null) {
@@ -505,6 +510,7 @@ public class ShoppingRose {
                                 ra.setSwissmed(flags_str);
                                 ra.setPreferences(preference_str);
                                 ra.setShippingStatus(shipping_status.first);
+                                ra.setNettoPriceList(a.isNplArticle());
 
                                 rose_article.alternatives.add(ra);
                             }

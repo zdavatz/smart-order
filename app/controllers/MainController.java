@@ -453,8 +453,9 @@ public class MainController extends Controller {
             genericArticle.setReplacePharma(result.getString(16));	// KEY_REPLACE_PHARMA
             boolean off_market = result.getBoolean(17);
             if (off_market)
-                genericArticle.setAvailability("-1");				// -1 -> not on the market anymore!
+                genericArticle.setAvailability("-1");
             genericArticle.setFlags(result.getString(18));
+            genericArticle.setNplArticle(result.getBoolean(19));
             genericArticle.setPublicPrice(result.getString(20));
             genericArticle.setCashRebate(0.0f);
         } catch (SQLException e) {

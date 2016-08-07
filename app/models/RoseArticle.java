@@ -71,6 +71,9 @@ public class RoseArticle {
     @JsonProperty("shipping")
     private String shipping;
 
+    @JsonProperty("npl")
+    private boolean netto_price_list;
+
     @JsonProperty("alternatives")
     public LinkedList<RoseArticle> alternatives;
 
@@ -156,6 +159,8 @@ public class RoseArticle {
     public void setShippingStatus(String shipping) {
         this.shipping = shipping;
     }
+
+    public void setNettoPriceList(boolean netto_price_list) { this.netto_price_list = netto_price_list; }
 
     public void setSize(String size) { this.size = size; }
 
