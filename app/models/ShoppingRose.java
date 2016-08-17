@@ -187,9 +187,9 @@ public class ShoppingRose {
         // Diese Artikel sind ausser handel -> SCHWARZ
         if (article.isOffMarket())
             return 10;
-        // Diese Artikel fehlen auf unbestimmte Zeit -> DUNKELROT
+        // Diese Artikel fehlen auf unbestimmte Zeit -> ROT
         if (article.isNotAvailable())
-            return 6;
+            return 5;
         // Beschaffungsartikel sind immer ORANGE
         if (article.getSupplier().toLowerCase().contains("voigt")) {
             return 4;
@@ -229,8 +229,6 @@ public class ShoppingRose {
                 return new Pair<>("orange", 4);
             case 5:
                 return new Pair<>("red", 5);
-            case 6:
-                return new Pair<>("crimson", 6);
         }
         return new Pair<>("black", -1);
     }
