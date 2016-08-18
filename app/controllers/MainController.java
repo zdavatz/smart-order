@@ -326,9 +326,16 @@ public class MainController extends Controller {
         if (!size_1.isEmpty() && !size_2.isEmpty()) {
             float s1 = Float.valueOf(size_1);
             float s2 = Float.valueOf(size_2);
+            /*
             float avg_s = 0.5f * (s1 + s2);     // Let's tollerate a bit of deviation
             boolean check_size = (s1 > 0.7f * avg_s && s1 < 1.3f * avg_s)
                     && (s2 > 0.7f * avg_s && s2 < 1.3f * avg_s);
+            */
+            float f1 = s1*0.5f;
+            float f2 = s2*0.5f;
+            boolean check_size = s1 > (s2-f2) && s1 < (s2+f2)
+                    && s2 > (s1-f1) && s2 < (s1+f1);
+
             if (check_size && check_units)
                 return true;
         }
