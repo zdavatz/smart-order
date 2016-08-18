@@ -275,7 +275,7 @@ public class MainController extends Controller {
                             // Make sure that articles added to the list are NOT off-the-market
                             // s AND size -> stückzahl, e.g. 12
                             // u AND unit -> dosierung, e.g. 100mg
-                            if (checkSimilarity(size, s, unit, u))//(unit.contains(u) || u.contains(unit)))
+                            if (checkSimilarity2(size, s, unit, u))//(unit.contains(u) || u.contains(unit)))
                                 list_a.add(a);
                             /*
                             if ((size.contains(s) || s.contains(size)) && (unit.contains(u) || u.contains(unit)) )
@@ -294,16 +294,23 @@ public class MainController extends Controller {
             }
         }
         // If "Ersatzartikel" exists, add it to list
-        String replace_pharma_code = article.getReplacePharma();
-        if (replace_pharma_code!=null && !replace_pharma_code.isEmpty()) {
+        String replacement_article = article.getReplaceEan();
+        if (replacement_article.isEmpty())
+            replacement_article = article.getReplacePharma();
+
+        if (replacement_article!=null && !replacement_article.isEmpty()) {
             // Check if article is already in list
             for (GenericArticle a : list_a) {
-                if (a.getPharmaCode().equals(replace_pharma_code))
+                if (a.getEanCode().equals(replacement_article))
+                    return list_a;
+                else if (a.getPharmaCode().equals(replacement_article))
                     return list_a;
             }
-            List<GenericArticle> replace_article = searchEan(replace_pharma_code);
-            if (replace_article.size()>0)
-                list_a.add(replace_article.get(0));
+            List<GenericArticle> replace_article = searchEan(replacement_article);
+            if (replace_article.size()>0) {
+                GenericArticle ra = replace_article.get(0);
+                list_a.add(ra);
+            }
         }
         return list_a;
     }
@@ -311,6 +318,20 @@ public class MainController extends Controller {
     private boolean checkSimilarity(String size_1, String size_2, String unit_1, String unit_2) {
         if (size_1.equals(size_2) && unit_1.equals(unit_2))
             return true;
+        return false;
+    }
+
+    private boolean checkSimilarity2(String size_1, String size_2, String unit_1, String unit_2) {
+        boolean check_units = unit_1.equals(unit_2);    // Units/dosage must be the same
+        if (!size_1.isEmpty() && !size_2.isEmpty()) {
+            float s1 = Float.valueOf(size_1);
+            float s2 = Float.valueOf(size_2);
+            float avg_s = 0.5f * (s1 + s2);     // Let's tollerate a bit of deviation
+            boolean check_size = (s1 > 0.7f * avg_s && s1 < 1.3f * avg_s)
+                    && (s2 > 0.7f * avg_s && s2 < 1.3f * avg_s);
+            if (check_size && check_units)
+                return true;
+        }
         return false;
     }
 

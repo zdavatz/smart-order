@@ -345,19 +345,19 @@ public class ShoppingRose {
                     @Override
                     public int compare(GenericArticle a1, GenericArticle a2) {
                         int c = 0;
-                        // Lieferfähigkeit
+                        // Lieferbarkeit
                         if (c == 0)
                             c = sortShippingStatus(a1, a2, quantity);
-                        // GP 1 - Präferenz Arzt - Rabatt (%)
+                        // GP 1 - Generikum Präferenz Arzt - Rabatt (%)
                         if (c == 0)
                             c = sortRebate(a1, a2);
-                        // GP 2 - Präferenz Arzt - Umsatz (CHF)
+                        // GP 2 - Generikum Präferenz Arzt - Umsatz (CHF)
                         if (c == 0)
                             c = sortSales(a1, a2);
-                        // AG - Autogenerika
+                        // AG - Autogenerikum
                         if (c == 0)
                             c = sortAutoGenerika(a1, a2);
-                        // ZRP - zur Rose Präferenz
+                        // ZRP - Generikum Präferenz zur Rose
                         if (c == 0)
                             c = sortRosePreference(a1, a2);
                         return c;
@@ -421,8 +421,9 @@ public class ShoppingRose {
                 String flags_str = article.getFlags();
 
                 String preference_str = "";
-                if (supplierDataForMap(article, m_rebate_map)>0.0 || supplierDataForMap(article, m_expenses_map)>0.0)
+                if (supplierDataForMap(article, m_rebate_map)>0.0 || supplierDataForMap(article, m_expenses_map)>0.0) {
                     preference_str += "GP";
+                }
                 if (isAutoGenerikum(ean_code)) {
                     if (!preference_str.isEmpty())
                         preference_str += ", ";
@@ -480,8 +481,9 @@ public class ShoppingRose {
                                     flags_str = a.getFlags();
 
                                     preference_str = "";
-                                    if (supplierDataForMap(a, m_rebate_map) > 0.0 || supplierDataForMap(a, m_expenses_map) > 0.0)
+                                    if (supplierDataForMap(a, m_rebate_map) > 0.0 || supplierDataForMap(a, m_expenses_map) > 0.0) {
                                         preference_str = "GP";
+                                    }
                                     if (isAutoGenerikum(similar_ean)) {
                                         if (!preference_str.isEmpty())
                                             preference_str += ", ";
