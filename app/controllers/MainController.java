@@ -387,9 +387,6 @@ public class MainController extends Controller {
                     + KEY_EAN + " like " + "'" + code + "%' or "
                     + KEY_EAN + " like " + "'%;" + code + "%' or "
                     + KEY_PHARMA + " like " + "'" + code + "%'";
-
-            System.out.println(code);
-
             ResultSet rs = stat.executeQuery(query);
             while (rs.next()) {
                 list_of_articles.add(cursorToArticle(rs));

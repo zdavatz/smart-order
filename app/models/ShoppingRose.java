@@ -260,6 +260,14 @@ public class ShoppingRose {
         return 10;
     }
 
+    private boolean isOriginal(GenericArticle article) {
+        return article.getFlags().endsWith("O");
+    }
+
+    private boolean isGenerikum(GenericArticle article) {
+        return article.getFlags().endsWith("G");
+    }
+
     private boolean isAutoGenerikum(String ean) {
         return m_auto_generika_list.contains(ean);
     }
@@ -268,9 +276,48 @@ public class ShoppingRose {
         return rosePreference(article) < 10;
     }
 
+    private int sortShippingStatus(GenericArticle a1, GenericArticle a2, final int quantity) {
+        int value1 = shippingStatus(a1, quantity);
+        int value2 = shippingStatus(a2, quantity);
+        // Returns
+        //  = 0 if value1 = value2
+        // 	< 0 if value1 < value2
+        //  > 0 if value1 > value2
+        return Integer.valueOf(value1)
+                .compareTo(value2);
+    }
+
+    private int sortOriginals(GenericArticle a1, GenericArticle a2) {
+        int value1 = isOriginal(a1) ? 1 : -1;
+        int value2 = isOriginal(a2) ? 1 : -1;
+        // Returns
+        //  = 0 if value1 = value2
+        // 	< 0 if value1 < value2
+        //  > 0 if value1 > value2
+        return -Integer.valueOf(value1)
+                .compareTo(value2);
+    }
+
+    private int sortAutoGenerika(GenericArticle a1, GenericArticle a2) {
+        int value1 = isAutoGenerikum(a1.getEanCode()) ? 1 : -1;
+        int value2 = isAutoGenerikum(a2.getEanCode()) ? 1 : -1;
+
+        // System.out.println("AG: " + a1.getSupplier() + " -> " + value1 + " | " + a2.getSupplier() + " -> " + value2);
+
+        // Returns
+        //  = 0 if value1 = value2
+        // 	< 0 if value1 < value2
+        //  > 0 if value1 > value2
+        return -Integer.valueOf(value1)
+                .compareTo(value2);
+    }
+
     private int sortRebate(GenericArticle a1, GenericArticle a2) {
         float value1 = supplierDataForMap(a1, m_rebate_map);
         float value2 = supplierDataForMap(a2, m_rebate_map);
+
+        // System.out.println("GR: " + a1.getSupplier() + " -> " + value1 + " | " + a2.getSupplier() + " -> " + value2);
+
         // Returns
         //  = 0 if value1 = value2
         // 	< 0 if value1 < value2
@@ -282,6 +329,9 @@ public class ShoppingRose {
     private int sortSales(GenericArticle a1, GenericArticle a2) {
         float value1 = supplierDataForMap(a1, m_expenses_map);
         float value2 = supplierDataForMap(a2, m_expenses_map);
+
+        // System.out.println("SA: " + a1.getSupplier() + " -> " + value1 + " | " + a2.getSupplier() + " -> " + value2);
+
         // Returns
         //  = 0 if value1 = value2
         // 	< 0 if value1 < value2
@@ -290,31 +340,9 @@ public class ShoppingRose {
                 .compareTo(value2);
     }
 
-    private int sortAutoGenerika(GenericArticle a1, GenericArticle a2) {
-        int value1 = isAutoGenerikum(a1.getEanCode()) ? -1 : 1;
-        int value2 = isAutoGenerikum(a2.getEanCode()) ? -1 : 1;
-        // Returns
-        //  = 0 if value1 = value2
-        // 	< 0 if value1 < value2
-        //  > 0 if value1 > value2
-        return Integer.valueOf(value1)
-                .compareTo(value2);
-    }
-
     private int sortRosePreference(GenericArticle a1, GenericArticle a2) {
         int value1 = rosePreference(a1);
         int value2 = rosePreference(a2);
-        // Returns
-        //  = 0 if value1 = value2
-        // 	< 0 if value1 < value2
-        //  > 0 if value1 > value2
-        return Integer.valueOf(value1)
-                .compareTo(value2);
-    }
-
-    private int sortShippingStatus(GenericArticle a1, GenericArticle a2, final int quantity) {
-        int value1 = shippingStatus(a1, quantity);
-        int value2 = shippingStatus(a2, quantity);
         // Returns
         //  = 0 if value1 = value2
         // 	< 0 if value1 < value2
@@ -348,15 +376,18 @@ public class ShoppingRose {
                         // Lieferbarkeit
                         if (c == 0)
                             c = sortShippingStatus(a1, a2, quantity);
+                        // Original
+                        if (c == 0)
+                            c = sortOriginals(a1, a2);
+                        // AG - Autogenerikum
+                        if (c == 0)
+                            c = sortAutoGenerika(a1, a2);
                         // GP 1 - Generikum Präferenz Arzt - Rabatt (%)
                         if (c == 0)
                             c = sortRebate(a1, a2);
                         // GP 2 - Generikum Präferenz Arzt - Umsatz (CHF)
                         if (c == 0)
                             c = sortSales(a1, a2);
-                        // AG - Autogenerikum
-                        if (c == 0)
-                            c = sortAutoGenerika(a1, a2);
                         // ZRP - Generikum Präferenz zur Rose
                         if (c == 0)
                             c = sortRosePreference(a1, a2);
@@ -421,13 +452,13 @@ public class ShoppingRose {
                 String flags_str = article.getFlags();
 
                 String preference_str = "";
-                if (supplierDataForMap(article, m_rebate_map)>0.0 || supplierDataForMap(article, m_expenses_map)>0.0) {
-                    preference_str += "GP";
-                }
                 if (isAutoGenerikum(ean_code)) {
+                    preference_str += "AG";
+                }
+                if (supplierDataForMap(article, m_rebate_map)>0.0 || supplierDataForMap(article, m_expenses_map)>0.0) {
                     if (!preference_str.isEmpty())
                         preference_str += ", ";
-                    preference_str += "AG";
+                    preference_str += "GP";
                 }
                 if (isPreferredByRose(article)) {
                     if (!preference_str.isEmpty())
@@ -481,13 +512,13 @@ public class ShoppingRose {
                                     flags_str = a.getFlags();
 
                                     preference_str = "";
-                                    if (supplierDataForMap(a, m_rebate_map) > 0.0 || supplierDataForMap(a, m_expenses_map) > 0.0) {
-                                        preference_str = "GP";
-                                    }
                                     if (isAutoGenerikum(similar_ean)) {
+                                        preference_str += "AG";
+                                    }
+                                    if (supplierDataForMap(a, m_rebate_map) > 0.0 || supplierDataForMap(a, m_expenses_map) > 0.0) {
                                         if (!preference_str.isEmpty())
                                             preference_str += ", ";
-                                        preference_str += "AG";
+                                        preference_str += "GP";
                                     }
                                     if (isPreferredByRose(a)) {
                                         if (!preference_str.isEmpty())
