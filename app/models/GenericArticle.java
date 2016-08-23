@@ -49,7 +49,7 @@ public class GenericArticle {
     private String availability = "";
     private String dropdown_str;
     private String author_code = "";
-    private String replace_ean_code = "";
+    private String author_gln_code = "";
     private String replace_pharma_code = "";
     private String flags = "";
     private float margin = -1.0f;	// <0.0f -> not initialized
@@ -348,12 +348,12 @@ public class GenericArticle {
         return availability;
     }
 
-    public void setReplaceEan(String ean) {
-        this.replace_ean_code = ean;
+    public void setAuthorGln(String gln) {
+        this.author_gln_code = gln;
     }
 
-    public String getReplaceEan() {
-        return replace_ean_code;
+    public String getAuthorGln() {
+        return author_gln_code;
     }
 
     public void setReplacePharma(String pharma) {

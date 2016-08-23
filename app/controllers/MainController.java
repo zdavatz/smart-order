@@ -275,7 +275,7 @@ public class MainController extends Controller {
                             // Make sure that articles added to the list are NOT off-the-market
                             // s AND size -> stückzahl, e.g. 12
                             // u AND unit -> dosierung, e.g. 100mg
-                            if (checkSimilarity2(size, s, unit, u))//(unit.contains(u) || u.contains(unit)))
+                            if (checkSimilarity2(size, s, unit, u))
                                 list_a.add(a);
                             /*
                             if ((size.contains(s) || s.contains(size)) && (unit.contains(u) || u.contains(unit)) )
@@ -294,18 +294,14 @@ public class MainController extends Controller {
             }
         }
         // If "Ersatzartikel" exists, add it to list
-        String replacement_article = article.getReplaceEan();
-        if (replacement_article.isEmpty())
-            replacement_article = article.getReplacePharma();
-
+        String replacement_article = article.getReplacePharma();
         if (replacement_article!=null && !replacement_article.isEmpty()) {
             // Check if article is already in list
             for (GenericArticle a : list_a) {
-                if (a.getEanCode().equals(replacement_article))
-                    return list_a;
-                else if (a.getPharmaCode().equals(replacement_article))
+                if (a.getPharmaCode().equals(replacement_article))
                     return list_a;
             }
+            // If not... add it to list
             List<GenericArticle> replace_article = searchEan(replacement_article);
             if (replace_article.size()>0) {
                 GenericArticle ra = replace_article.get(0);
@@ -476,7 +472,7 @@ public class MainController extends Controller {
             genericArticle.setAvailability(result.getString(12));	// KEY_AVAIL
             genericArticle.setSupplier(result.getString(13));		// KEY_SUPPLIER
             genericArticle.setLikes(result.getInt(14));			    // KEY_LIKES
-            genericArticle.setReplaceEan(result.getString(15));	    // KEY_REPLACE_EAN
+            genericArticle.setAuthorGln(result.getString(15));	    // KEY_AUTHOR_GLN (previous: KEY_REPLACE_EAN)
             genericArticle.setReplacePharma(result.getString(16));	// KEY_REPLACE_PHARMA
             boolean off_market = result.getBoolean(17);
             if (off_market)

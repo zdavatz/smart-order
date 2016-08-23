@@ -173,7 +173,7 @@ public class ShoppingRose {
             sales_figure = 2.5f * m_sales_figures_map.get(article.getPharmaCode()) / 12.0f + 1.0f;
         else
             return -1;
-        return (int) sales_figure;
+        return (int)sales_figure;
     }
 
     /**
@@ -371,24 +371,31 @@ public class ShoppingRose {
             if (list_of_similar_articles.size() > 0) {
                 Collections.sort(list_of_similar_articles, new Comparator<GenericArticle>() {
                     @Override
+                    /*  Sortierlogik: Zuerst wird nach Lieferbarkeit sortiert (1. Priorität).
+                        Falls zwei Produkte dieselbe Lieferbarkeit haben (z.B. GREEN sind), dann
+                        wird nach Original/Nicht-Original sortiert. Falls zwei Produkte Nicht-Originale,
+                        d.h. Generika sind, dann wird nach Autogenerika sortiert - die kommen zuoberst.
+                        Nachher kommen die Generika Präferenzen zum Zug (zuerst Arzt und zu guter letzt
+                        zur Rose).
+                     */
                     public int compare(GenericArticle a1, GenericArticle a2) {
                         int c = 0;
-                        // Lieferbarkeit
+                        // PRIO 1: Lieferbarkeit
                         if (c == 0)
                             c = sortShippingStatus(a1, a2, quantity);
-                        // Original
+                        // PRIO 2: Original
                         if (c == 0)
                             c = sortOriginals(a1, a2);
-                        // AG - Autogenerikum
+                        // PRIO 3: AG - Autogenerikum
                         if (c == 0)
                             c = sortAutoGenerika(a1, a2);
-                        // GP 1 - Generikum Präferenz Arzt - Rabatt (%)
+                        // PRIO 4: GP - Generikum Präferenz Arzt - Rabatt (%)
                         if (c == 0)
                             c = sortRebate(a1, a2);
-                        // GP 2 - Generikum Präferenz Arzt - Umsatz (CHF)
+                        // PRIO 5: GP - Generikum Präferenz Arzt - Umsatz (CHF)
                         if (c == 0)
                             c = sortSales(a1, a2);
-                        // ZRP - Generikum Präferenz zur Rose
+                        // PRIO 6: ZRP - Generikum Präferenz zur Rose
                         if (c == 0)
                             c = sortRosePreference(a1, a2);
                         return c;
@@ -487,66 +494,64 @@ public class ShoppingRose {
                 rose_article.setNettoPriceList(article.isNplArticle());
 
                 // article points to object which was inserted last...
-                if (article!=null) {
-                    if (m_map_similar_articles.containsKey(ean_code)) {
+                if (m_map_similar_articles.containsKey(ean_code)) {
 
-                        sortSimilarArticles(quantity);
+                    sortSimilarArticles(quantity);
 
-                        List<GenericArticle> la = m_map_similar_articles.get(ean_code);
-                        for (GenericArticle a : la) {
-                            if (!a.getEanCode().equals(ean_code)) {
-                                if (!a.isNotAvailable() && !a.isOffMarket()) {
-                                    RoseArticle ra = new RoseArticle();
+                    List<GenericArticle> la = m_map_similar_articles.get(ean_code);
+                    for (GenericArticle a : la) {
+                        if (!a.getEanCode().equals(ean_code)) {
+                            if (!a.isNotAvailable() && !a.isOffMarket()) {
+                                RoseArticle ra = new RoseArticle();
 
-                                    cr = getCashRebate(a);
-                                    if (cr >= 0.0f)
-                                        a.setCashRebate(cr);
+                                cr = getCashRebate(a);
+                                if (cr >= 0.0f)
+                                    a.setCashRebate(cr);
 
-                                    rose_price = a.getExfactoryPriceAsFloat();
-                                    cash_rebate = rose_price * a.getCashRebate() * 0.01f;
+                                rose_price = a.getExfactoryPriceAsFloat();
+                                cash_rebate = rose_price * a.getCashRebate() * 0.01f;
 
-                                    a.setBuyingPrice(rose_price);
-                                    a.setQuantity(quantity);
+                                a.setBuyingPrice(rose_price);
+                                a.setQuantity(quantity);
 
-                                    String similar_ean = a.getEanCode();
-                                    flags_str = a.getFlags();
+                                String similar_ean = a.getEanCode();
+                                flags_str = a.getFlags();
 
-                                    preference_str = "";
-                                    if (isAutoGenerikum(similar_ean)) {
-                                        preference_str += "AG";
-                                    }
-                                    if (supplierDataForMap(a, m_rebate_map) > 0.0 || supplierDataForMap(a, m_expenses_map) > 0.0) {
-                                        if (!preference_str.isEmpty())
-                                            preference_str += ", ";
-                                        preference_str += "GP";
-                                    }
-                                    if (isPreferredByRose(a)) {
-                                        if (!preference_str.isEmpty())
-                                            preference_str += ", ";
-                                        preference_str += "ZRP";
-                                    }
-
-                                    shipping_ = shippingStatus(a, a.getQuantity());
-                                    shipping_status = shippingStatusColor(shipping_);
-
-                                    ra.setGtin(a.getEanCode());
-                                    ra.setPharma(a.getPharmaCode());
-                                    ra.setTitle(a.getPackTitle());
-                                    ra.setSize(a.getPackSize());
-                                    ra.setGalen(a.getPackGalen());
-                                    ra.setUnit(a.getPackUnit());
-                                    ra.setSupplier(a.getSupplier());
-                                    ra.setRosePrice(rose_price);
-                                    ra.setPublicPrice(a.getPublicPriceAsFloat());
-                                    ra.setCashRebate(cash_rebate);
-                                    ra.setQuantity(a.getQuantity());
-                                    ra.setSwissmed(flags_str);
-                                    ra.setPreferences(preference_str);
-                                    ra.setShippingStatus(shipping_status.first);
-                                    ra.setNettoPriceList(a.isNplArticle());
-
-                                    rose_article.alternatives.add(ra);
+                                preference_str = "";
+                                if (isAutoGenerikum(similar_ean)) {
+                                    preference_str += "AG";
                                 }
+                                if (supplierDataForMap(a, m_rebate_map) > 0.0 || supplierDataForMap(a, m_expenses_map) > 0.0) {
+                                    if (!preference_str.isEmpty())
+                                        preference_str += ", ";
+                                    preference_str += "GP";
+                                }
+                                if (isPreferredByRose(a)) {
+                                    if (!preference_str.isEmpty())
+                                        preference_str += ", ";
+                                    preference_str += "ZRP";
+                                }
+
+                                shipping_ = shippingStatus(a, a.getQuantity());
+                                shipping_status = shippingStatusColor(shipping_);
+
+                                ra.setGtin(a.getEanCode());
+                                ra.setPharma(a.getPharmaCode());
+                                ra.setTitle(a.getPackTitle());
+                                ra.setSize(a.getPackSize());
+                                ra.setGalen(a.getPackGalen());
+                                ra.setUnit(a.getPackUnit());
+                                ra.setSupplier(a.getSupplier());
+                                ra.setRosePrice(rose_price);
+                                ra.setPublicPrice(a.getPublicPriceAsFloat());
+                                ra.setCashRebate(cash_rebate);
+                                ra.setQuantity(a.getQuantity());
+                                ra.setSwissmed(flags_str);
+                                ra.setPreferences(preference_str);
+                                ra.setShippingStatus(shipping_status.first);
+                                ra.setNettoPriceList(a.isNplArticle());
+
+                                rose_article.alternatives.add(ra);
                             }
                         }
                     }
