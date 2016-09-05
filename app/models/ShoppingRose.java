@@ -462,7 +462,7 @@ public class ShoppingRose {
                 if (isAutoGenerikum(ean_code)) {
                     preference_str += "AG";
                 }
-                if (supplierDataForMap(article, m_rebate_map)>0.0 || supplierDataForMap(article, m_expenses_map)>0.0) {
+                if (supplierDataForMap(article, m_rebate_map)>0.0 /*|| supplierDataForMap(article, m_expenses_map)>0.0*/) {
                     if (!preference_str.isEmpty())
                         preference_str += ", ";
                     preference_str += "GP";
