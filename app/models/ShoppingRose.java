@@ -233,14 +233,34 @@ public class ShoppingRose {
         return new Pair<>("black", -1);
     }
 
+    private String topSupplier(LinkedHashMap<String, Float> map) {
+        // Extract top supplier from map
+        float top_value = 0.0f;
+        String top_supplier = "";
+        for (Map.Entry<String, Float> entry : map.entrySet()) {
+            float value = entry.getValue();
+            String supplier = entry.getKey();
+            if (value>top_value) {
+                top_value = value;
+                top_supplier = supplier;
+            }
+        }
+        return top_supplier;
+    }
+
+    private String getShortSupplier(GenericArticle article) {
+        String supplier = article.getSupplier().toLowerCase();
+        String short_supplier = "";
+        for (String p : Constants.doctorPreferences.keySet()) {
+            if (supplier.contains(p))
+                short_supplier = p;
+        }
+        return short_supplier;
+    }
+
     private float supplierDataForMap(GenericArticle article, LinkedHashMap<String, Float> map) {
         if (map!=null) {
-            String supplier = article.getSupplier().toLowerCase();
-            String short_supplier = "";
-            for (String p : Constants.doctorPreferences.keySet()) {
-                if (supplier.contains(p))
-                    short_supplier = p;
-            }
+            String short_supplier = getShortSupplier(article);
             float value = 0.0f;
             if (!short_supplier.isEmpty())
                 if (map.containsKey(short_supplier))
@@ -436,6 +456,10 @@ public class ShoppingRose {
 
         if (m_shopping_basket!=null && m_shopping_basket.size()>0) {
 
+            String top_supplier = topSupplier(m_expenses_map);
+
+            System.out.println("---> " + top_supplier);
+
             for (Map.Entry<String, GenericArticle> entry : m_shopping_basket.entrySet()) {
                 GenericArticle article = entry.getValue();
 
@@ -462,7 +486,7 @@ public class ShoppingRose {
                 if (isAutoGenerikum(ean_code)) {
                     preference_str += "AG";
                 }
-                if (supplierDataForMap(article, m_rebate_map)>0.0 /*|| supplierDataForMap(article, m_expenses_map)>0.0*/) {
+                if (supplierDataForMap(article, m_rebate_map)>0.0 || top_supplier.equals(getShortSupplier(article))) {
                     if (!preference_str.isEmpty())
                         preference_str += ", ";
                     preference_str += "GP";
@@ -521,7 +545,7 @@ public class ShoppingRose {
                                 if (isAutoGenerikum(similar_ean)) {
                                     preference_str += "AG";
                                 }
-                                if (supplierDataForMap(a, m_rebate_map) > 0.0 /*|| supplierDataForMap(a, m_expenses_map) > 0.0*/) {
+                                if (supplierDataForMap(a, m_rebate_map) > 0.0 || top_supplier.equals(getShortSupplier(a))) {
                                     if (!preference_str.isEmpty())
                                         preference_str += ", ";
                                     preference_str += "GP";
