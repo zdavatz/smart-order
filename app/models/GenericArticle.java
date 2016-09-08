@@ -374,6 +374,12 @@ public class GenericArticle {
         return flags;
     }
 
+    public boolean isOriginal() { return flags.endsWith("O"); }
+
+    public boolean isGenerikum() { return flags.endsWith("G"); }
+
+    public boolean isAvailable() { return !isNotAvailable(); }
+
     public boolean isNotAvailable() { return availability.contains(".2153"); }
 
     public boolean isOffMarket() {
