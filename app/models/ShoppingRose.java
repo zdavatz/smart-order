@@ -404,7 +404,7 @@ public class ShoppingRose {
                         // PRIO 4: GP - Generikum Präferenz Arzt - Rabatt (%)
                         if (c == 0)
                             c = sortRebate(a1, a2);
-                        // PRIO 5: GP - Generikum Präferenz Arzt - Umsatz (CHF)
+                        // PRIO 5: GU - Generikum Präferenz Arzt - Umsatz (CHF)
                         if (c == 0)
                             c = sortSales(a1, a2);
                         // PRIO 6: ZRP - Generikum Präferenz zur Rose
@@ -442,6 +442,30 @@ public class ShoppingRose {
         m_filter_state = state;
     }
 
+    private String generatePreferences(GenericArticle ga) {
+        String preference_str = "";
+
+        if (isAutoGenerikum(ga.getEanCode())) {
+            preference_str += "AG";
+        }
+        if (supplierDataForMap(ga, m_rebate_map)>0.0 /*|| top_supplier.equals(getShortSupplier(article))*/) {
+            if (!preference_str.isEmpty())
+                preference_str += ", ";
+            preference_str += "GP";
+        } else if (supplierDataForMap(ga, m_expenses_map)>0.0) {
+            if (!preference_str.isEmpty())
+                preference_str += ", ";
+            preference_str += "GU";
+        }
+        if (isPreferredByRose(ga)) {
+            if (!preference_str.isEmpty())
+                preference_str += ", ";
+            preference_str += "ZRP";
+        }
+
+        return preference_str;
+    }
+
     public List<RoseArticle> updateShoppingCart() {
 
         List<RoseArticle> list_rose_articles = new ArrayList<>();
@@ -472,20 +496,7 @@ public class ShoppingRose {
                 String ean_code = article.getEanCode();
                 String flags_str = article.getFlags();
 
-                String preference_str = "";
-                if (isAutoGenerikum(ean_code)) {
-                    preference_str += "AG";
-                }
-                if (supplierDataForMap(article, m_rebate_map)>0.0 || top_supplier.equals(getShortSupplier(article))) {
-                    if (!preference_str.isEmpty())
-                        preference_str += ", ";
-                    preference_str += "GP";
-                }
-                if (isPreferredByRose(article)) {
-                    if (!preference_str.isEmpty())
-                        preference_str += ", ";
-                    preference_str += "ZRP";
-                }
+                String preference_str = generatePreferences(article);
 
                 // Shipping status
                 int shipping_ = shippingStatus(article, quantity);
@@ -529,23 +540,9 @@ public class ShoppingRose {
                                     a.setBuyingPrice(rose_price);
                                     a.setQuantity(quantity);
 
-                                    String similar_ean = a.getEanCode();
                                     flags_str = a.getFlags();
 
-                                    preference_str = "";
-                                    if (isAutoGenerikum(similar_ean)) {
-                                        preference_str += "AG";
-                                    }
-                                    if (supplierDataForMap(a, m_rebate_map) > 0.0 || top_supplier.equals(getShortSupplier(a))) {
-                                        if (!preference_str.isEmpty())
-                                            preference_str += ", ";
-                                        preference_str += "GP";
-                                    }
-                                    if (isPreferredByRose(a)) {
-                                        if (!preference_str.isEmpty())
-                                            preference_str += ", ";
-                                        preference_str += "ZRP";
-                                    }
+                                    preference_str = generatePreferences(a);
 
                                     shipping_ = shippingStatus(a, a.getQuantity());
                                     shipping_status = shippingStatusColor(shipping_);
