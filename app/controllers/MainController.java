@@ -267,6 +267,7 @@ public class MainController extends Controller {
         String unit = article.getPackUnit();
         if (atc_code!=null && !atc_code.equals("k.A.")) {
             for (GenericArticle a : searchATC(atc_code)) {
+                // Loop through "similar" articles
                 if (!a.getAtcCode().equals("k.A.")) {
                     String s = a.getPackSize().toLowerCase();
                     String u = a.getPackUnit().toLowerCase();
@@ -275,8 +276,15 @@ public class MainController extends Controller {
                             // Make sure that articles added to the list are NOT off-the-market
                             // s AND size -> stückzahl, e.g. 12
                             // u AND unit -> dosierung, e.g. 100mg
-                            if (checkSimilarity2(size, s, unit, u))
-                                list_a.add(a);
+                            if (article.isOriginal() && a.isOriginal()) {
+                               if (checkSimilarity3(size, s, unit, u)) {
+                                   list_a.add(a);
+                                }
+                            } else {
+                                if (checkSimilarity2(size, s, unit, u)) {
+                                    list_a.add(a);
+                                }
+                            }
                             /*
                             if ((size.contains(s) || s.contains(size)) && (unit.contains(u) || u.contains(unit)) )
                                 list_a.add(a);
@@ -284,6 +292,7 @@ public class MainController extends Controller {
                         }
                     } else {
                         // If the main article is off the market, get some replacements...
+                        // Remove all numbers first
                         u = u.replaceAll("[^A-Za-z]","");
                         unit = unit.replaceAll("[^A-Za-z]","");
                         // System.out.println(a.getPackTitle() + " -> " + a.getAvailability() + " | " + s + "=" + size + " | " + u + "=" + unit);
@@ -311,6 +320,15 @@ public class MainController extends Controller {
         return list_a;
     }
 
+    private boolean basicSimilarityCheck(String a1, String a2, float s) {
+        float s1 = Float.valueOf(a1);
+        float s2 = Float.valueOf(a2);
+        float f1 = s1*s;
+        float f2 = s2*s;
+        return s1 > (s2-f2) && s1 < (s2+f2)
+                && s2 > (s1-f1) && s2 < (s1+f1);
+    }
+
     private boolean checkSimilarity(String size_1, String size_2, String unit_1, String unit_2) {
         if (size_1.equals(size_2) && unit_1.equals(unit_2))
             return true;
@@ -318,24 +336,23 @@ public class MainController extends Controller {
     }
 
     private boolean checkSimilarity2(String size_1, String size_2, String unit_1, String unit_2) {
-        boolean check_units = unit_1.equals(unit_2);    // Units/dosage must be the same
-        if (!size_1.isEmpty() && !size_2.isEmpty()) {
-            float s1 = Float.valueOf(size_1);
-            float s2 = Float.valueOf(size_2);
-            /*
-            float avg_s = 0.5f * (s1 + s2);     // Let's tollerate a bit of deviation
-            boolean check_size = (s1 > 0.7f * avg_s && s1 < 1.3f * avg_s)
-                    && (s2 > 0.7f * avg_s && s2 < 1.3f * avg_s);
-            */
-            float f1 = s1*0.5f;
-            float f2 = s2*0.5f;
-            boolean check_size = s1 > (s2-f2) && s1 < (s2+f2)
-                    && s2 > (s1-f1) && s2 < (s1+f1);
+        boolean check_size = false;
+        boolean check_units = false;
+        if (!size_1.isEmpty() && !size_2.isEmpty())
+            check_size = basicSimilarityCheck(size_1, size_2, 0.51f);
+        if (!unit_1.isEmpty() && !unit_2.isEmpty())
+            check_units = unit_1.equals(unit_2);    // Units/dosage must be the same
+        return check_size && check_units;
+    }
 
-            if (check_size && check_units)
-                return true;
+    private boolean checkSimilarity3(String size_1, String size_2, String unit_1, String unit_2) {
+        boolean check_units = false;
+        if (!unit_1.isEmpty() && !unit_2.isEmpty()) {
+            unit_1 = unit_1.replaceAll("[^0-9]", "");
+            unit_2 = unit_2.replaceAll("[^0-9]", "");
+            check_units = basicSimilarityCheck(unit_1, unit_2, 1.01f);
         }
-        return false;
+        return check_units;
     }
 
     private int numRecords() {
