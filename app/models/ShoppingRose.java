@@ -130,6 +130,11 @@ public class ShoppingRose {
         return 0.0f;
     }
 
+    public void updateShippingStatus(GenericArticle article) {
+        int shipping_status = shippingStatus(article, article.getQuantity());
+        article.setShippingStatus(shipping_status);
+    }
+
     private void loadRoseData() {
         RoseData rd = RoseData.getInstance();
         // Load sales figures file

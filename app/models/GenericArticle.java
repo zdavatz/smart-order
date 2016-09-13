@@ -62,6 +62,7 @@ public class GenericArticle {
     private int likes;
     private int visible;
     private int free_samples;
+    private int shipping_status = 1;
     private boolean npl_article;
 
     public GenericArticle() {
@@ -363,6 +364,10 @@ public class GenericArticle {
     public String getReplacePharma() {
         return replace_pharma_code;
     }
+
+    public void setShippingStatus(int shipping_status) { this.shipping_status = shipping_status; }
+
+    public int getShippingStatus() { return shipping_status; }
 
     public void setNplArticle(boolean npl_article) { this.npl_article = npl_article; }
 

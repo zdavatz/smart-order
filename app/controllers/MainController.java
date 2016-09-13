@@ -148,6 +148,8 @@ public class MainController extends Controller {
                             article.setQuantity(map_of_articles.get(ean));
                         else
                             article.setQuantity(map_of_articles.get(pharma));
+                        // Set shipping status
+                        shopping_cart.updateShippingStatus(article);
                         shopping_basket.put(ean, article);
                         LinkedList<GenericArticle> la = listSimilarArticles(article);
                         if (la != null) {
@@ -261,6 +263,7 @@ public class MainController extends Controller {
 
     private LinkedList<GenericArticle> listSimilarArticles(GenericArticle article) {
         LinkedList<GenericArticle> list_a = new LinkedList<>();
+        LinkedList<GenericArticle> original_list_a = new LinkedList<>();
 
         String atc_code = article.getAtcCode();
         String size = article.getPackSize();
@@ -269,38 +272,88 @@ public class MainController extends Controller {
             for (GenericArticle a : searchATC(atc_code)) {
                 // Loop through "similar" articles
                 if (!a.getAtcCode().equals("k.A.")) {
-                    String s = a.getPackSize().toLowerCase();
-                    String u = a.getPackUnit().toLowerCase();
-                    if (!article.isOffMarket()) {
-                        if (!a.isOffMarket()) {
-                            // Make sure that articles added to the list are NOT off-the-market
-                            // s AND size -> stückzahl, e.g. 12
-                            // u AND unit -> dosierung, e.g. 100mg
-                            if (article.isOriginal() && a.isOriginal()) {
-                               if (checkSimilarity3(size, s, unit, u)) {
-                                   list_a.add(a);
+                    if (!a.getEanCode().equals(article.getEanCode())) {
+                        String s = a.getPackSize().toLowerCase();
+                        String u = a.getPackUnit().toLowerCase();
+                        if (!article.isOffMarket()) {
+                            if (!a.isOffMarket()) {
+                                // Make sure that articles added to the list are NOT off-the-market
+                                // s AND size -> stückzahl, e.g. 12
+                                // u AND unit -> dosierung, e.g. 100mg
+
+                                boolean is_not_green_original = article.isOriginal() && article.getShippingStatus() > 1;
+                                boolean is_green_original_alternative = a.isOriginal() && a.getShippingStatus() == 1;
+
+                                if (is_not_green_original && is_green_original_alternative) {
+                                    /*
+                                    if (checkSimilarity3(size, s, unit, u)) {
+                                        original_list_a.add(a);
+                                    }
+                                    */
+                                    original_list_a.add(a);
+                                } else {
+                                    if (checkSimilarity2(size, s, unit, u)) {
+                                        list_a.add(a);
+                                    }
                                 }
-                            } else {
-                                if (checkSimilarity2(size, s, unit, u)) {
+                                /*
+                                if ((size.contains(s) || s.contains(size)) && (unit.contains(u) || u.contains(unit)) )
                                     list_a.add(a);
-                                }
+                                */
                             }
-                            /*
-                            if ((size.contains(s) || s.contains(size)) && (unit.contains(u) || u.contains(unit)) )
+                        } else {
+                            // If the main article is off the market, get some replacements...
+                            // Remove all numbers first
+                            u = u.replaceAll("[^A-Za-z]", "");
+                            unit = unit.replaceAll("[^A-Za-z]", "");
+                            // System.out.println(a.getPackTitle() + " -> " + a.getAvailability() + " | " + s + "=" + size + " | " + u + "=" + unit);
+                            if (u.equals(unit) && s.equals(size) && !a.isOffMarket())
                                 list_a.add(a);
-                            */
                         }
-                    } else {
-                        // If the main article is off the market, get some replacements...
-                        // Remove all numbers first
-                        u = u.replaceAll("[^A-Za-z]","");
-                        unit = unit.replaceAll("[^A-Za-z]","");
-                        // System.out.println(a.getPackTitle() + " -> " + a.getAvailability() + " | " + s + "=" + size + " | " + u + "=" + unit);
-                        if (u.equals(unit) && s.equals(size) && !a.isOffMarket())
-                            list_a.add(a);
                     }
                 }
             }
+        }
+        // Add all special originals (checksimilarity3)
+        if (original_list_a.size()>0) {
+            // Sort according to smart criterion
+            Collections.sort(original_list_a, new Comparator<GenericArticle>() {
+                private int func(int x) {
+                    // Return -1 if value1 == value2, else 1
+                    return x==0 ? -1 : 1;
+                }
+                private int sortUnits(GenericArticle a1, GenericArticle a2) {
+                    int u=0, unit1=0, unit2 = 0;
+                    if (article.getPackTitle()!=null)
+                        u = Integer.valueOf(article.getPackUnit().replaceAll("[^0-9]", ""));
+                    if (a1.getPackTitle()!=null)
+                        unit1 = Integer.valueOf(a1.getPackUnit().replaceAll("[^0-9]", ""));
+                    if (a2.getPackTitle()!=null)
+                        unit2 = Integer.valueOf(a2.getPackUnit().replaceAll("[^0-9]", ""));
+                    return func(unit1 - u) - func(unit2 - u);
+                }
+                private int sortSize(GenericArticle a1, GenericArticle a2) {
+                    int s=0, size1=0, size2=0;
+                    if (article.getPackSize()!=null)
+                        s = Integer.valueOf(article.getPackSize());
+                    if (a1.getPackSize()!=null)
+                        size1 = Integer.valueOf(a1.getPackSize());
+                    if (a2.getPackSize()!=null)
+                        size2 = Integer.valueOf(a2.getPackSize());
+                    return func(size1 - s) - func(size2 - s);
+                }
+                @Override
+                public int compare(GenericArticle a1, GenericArticle a2) {
+                    int c = 0;
+                    if (c==0)
+                        c = sortUnits(a1, a2);
+                    if (c==0)
+                        c = sortSize(a1, a2);
+                    return c;
+                }
+            });
+            // Add to list of alternatives
+            list_a.add(original_list_a.get(0));
         }
         // If "Ersatzartikel" exists, add it to list
         String replacement_article = article.getReplacePharma();
