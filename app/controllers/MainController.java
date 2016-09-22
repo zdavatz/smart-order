@@ -293,7 +293,7 @@ public class MainController extends Controller {
                                         if (checkSimilarity2(size, s, unit, u)) {
                                             list_a.add(a);
                                         }
-                                    } 
+                                    }
                                 }
                                 /*
                                 if ((size.contains(s) || s.contains(size)) && (unit.contains(u) || u.contains(unit)) )

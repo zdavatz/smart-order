@@ -65,11 +65,9 @@ public class FileWatchActor extends UntypedActor {
                 // Filter...
                 if (kind == OVERFLOW) {
                     // Do nothing...
-                } else if (kind == ENTRY_CREATE) {
-                    // process create event
                 } else if (kind == ENTRY_DELETE) {
                     // process delete event
-                } else if (kind == ENTRY_MODIFY) {
+                } else if (kind == ENTRY_MODIFY || kind==ENTRY_CREATE) {
                     // process modify event
                     Thread.sleep(1000);
                     System.out.println("Re-loading all rose files... " + dateFormat.format(date));
