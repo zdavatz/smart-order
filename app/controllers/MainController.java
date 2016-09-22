@@ -151,6 +151,7 @@ public class MainController extends Controller {
                         // Set shipping status
                         shopping_cart.updateShippingStatus(article);
                         shopping_basket.put(ean, article);
+                        // Find alternatives
                         LinkedList<GenericArticle> la = listSimilarArticles(article);
                         if (la != null) {
                             // Check if ean code is already part of the map...
@@ -250,14 +251,13 @@ public class MainController extends Controller {
         return rose_article;
     }
 
-    private RoseArticle getAlternatives(GenericArticle generic_article) {
-        RoseArticle rose_article = genericArticleToRose(generic_article);
+    private RoseArticle getAlternatives(GenericArticle article) {
+        RoseArticle rose_article = genericArticleToRose(article);
 
-        LinkedList<RoseArticle> list_of_similar_articles = listSimilarArticles(generic_article).stream()
+        LinkedList<RoseArticle> list_of_similar_articles = listSimilarArticles(article).stream()
                 .map(this::genericArticleToRose)
                 .collect(Collectors.toCollection(LinkedList::new));
         rose_article.alternatives = list_of_similar_articles;
-
         return rose_article;
     }
 

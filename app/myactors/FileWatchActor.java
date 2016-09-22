@@ -54,8 +54,11 @@ public class FileWatchActor extends UntypedActor {
 
     @Override
     public void onReceive(Object message) throws Exception {
+        System.out.println("FileWatchActor -> getting key");
         WatchKey key = _watcher.poll();
+        System.out.println("FileWatchActor -> key is mine...");
         if (key != null) {
+            System.out.println("FileWatchActor -> key is !null");
             for (WatchEvent<?> event : key.pollEvents()) {
                 // Get event type
                 WatchEvent.Kind<?> kind = event.kind();

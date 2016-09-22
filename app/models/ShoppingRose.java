@@ -275,6 +275,14 @@ public class ShoppingRose {
         return 0.0f;
     }
 
+    private boolean hasPercentageRebate(GenericArticle article) {
+        return supplierDataForMap(article, m_rebate_map)>0.0f;
+    }
+
+    private boolean hasCashRebate(GenericArticle article) {
+        return supplierDataForMap(article, m_expenses_map)>0.0f;
+    }
+
     private int rosePreference(GenericArticle article) {
         String supplier = article.getSupplier().toLowerCase();
         for (String p : Constants.rosePreferences.keySet()) {
@@ -453,11 +461,11 @@ public class ShoppingRose {
         if (isAutoGenerikum(ga.getEanCode())) {
             preference_str += "AG";
         }
-        if (supplierDataForMap(ga, m_rebate_map)>0.0 /*|| top_supplier.equals(getShortSupplier(article))*/) {
+        if (hasPercentageRebate(ga)) {
             if (!preference_str.isEmpty())
                 preference_str += ", ";
             preference_str += "GP";
-        } else if (supplierDataForMap(ga, m_expenses_map)>0.0) {
+        } else if (hasCashRebate(ga)) {
             if (!preference_str.isEmpty())
                 preference_str += ", ";
             preference_str += "GU";
@@ -487,14 +495,14 @@ public class ShoppingRose {
 
                 // Get cash rebate
                 float cr = getCashRebate(article);
-                if (cr>=0.0f)
+                if (cr >= 0.0f)
                     article.setCashRebate(cr);
 
                 // Set buying price
                 float rose_price = article.getExfactoryPriceAsFloat();
                 article.setBuyingPrice(rose_price);
 
-                float cash_rebate = rose_price * article.getCashRebate()*0.01f;
+                float cash_rebate = rose_price * article.getCashRebate() * 0.01f;
 
                 int quantity = article.getQuantity();
 
@@ -523,52 +531,62 @@ public class ShoppingRose {
                 rose_article.setShippingStatus(shipping_status.first);
                 rose_article.setNettoPriceList(article.isNplArticle());
 
-                // article points to object which was inserted last...
-                if (m_map_similar_articles.containsKey(ean_code)) {
+                /*
+                    In the following cases we do not need to indicate alternatives:
+                    1. Article is on stock (green) && article is NPL
+                    2. Article is a generikum && has percentage rebate
+                */
+                if (article.getShippingStatus() == 1
+                        && (article.isNplArticle() || (article.isGenerikum() && hasPercentageRebate(article)))) {
+                   rose_article.alternatives = new LinkedList<>();
+                } else {
+                    // article points to object which was inserted last...
+                    if (m_map_similar_articles.containsKey(ean_code)) {
 
-                    sortSimilarArticles(quantity);
+                        sortSimilarArticles(quantity);
 
-                    List<GenericArticle> la = m_map_similar_articles.get(ean_code);
-                    for (GenericArticle a : la) {
-                        if (!a.getEanCode().equals(ean_code)) {
-                            if (article.isOriginal() || (article.isGenerikum() && a.isGenerikum())) {
-                                if (a.isAvailable() && !a.isOffMarket()) {
-                                    RoseArticle ra = new RoseArticle();
+                        List<GenericArticle> la = m_map_similar_articles.get(ean_code);
+                        for (GenericArticle a : la) {
+                            if (!a.getEanCode().equals(ean_code)) {
+                                if (article.isOriginal() || (article.isGenerikum() && a.isGenerikum())) {
+                                    if (a.isAvailable() && !a.isOffMarket()) {
+                                        RoseArticle ra = new RoseArticle();
 
-                                    cr = getCashRebate(a);
-                                    if (cr >= 0.0f)
-                                        a.setCashRebate(cr);
+                                        cr = getCashRebate(a);
+                                        if (cr >= 0.0f)
+                                            a.setCashRebate(cr);
 
-                                    rose_price = a.getExfactoryPriceAsFloat();
-                                    cash_rebate = rose_price * a.getCashRebate() * 0.01f;
+                                        rose_price = a.getExfactoryPriceAsFloat();
+                                        cash_rebate = rose_price * a.getCashRebate() * 0.01f;
 
-                                    a.setBuyingPrice(rose_price);
-                                    a.setQuantity(quantity);
+                                        a.setBuyingPrice(rose_price);
+                                        a.setQuantity(quantity);
 
-                                    flags_str = a.getFlags();
+                                        flags_str = a.getFlags();
 
-                                    preference_str = generatePreferences(a);
+                                        preference_str = generatePreferences(a);
 
-                                    shipping_ = shippingStatus(a, a.getQuantity());
-                                    shipping_status = shippingStatusColor(shipping_);
+                                        shipping_ = shippingStatus(a, a.getQuantity());
+                                        shipping_status = shippingStatusColor(shipping_);
 
-                                    ra.setGtin(a.getEanCode());
-                                    ra.setPharma(a.getPharmaCode());
-                                    ra.setTitle(a.getPackTitle());
-                                    ra.setSize(a.getPackSize());
-                                    ra.setGalen(a.getPackGalen());
-                                    ra.setUnit(a.getPackUnit());
-                                    ra.setSupplier(a.getSupplier());
-                                    ra.setRosePrice(rose_price);
-                                    ra.setPublicPrice(a.getPublicPriceAsFloat());
-                                    ra.setCashRebate(cash_rebate);
-                                    ra.setQuantity(a.getQuantity());
-                                    ra.setSwissmed(flags_str);
-                                    ra.setPreferences(preference_str);
-                                    ra.setShippingStatus(shipping_status.first);
-                                    ra.setNettoPriceList(a.isNplArticle());
+                                        ra.setGtin(a.getEanCode());
+                                        ra.setPharma(a.getPharmaCode());
+                                        ra.setTitle(a.getPackTitle());
+                                        ra.setSize(a.getPackSize());
+                                        ra.setGalen(a.getPackGalen());
+                                        ra.setUnit(a.getPackUnit());
+                                        ra.setSupplier(a.getSupplier());
+                                        ra.setRosePrice(rose_price);
+                                        ra.setPublicPrice(a.getPublicPriceAsFloat());
+                                        ra.setCashRebate(cash_rebate);
+                                        ra.setQuantity(a.getQuantity());
+                                        ra.setSwissmed(flags_str);
+                                        ra.setPreferences(preference_str);
+                                        ra.setShippingStatus(shipping_status.first);
+                                        ra.setNettoPriceList(a.isNplArticle());
 
-                                    rose_article.alternatives.add(ra);
+                                        rose_article.alternatives.add(ra);
+                                    }
                                 }
                             }
                         }
