@@ -55,11 +55,14 @@ public class RoseArticle {
 
     @JsonProperty("rose_price")
     @JsonSerialize(using = PriceSerializer.class)
-    private BigDecimal rose_price;
+    private BigDecimal rose_basis_price;
 
     @JsonProperty("public_price")
     @JsonSerialize(using = PriceSerializer.class)
     private BigDecimal public_price;
+
+    @JsonIgnore
+    private BigDecimal exfactory_price;
 
     @JsonProperty("cash_rebate")
     @JsonSerialize(using = PriceSerializer.class)
@@ -92,10 +95,13 @@ public class RoseArticle {
     public String getTitle() { return title; }
 
     @JsonIgnore
-    public String getRosePrice() { return rose_price.setScale(2, BigDecimal.ROUND_HALF_UP).toString(); }
+    public String getRoseBasisPrice() { return rose_basis_price.setScale(2, BigDecimal.ROUND_HALF_UP).toString(); }
 
     @JsonIgnore
     public String getPublicPrice() { return public_price.setScale(2, BigDecimal.ROUND_HALF_UP).toString(); }
+
+    @JsonIgnore
+    public String getExFactoryPrice() { return exfactory_price.setScale(2, BigDecimal.ROUND_HALF_UP).toString(); }
 
     @JsonIgnore
     public String getQuantity() { return Integer.toString(quantity); }
@@ -145,13 +151,15 @@ public class RoseArticle {
         this.swissmed = swissmed;
     }
 
-    public void setRosePrice(float rose_price) {
-        this.rose_price = new BigDecimal(rose_price);
+    public void setRoseBasisPrice(float rose_basis_price) {
+        this.rose_basis_price = new BigDecimal(rose_basis_price);
     }
 
     public void setPublicPrice(float public_price) {
         this.public_price = new BigDecimal(public_price);
     }
+
+    public void setExfactoryPrice(float exfactory_price) { this.exfactory_price = new BigDecimal(exfactory_price); }
 
     public void setCashRebate(float cash_rebate) {
         this.cash_rebate = new BigDecimal(cash_rebate);

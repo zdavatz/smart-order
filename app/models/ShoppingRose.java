@@ -130,6 +130,26 @@ public class ShoppingRose {
         return 0.0f;
     }
 
+    public float getRoseMargin(GenericArticle article) {
+        /*
+        Marge in CHF = PP - ( RBP- ( GP in Prozent * EXF ) )
+        where
+        - PP (Publikumspreis)
+        - EXF (Exfactory-Preis)
+        - RBP (Rosenbasispreis)
+        - GP in Prozent
+        */
+        float pp = article.getPublicPriceAsFloat();
+        float exf = article.getExfactoryPriceAsFloat();
+        float rbp = article.getRoseBasisPriceAsFloat();
+        float gp = supplierDataForMap(article, m_rebate_map) * 0.01f;
+        float margin_CHF = pp - (rbp - (gp*exf));
+
+        // System.out.println("pp="+ pp + " | exf=" + exf + " | rbp=" + rbp + " | gp=" + gp + " -> margin=" + margin_CHF);
+
+        return margin_CHF;
+    }
+
     public void updateShippingStatus(GenericArticle article) {
         int shipping_status = shippingStatus(article, article.getQuantity());
         article.setShippingStatus(shipping_status);
@@ -499,7 +519,7 @@ public class ShoppingRose {
                     article.setCashRebate(cr);
 
                 // Set buying price
-                float rose_price = article.getExfactoryPriceAsFloat();
+                float rose_price = article.getRoseBasisPriceAsFloat();
                 article.setBuyingPrice(rose_price);
 
                 float cash_rebate = rose_price * article.getCashRebate() * 0.01f;
@@ -522,14 +542,17 @@ public class ShoppingRose {
                 rose_article.setGalen(article.getPackGalen());
                 rose_article.setUnit(article.getPackUnit());
                 rose_article.setSupplier(article.getSupplier());
-                rose_article.setRosePrice(rose_price);
+                rose_article.setRoseBasisPrice(rose_price);
                 rose_article.setPublicPrice(article.getPublicPriceAsFloat());
+                rose_article.setExfactoryPrice(article.getExfactoryPriceAsFloat());
                 rose_article.setCashRebate(cash_rebate);
                 rose_article.setQuantity(article.getQuantity());
                 rose_article.setSwissmed(flags_str);
                 rose_article.setPreferences(preference_str);
                 rose_article.setShippingStatus(shipping_status.first);
                 rose_article.setNettoPriceList(article.isNplArticle());
+
+                getRoseMargin(article);
 
                 /*
                     In the following cases we do not need to indicate alternatives:
@@ -556,7 +579,7 @@ public class ShoppingRose {
                                         if (cr >= 0.0f)
                                             a.setCashRebate(cr);
 
-                                        rose_price = a.getExfactoryPriceAsFloat();
+                                        rose_price = a.getRoseBasisPriceAsFloat();
                                         cash_rebate = rose_price * a.getCashRebate() * 0.01f;
 
                                         a.setBuyingPrice(rose_price);
@@ -576,14 +599,17 @@ public class ShoppingRose {
                                         ra.setGalen(a.getPackGalen());
                                         ra.setUnit(a.getPackUnit());
                                         ra.setSupplier(a.getSupplier());
-                                        ra.setRosePrice(rose_price);
+                                        ra.setRoseBasisPrice(rose_price);
                                         ra.setPublicPrice(a.getPublicPriceAsFloat());
+                                        ra.setExfactoryPrice(a.getExfactoryPriceAsFloat());
                                         ra.setCashRebate(cash_rebate);
                                         ra.setQuantity(a.getQuantity());
                                         ra.setSwissmed(flags_str);
                                         ra.setPreferences(preference_str);
                                         ra.setShippingStatus(shipping_status.first);
                                         ra.setNettoPriceList(a.isNplArticle());
+
+                                        getRoseMargin(a);
 
                                         rose_article.alternatives.add(ra);
                                     }

@@ -92,7 +92,7 @@ public class RoseOrder {
                 + a.getSize() + ";"
                 + a.getUnit() + ";"
                 + a.getGalen() + ";"
-                + a.getRosePrice() + ";"
+                + a.getRoseBasisPrice() + ";"
                 + a.getPublicPrice() + ";"
                 + a.getQuantity() + ";"
                 + a.getCashRebate() + ";"

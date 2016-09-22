@@ -34,6 +34,7 @@ public class GenericArticle {
     private String active_substance;
     private String atc_code;
     private String atc_class;
+    private String rose_basis_price = "";
     private String exfactory_price = "";
     private String public_price = "";
     private String fap_price = "";
@@ -248,6 +249,22 @@ public class GenericArticle {
         this.additional_info = additional_info;
     }
 
+    private float getPriceAsFloat(String price_as_str) {
+        DecimalFormat df = new DecimalFormat("#.##");
+        float price_as_float = 0.0f;
+        String price_pruned = price_as_str.replaceAll("[^\\d.]", "");
+        if (!price_pruned.isEmpty() && !price_pruned.equals("..")) {
+            price_as_float = Float.parseFloat(price_pruned);
+        }
+        return Float.valueOf(df.format(price_as_float));
+    }
+
+    public String getRoseBasisPrice() { return rose_basis_price; }
+
+    public float getRoseBasisPriceAsFloat() { return getPriceAsFloat(rose_basis_price); }
+
+    public void setRoseBasisPrice(String rose_basis_price) { this.rose_basis_price = rose_basis_price; }
+
     public String getPublicPrice() {
         return public_price;
     }
@@ -272,15 +289,7 @@ public class GenericArticle {
         return exfactory_price;
     }
 
-    public float getExfactoryPriceAsFloat() {
-        DecimalFormat df = new DecimalFormat("#.##");
-        float exfacto_as_float = 0.0f;
-        String price_pruned = exfactory_price.replaceAll("[^\\d.]", "");
-        if (!price_pruned.isEmpty() && !price_pruned.equals("..")) {
-            exfacto_as_float = Float.parseFloat(price_pruned);
-        }
-        return Float.valueOf(df.format(exfacto_as_float));
-    }
+    public float getExfactoryPriceAsFloat() { return getPriceAsFloat(exfactory_price); }
 
     public void setExfactoryPrice(String exfactory_price) {
         this.exfactory_price = exfactory_price;

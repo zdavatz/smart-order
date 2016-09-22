@@ -49,13 +49,22 @@ import static play.libs.Json.*;
 
 public class MainController extends Controller {
 
+    private static final String KEY_ROWID = "_id";
+    private static final String KEY_TITLE = "title";
+    private static final String KEY_AUTH = "auth";
     private static final String KEY_EAN = "eancode";
     private static final String KEY_PHARMA = "pharmacode";
     private static final String KEY_ATC = "atc";
+    private static final String KEY_PACKAGES = "packages";
+
+    private static final String PACKAGES_TABLE = String.format("%s,%s,%s,%s,%s",
+            KEY_ROWID, KEY_TITLE, KEY_AUTH, KEY_ATC, KEY_PACKAGES);
 
     private static final String ROSE_DB_TABLE = "rosedb";
+    private static final String AIPS_DB_TABLE = "amikodb";
 
     @Inject @NamedDatabase("rose") Database rose_db;
+    @Inject @NamedDatabase("aips") Database aips_db;
 
     public Result index() {
         return ok("Welcome to AmikoRose");
@@ -94,7 +103,7 @@ public class MainController extends Controller {
     }
 
     public Result getNumRecords() {
-        CompletableFuture<Integer> future = CompletableFuture.supplyAsync(() -> numRecords());
+        CompletableFuture<Integer> future = CompletableFuture.supplyAsync(() -> numRecords(rose_db, ROSE_DB_TABLE));
         return future.thenApply(f -> ok(String.format("Num records = %d\n", f))).join();
     }
 
@@ -132,6 +141,7 @@ public class MainController extends Controller {
             List<GenericArticle> articles = list_of_articles.stream()
                     .map(this::searchSingleEan)
                     .collect(Collectors.toList());
+
             shopping_cart.setResultsLimit(limit>0);
 
             if (articles.size() > 0) {
@@ -204,7 +214,7 @@ public class MainController extends Controller {
             list_of_articles.forEach( a ->
             {
                 if (shopping_cart.getCashRebate(a)>0.0f) {
-                    float rbp = a.getExfactoryPriceAsFloat();
+                    float rbp = a.getRoseBasisPriceAsFloat();
                     a.setCashRebate(rbp * shopping_cart.getCashRebate(a)/100.0f);
                     rebated_articles.add(a);
                 }
@@ -237,8 +247,9 @@ public class MainController extends Controller {
         rose_article.setGalen(generic_article.getPackGalen());
         rose_article.setUnit(generic_article.getPackUnit());
         rose_article.setSupplier(generic_article.getSupplier());
-        rose_article.setRosePrice(generic_article.getExfactoryPriceAsFloat());
+        rose_article.setRoseBasisPrice(generic_article.getRoseBasisPriceAsFloat());
         rose_article.setPublicPrice(generic_article.getPublicPriceAsFloat());
+        rose_article.setExfactoryPrice(generic_article.getExfactoryPriceAsFloat());
         rose_article.setCashRebate(generic_article.getCashRebate());
         rose_article.setQuantity(1);
         rose_article.setSwissmed(generic_article.getFlags());
@@ -426,12 +437,12 @@ public class MainController extends Controller {
         return check_units;
     }
 
-    private int numRecords() {
+    private int numRecords(Database db, String table) {
         int num_rec = -1;
         try {
-            Connection conn = rose_db.getConnection();
+            Connection conn = db.getConnection();
             Statement stat = conn.createStatement();
-            String query = "select count(*) from " + ROSE_DB_TABLE;
+            String query = "select count(*) from " + table;
             ResultSet rs = stat.executeQuery(query);
             num_rec = rs.getInt(1);
             conn.close();
@@ -441,6 +452,9 @@ public class MainController extends Controller {
         return num_rec;
     }
 
+    /** ----------------------------------------------------------------------------
+     * ROSE_DB
+     ---------------------------------------------------------------------------- */
     private List<GenericArticle> retrieveAllArticles() {
         List<GenericArticle> list_of_articles = new ArrayList<>();
 
@@ -485,6 +499,7 @@ public class MainController extends Controller {
 
     private GenericArticle searchSingleEan(String code) {
         GenericArticle article = new GenericArticle();
+        boolean article_found = false;
 
         try {
             Connection conn = rose_db.getConnection();
@@ -496,10 +511,31 @@ public class MainController extends Controller {
             ResultSet rs = stat.executeQuery(query);
             if (rs.next()) {
                 article = cursorToArticle(rs);
-            }
+                article_found = true;
+             }
             conn.close();
         } catch(SQLException e) {
             System.err.println(">> RoseSqlDb: SQLException in searchEan!");
+        }
+        // Fallback to aips DB if nothing is found
+        if (!article_found) {
+            try {
+                Connection conn = aips_db.getConnection();
+                Statement stat = conn.createStatement();
+                String query = "select " + PACKAGES_TABLE + " from " + AIPS_DB_TABLE + " where "
+                        + KEY_PACKAGES + " like '" + code + "%' or "
+                        + KEY_PACKAGES + " like '%|" + code + "%'";
+                ResultSet rs = stat.executeQuery(query);
+                if (rs.next()) {
+                    article = extendedCursorToArticle(rs, code);
+                }
+                conn.close();
+
+                System.out.println("Fallback -> " + article.getPackTitle() + " | " + article.getAtcCode());
+
+            } catch(SQLException e) {
+                System.err.println(">> AipsSqlDb: SQLException in extendedSearchSingleEan!");
+            }
         }
 
         return article;
@@ -527,53 +563,85 @@ public class MainController extends Controller {
     }
 
     private GenericArticle cursorToArticle(ResultSet result) {
-        GenericArticle genericArticle = new GenericArticle();
+        GenericArticle article = new GenericArticle();
 
         try {
-            genericArticle.setId(result.getLong(1));			 	// KEY_ROWID
-            genericArticle.setPackTitle(result.getString(2));	 	// KEY_TITLE
-            genericArticle.setPackSize(String.valueOf(result.getInt(3)));	// KEY_SIZE
-            genericArticle.setPackGalen(result.getString(4));	 	// KEY_GALEN
-            genericArticle.setPackUnit(result.getString(5));	 	// KEY_UNIT
-            String ean_str = result.getString(6);			        // KEY_EAN
+            article.setId(result.getLong(1));			 	// KEY_ROWID
+            article.setPackTitle(result.getString(2));	 	// KEY_TITLE
+            article.setPackSize(String.valueOf(result.getInt(3)));	// KEY_SIZE
+            article.setPackGalen(result.getString(4));	 	// KEY_GALEN
+            article.setPackUnit(result.getString(5));	 	// KEY_UNIT
+            String ean_str = result.getString(6);			// KEY_EAN
             if (ean_str!=null) {
                 String[] m_atc = ean_str.split(";");
                 if (m_atc.length>1) {
-                    genericArticle.setEanCode(m_atc[0]);
-                    genericArticle.setRegnr(m_atc[1].trim());
+                    article.setEanCode(m_atc[0]);
+                    article.setRegnr(m_atc[1].trim());
                 } else if (m_atc.length==1)
-                    genericArticle.setEanCode(m_atc[0]);
+                    article.setEanCode(m_atc[0]);
             }
-            genericArticle.setPharmaCode(result.getString(7));	 	// KEY_PHARMA
-            String atc_str = result.getString(8);			        // KEY_ATC
+            article.setPharmaCode(result.getString(7));	 	// KEY_PHARMA
+            String atc_str = result.getString(8);		    // KEY_ATC
             if (atc_str!=null) {
                 String[] m_code = atc_str.split(";");
                 if (m_code.length>1) {
-                    genericArticle.setAtcCode(m_code[0]);
-                    genericArticle.setAtcClass(m_code[1].trim());
+                    article.setAtcCode(m_code[0]);
+                    article.setAtcClass(m_code[1].trim());
                 } else if (m_code.length==1)
-                    genericArticle.setAtcCode(m_code[0]);
+                    article.setAtcCode(m_code[0]);
             }
-            genericArticle.setTherapyCode(result.getString(9)); 	// KEY_THERAPY
-            genericArticle.setItemsOnStock(result.getInt(10));	 	// KEY_STOCK
-            genericArticle.setExfactoryPrice(result.getString(11)); // KEY_PRICE (= Rose Basis Preis)
-            genericArticle.setAvailability(result.getString(12));	// KEY_AVAIL
-            genericArticle.setSupplier(result.getString(13));		// KEY_SUPPLIER
-            genericArticle.setLikes(result.getInt(14));			    // KEY_LIKES
-            genericArticle.setAuthorGln(result.getString(15));	    // KEY_AUTHOR_GLN (previous: KEY_REPLACE_EAN)
-            genericArticle.setReplacePharma(result.getString(16));	// KEY_REPLACE_PHARMA
+            article.setTherapyCode(result.getString(9)); 	// KEY_THERAPY
+            article.setItemsOnStock(result.getInt(10));	 	// KEY_STOCK
+            article.setRoseBasisPrice(result.getString(11)); // KEY_PRICE (= Rose Basis Preis)
+            article.setAvailability(result.getString(12));	// KEY_AVAIL
+            article.setSupplier(result.getString(13));		// KEY_SUPPLIER
+            article.setLikes(result.getInt(14));		    // KEY_LIKES
+            article.setAuthorGln(result.getString(15));	    // KEY_AUTHOR_GLN (previous: KEY_REPLACE_EAN)
+            article.setReplacePharma(result.getString(16));	// KEY_REPLACE_PHARMA
             boolean off_market = result.getBoolean(17);
             if (off_market)
-                genericArticle.setAvailability("-1");
-            genericArticle.setFlags(result.getString(18));
-            genericArticle.setNplArticle(result.getBoolean(19));
-            genericArticle.setPublicPrice(result.getString(20));
-            genericArticle.setCashRebate(0.0f);
+                article.setAvailability("-1");
+            article.setFlags(result.getString(18));
+            article.setNplArticle(result.getBoolean(19));
+            article.setPublicPrice(result.getString(20));    // KEY_PUBLIC_PRICE
+            article.setExfactoryPrice(result.getString(21)); // KEY_ROSE_BASIS_PRICE
+            article.setCashRebate(0.0f);
         } catch (SQLException e) {
             System.err.println(">> RoseDb: SQLException in cursorToArticle");
         }
 
-        return genericArticle;
+        return article;
+    }
+
+    private GenericArticle extendedCursorToArticle(ResultSet result, String code) {
+        GenericArticle article = new GenericArticle();
+        //  KEY_ROWID, KEY_TITLE, KEY_AUTH, KEY_ATC, KEY_PACKAGES
+        try {
+            article.setId(result.getLong(1));               // KEY_ROWID
+            article.setPackTitle(result.getString(2));      // KEY_TITLE
+            article.setSupplier(result.getString(3));       // KEY_AUTH
+            // Extract ATC Code
+            String atc_code_str = result.getString(4);      // KEY_ATCCODE
+            String a[] = atc_code_str.split(";");
+            if (a.length>0)
+                article.setAtcCode(a[0]);
+            String packages = result.getString(5);          // KEY_PACKAGES
+            // Extract row which contains 'code'
+            String packs[] = packages.split("\n");          // rows of type str|str|str|....
+            for (String p : packs) {
+                if (p.contains(code)) {
+                    String s[] = p.split("\\|");
+                    if (s.length>0) {
+                        article.setPackTitle(s[0]);
+                        break;
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println(">> SqlDatabase: SQLException in cursorToShortMedi");
+        }
+
+        return article;
     }
 }
 
