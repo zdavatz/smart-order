@@ -281,20 +281,19 @@ public class MainController extends Controller {
                                 // s AND size -> stückzahl, e.g. 12
                                 // u AND unit -> dosierung, e.g. 100mg
 
-                                boolean is_not_green_original = article.isOriginal() && article.getShippingStatus() > 1;
-                                boolean is_green_original_alternative = a.isOriginal() && a.getShippingStatus() == 1;
+                                boolean have_same_title = titleComparator(article.getPackTitle(), a.getPackTitle());
+                                boolean is_original_but_not_green = article.isOriginal() && article.getShippingStatus() > 1;
+                                boolean is_original_alternative_and_green = a.isOriginal() && a.getShippingStatus() == 1;
 
-                                if (is_not_green_original && is_green_original_alternative) {
-                                    /*
-                                    if (checkSimilarity3(size, s, unit, u)) {
-                                        original_list_a.add(a);
-                                    }
-                                    */
+                                if (is_original_but_not_green && is_original_alternative_and_green && have_same_title) {
+                                    // Add it to the list of originals
                                     original_list_a.add(a);
                                 } else {
-                                    if (checkSimilarity2(size, s, unit, u)) {
-                                        list_a.add(a);
-                                    }
+                                    if (!a.isOriginal()) {
+                                        if (checkSimilarity2(size, s, unit, u)) {
+                                            list_a.add(a);
+                                        }
+                                    } 
                                 }
                                 /*
                                 if ((size.contains(s) || s.contains(size)) && (unit.contains(u) || u.contains(unit)) )
@@ -371,6 +370,23 @@ public class MainController extends Controller {
             }
         }
         return list_a;
+    }
+
+    /**
+     * Compares two strings (titles)
+     * @param title1
+     * @param title2
+     * @return boolean denoting similarity or not
+     */
+    private boolean titleComparator(String title1, String title2) {
+        // Tokenize titles first
+        String[] t1 = title1.split("\\s+");
+        String[] t2 = title2.split("\\s+");
+        if (t1.length>0 && t2.length>0) {
+            if (t1[0].toLowerCase().equals(t2[0].toLowerCase()))
+                return true;
+        }
+        return false;
     }
 
     private boolean basicSimilarityCheck(String a1, String a2, float s) {
