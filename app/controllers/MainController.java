@@ -55,10 +55,11 @@ public class MainController extends Controller {
     private static final String KEY_EAN = "eancode";
     private static final String KEY_PHARMA = "pharmacode";
     private static final String KEY_ATC = "atc";
+    private static final String KEY_PACK_INFO = "pack_info_str";
     private static final String KEY_PACKAGES = "packages";
 
-    private static final String PACKAGES_TABLE = String.format("%s,%s,%s,%s,%s",
-            KEY_ROWID, KEY_TITLE, KEY_AUTH, KEY_ATC, KEY_PACKAGES);
+    private static final String PACKAGES_TABLE = String.format("%s,%s,%s,%s,%s,%s",
+            KEY_ROWID, KEY_TITLE, KEY_AUTH, KEY_ATC, KEY_PACK_INFO, KEY_PACKAGES);
 
     private static final String ROSE_DB_TABLE = "rosedb";
     private static final String AIPS_DB_TABLE = "amikodb";
@@ -151,6 +152,7 @@ public class MainController extends Controller {
                 for (GenericArticle article : articles) {
                     String ean = article.getEanCode();
                     String pharma = article.getPharmaCode();
+
                     // Check for ean/pharma code
                     if (map_of_articles.containsKey(ean) || map_of_articles.containsKey(pharma)) {
                         // Set quantities when found
@@ -291,7 +293,6 @@ public class MainController extends Controller {
                                 // Make sure that articles added to the list are NOT off-the-market
                                 // s AND size -> stückzahl, e.g. 12
                                 // u AND unit -> dosierung, e.g. 100mg
-
                                 boolean have_same_title = titleComparator(article.getPackTitle(), a.getPackTitle());
                                 boolean is_original_but_not_green = article.isOriginal() && article.getShippingStatus() > 1;
                                 boolean is_original_alternative_and_green = a.isOriginal() && a.getShippingStatus() == 1;
@@ -437,6 +438,93 @@ public class MainController extends Controller {
         return check_units;
     }
 
+    /**
+     * Extracts dosage/unit/prescription strength from package title
+     * @param pack_title
+     * @return extracted dosage
+     */
+    private String parseUnitFromTitle(String pack_title) {
+        String dosage = "";
+        Pattern p = Pattern.compile("(\\d+)(\\.\\d+)?\\s*(ml|mg|g)");
+        Matcher m = p.matcher(pack_title);
+        if (m.find()) {
+            dosage = m.group(1);
+            String q = m.group(2);
+            if (q!=null && !q.isEmpty()) {
+                dosage += q;
+            }
+            dosage += (" " + m.group(3));
+        }
+        return dosage;
+    }
+
+    /**
+     * Extracts package size from title
+     *
+     */
+    private int parseSizeFromTitle(String pack_title) {
+        String size = "";
+        Pattern p = Pattern.compile("(\\d+)\\s*(Stk)");
+        Matcher m = p.matcher(pack_title);
+        if (m.find()) {
+            size = m.group(1);
+        }
+        if (!size.isEmpty())
+            return Integer.valueOf(size);
+        else
+            return 0;
+    }
+
+    /** ----------------------------------------------------------------------------
+     * ROSE_DB + AMIKO_DB
+     ---------------------------------------------------------------------------- */
+    private GenericArticle searchSingleEan(String code) {
+        GenericArticle article = new GenericArticle();
+        boolean article_found = false;
+
+        try {
+            Connection conn = rose_db.getConnection();
+            Statement stat = conn.createStatement();
+            String query = "select * from " + ROSE_DB_TABLE + " where "
+                    + KEY_EAN + " like " + "'" + code + "%' or "
+                    + KEY_EAN + " like " + "'%;" + code + "%' or "
+                    + KEY_PHARMA + " like " + "'" + code + "%'";
+            ResultSet rs = stat.executeQuery(query);
+            if (rs.next()) {
+                article = cursorToArticle(rs);
+                article_found = true;
+            }
+            conn.close();
+        } catch(SQLException e) {
+            System.err.println(">> RoseSqlDb: SQLException in searchEan!");
+        }
+        // Fallback to aips DB if nothing is found
+        if (!article_found) {
+            try {
+                Connection conn = aips_db.getConnection();
+                Statement stat = conn.createStatement();
+                String query = "select " + PACKAGES_TABLE + " from " + AIPS_DB_TABLE + " where "
+                        + KEY_PACKAGES + " like '" + code + "%' or "
+                        + KEY_PACKAGES + " like '%|" + code + "%'";
+                ResultSet rs = stat.executeQuery(query);
+                if (rs.next()) {
+                    article = extendedCursorToArticle(rs, code);
+                }
+                conn.close();
+
+                System.out.println("Fallback -> " + article.getPackTitle() + " | " + article.getAtcCode());
+
+            } catch(SQLException e) {
+                System.err.println(">> AipsSqlDb: SQLException in extendedSearchSingleEan!");
+            }
+        }
+
+        return article;
+    }
+
+    /** ----------------------------------------------------------------------------
+     * ROSE_DB ONLY
+     ---------------------------------------------------------------------------- */
     private int numRecords(Database db, String table) {
         int num_rec = -1;
         try {
@@ -452,9 +540,6 @@ public class MainController extends Controller {
         return num_rec;
     }
 
-    /** ----------------------------------------------------------------------------
-     * ROSE_DB
-     ---------------------------------------------------------------------------- */
     private List<GenericArticle> retrieveAllArticles() {
         List<GenericArticle> list_of_articles = new ArrayList<>();
 
@@ -497,50 +582,6 @@ public class MainController extends Controller {
         return list_of_articles;
     }
 
-    private GenericArticle searchSingleEan(String code) {
-        GenericArticle article = new GenericArticle();
-        boolean article_found = false;
-
-        try {
-            Connection conn = rose_db.getConnection();
-            Statement stat = conn.createStatement();
-            String query = "select * from " + ROSE_DB_TABLE + " where "
-                    + KEY_EAN + " like " + "'" + code + "%' or "
-                    + KEY_EAN + " like " + "'%;" + code + "%' or "
-                    + KEY_PHARMA + " like " + "'" + code + "%'";
-            ResultSet rs = stat.executeQuery(query);
-            if (rs.next()) {
-                article = cursorToArticle(rs);
-                article_found = true;
-             }
-            conn.close();
-        } catch(SQLException e) {
-            System.err.println(">> RoseSqlDb: SQLException in searchEan!");
-        }
-        // Fallback to aips DB if nothing is found
-        if (!article_found) {
-            try {
-                Connection conn = aips_db.getConnection();
-                Statement stat = conn.createStatement();
-                String query = "select " + PACKAGES_TABLE + " from " + AIPS_DB_TABLE + " where "
-                        + KEY_PACKAGES + " like '" + code + "%' or "
-                        + KEY_PACKAGES + " like '%|" + code + "%'";
-                ResultSet rs = stat.executeQuery(query);
-                if (rs.next()) {
-                    article = extendedCursorToArticle(rs, code);
-                }
-                conn.close();
-
-                System.out.println("Fallback -> " + article.getPackTitle() + " | " + article.getAtcCode());
-
-            } catch(SQLException e) {
-                System.err.println(">> AipsSqlDb: SQLException in extendedSearchSingleEan!");
-            }
-        }
-
-        return article;
-    }
-
     public List<GenericArticle> searchATC(String atccode) {
         List<GenericArticle> list_of_articles = new ArrayList<>();
 
@@ -562,6 +603,9 @@ public class MainController extends Controller {
         return list_of_articles;
     }
 
+    /** ----------------------------------------------------------------------------
+     * MAPPINGS FROM DB Format to Article
+     ---------------------------------------------------------------------------- */
     private GenericArticle cursorToArticle(ResultSet result) {
         GenericArticle article = new GenericArticle();
 
@@ -625,18 +669,42 @@ public class MainController extends Controller {
             String a[] = atc_code_str.split(";");
             if (a.length>0)
                 article.setAtcCode(a[0]);
-            String packages = result.getString(5);          // KEY_PACKAGES
+            String pack_info = result.getString(5);         // KEY_PACK_INFO
+            String packages = result.getString(6);          // KEY_PACKAGES
             // Extract row which contains 'code'
             String packs[] = packages.split("\n");          // rows of type str|str|str|....
+            int row = 0;
             for (String p : packs) {
                 if (p.contains(code)) {
                     String s[] = p.split("\\|");
-                    if (s.length>0) {
-                        article.setPackTitle(s[0]);
+                    if (s.length>10) {
+                        String pack_title = s[0];
+                        article.setPackTitle(pack_title);
+                        // Parse units and dosage/size from title
+                        String unit = parseUnitFromTitle(pack_title);
+                        int size = parseSizeFromTitle(pack_title);
+                        article.setPackUnit(unit);
+                        article.setPackSize(Integer.toString(size));
+                        article.setEanCode(s[9]);
+                        article.setPharmaCode(s[10]);
                         break;
                     }
                 }
+                row++;
             }
+            // Extracts row'th row from pack info string
+            String info[] = pack_info.split("\n");
+            if (info.length>=row) {
+                String r = info[row];
+                String m = r.substring(r.indexOf("[")+1, r.indexOf("]"));
+                if (m.endsWith(", O]"))
+                    article.setFlags(m);
+                else
+                    article.setFlags(m);
+            }
+            // Set availability to RED (= not on stock!)
+            article.setAvailability("xx.xx.2153");
+
         } catch (SQLException e) {
             System.err.println(">> SqlDatabase: SQLException in cursorToShortMedi");
         }

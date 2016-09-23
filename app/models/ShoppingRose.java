@@ -552,6 +552,7 @@ public class ShoppingRose {
                 rose_article.setShippingStatus(shipping_status.first);
                 rose_article.setNettoPriceList(article.isNplArticle());
 
+                // Returns the Rose margin in CHF for article
                 getRoseMargin(article);
 
                 /*
@@ -574,7 +575,6 @@ public class ShoppingRose {
                                 if (article.isOriginal() || (article.isGenerikum() && a.isGenerikum())) {
                                     if (a.isAvailable() && !a.isOffMarket()) {
                                         RoseArticle ra = new RoseArticle();
-
                                         cr = getCashRebate(a);
                                         if (cr >= 0.0f)
                                             a.setCashRebate(cr);
