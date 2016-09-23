@@ -307,8 +307,6 @@ public class MainController extends Controller {
         String size = article.getPackSize();
         String unit = article.getPackUnit();
 
-        System.out.println(atc_code + " | " + size + " | " + unit);
-
         if (atc_code!=null && !atc_code.equals("k.A.")) {
             for (GenericArticle a : searchATC(atc_code)) {
                 // Loop through "similar" articles
@@ -516,8 +514,8 @@ public class MainController extends Controller {
             Connection conn = rose_db.getConnection();
             Statement stat = conn.createStatement();
             String query = "select * from " + ROSE_DB_TABLE + " where "
-                    + KEY_EAN + " like " + "'" + code + "%' or "
-                    + KEY_EAN + " like " + "'%;" + code + "%' or "
+                    + KEY_EAN + " like '" + code + "%' or "
+                    + KEY_EAN + " like '%;" + code + "%' or "
                     + KEY_PHARMA + " like " + "'" + code + "%'";
             ResultSet rs = stat.executeQuery(query);
             if (rs.next()) {
