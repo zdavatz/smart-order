@@ -709,6 +709,7 @@ public class MainController extends Controller {
                         article.setPackSize(Integer.toString(size));
                         article.setEanCode(s[9]);
                         article.setPharmaCode(s[10]);
+                        article.setPublicPrice(s[4]);
                         break;
                     }
                 }
