@@ -446,6 +446,9 @@ public class MainController extends Controller {
     private boolean checkSimilarity2(String size_1, String size_2, String unit_1, String unit_2) {
         boolean check_size = false;
         boolean check_units = false;
+
+        System.out.println(size_1 + " = " + size_2 + " | " + unit_1 + " = " + unit_2);
+
         if (!size_1.isEmpty() && !size_2.isEmpty())
             check_size = basicSimilarityCheck(size_1, size_2, 0.51f);
         if (!unit_1.isEmpty() && !unit_2.isEmpty())
