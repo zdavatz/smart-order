@@ -208,6 +208,8 @@ public class MainController extends Controller {
             else
                 order_json = toJson(rose_order).toString();
 
+            System.out.println(order_json);
+
             return ok(order_json);
         }
         return ok("[]");
@@ -322,8 +324,6 @@ public class MainController extends Controller {
                                 boolean have_same_title = titleComparator(article.getPackTitle(), a.getPackTitle());
                                 boolean is_original_but_not_green = article.isOriginal() && article.getShippingStatus() > 1;
                                 boolean is_original_alternative_and_green = a.isOriginal() && a.getShippingStatus() == 1;
-
-                                System.out.println(article.getPackTitle() + " -> " + a.getPackTitle());
 
                                 if (is_original_but_not_green && is_original_alternative_and_green && have_same_title) {
                                     // Add it to the list of originals
