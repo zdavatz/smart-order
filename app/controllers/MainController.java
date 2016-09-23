@@ -120,6 +120,12 @@ public class MainController extends Controller {
         return ok(duration + res);
     }
 
+    /**
+     * This is the main entry point to the SmartOrder functionality
+     * Accepted are GET requests of the following form:
+     *  http://127.0.0.1:9000/smart/full?pretty=on&authkey=1111&glncode=943666&basket=(7680623190048,10)
+     *
+     */
     @Inject ActorSystem actorSystem;
     public Result getSmartBasket(String pretty, int limit, String auth_key, String gln_code, String basket) {
         ShoppingRose shopping_cart = new ShoppingRose(gln_code);
@@ -138,11 +144,12 @@ public class MainController extends Controller {
                     map_of_articles.put(code, Integer.valueOf(qty));
                 }
             }
-            // Search for ean/pharma codes
+            // Search for ean/pharma codes in rosedb and amikodb (fallback in case nothing is found in first DB)
             List<GenericArticle> articles = list_of_articles.stream()
                     .map(this::searchSingleEan)
                     .collect(Collectors.toList());
 
+            // Set limit to list of articles displayed (either 2 or as many as possible)
             shopping_cart.setResultsLimit(limit>0);
 
             if (articles.size() > 0) {
@@ -162,11 +169,12 @@ public class MainController extends Controller {
                             article.setQuantity(map_of_articles.get(pharma));
                         // Set shipping status
                         shopping_cart.updateShippingStatus(article);
+                        // Add article to shopping basket
                         shopping_basket.put(ean, article);
-                        // Find alternatives
+                        // Find all alternatives using the article's EAN code
                         LinkedList<GenericArticle> la = listSimilarArticles(article);
                         if (la != null) {
-                            // Check if ean code is already part of the map...
+                            // Check if ean code is already part of the map, if not add to map
                             if (!map_of_similar_articles.containsKey(ean)) {
                                 map_of_similar_articles.put(ean, la);
                             }
@@ -239,6 +247,11 @@ public class MainController extends Controller {
         return ok("[]");
     }
 
+    /**
+     * Maps a generic article to a rose smart order system compatible article
+     * @param generic_article
+     * @return rose_article
+     */
     private RoseArticle genericArticleToRose(GenericArticle generic_article) {
         RoseArticle rose_article = new RoseArticle();
 
@@ -264,6 +277,11 @@ public class MainController extends Controller {
         return rose_article;
     }
 
+    /**
+     * Used for testing purposes
+     * @param article
+     * @return rose_article
+     */
     private RoseArticle getAlternatives(GenericArticle article) {
         RoseArticle rose_article = genericArticleToRose(article);
 
@@ -274,6 +292,13 @@ public class MainController extends Controller {
         return rose_article;
     }
 
+    /**
+     * This is a key function that given a generic article finds similar articles
+     * Similarity is calculated starting from the ATC code and is then narrowed down
+     * by matching dosages and package size.
+     * @param article
+     * @return list of similar articles
+     */
     private LinkedList<GenericArticle> listSimilarArticles(GenericArticle article) {
         LinkedList<GenericArticle> list_a = new LinkedList<>();
         LinkedList<GenericArticle> original_list_a = new LinkedList<>();
@@ -445,7 +470,7 @@ public class MainController extends Controller {
      */
     private String parseUnitFromTitle(String pack_title) {
         String dosage = "";
-        Pattern p = Pattern.compile("(\\d+)(\\.\\d+)?\\s*(ml|mg|g)");
+        Pattern p = Pattern.compile("(\\d+)(\\.\\d+)?\\s*(ml|mg|mcg|g|mmol|mcg/h|mg/ml)");
         Matcher m = p.matcher(pack_title);
         if (m.find()) {
             dosage = m.group(1);
@@ -511,9 +536,6 @@ public class MainController extends Controller {
                     article = extendedCursorToArticle(rs, code);
                 }
                 conn.close();
-
-                System.out.println("Fallback -> " + article.getPackTitle() + " | " + article.getAtcCode());
-
             } catch(SQLException e) {
                 System.err.println(">> AipsSqlDb: SQLException in extendedSearchSingleEan!");
             }
