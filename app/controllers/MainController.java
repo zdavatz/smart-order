@@ -306,6 +306,9 @@ public class MainController extends Controller {
         String atc_code = article.getAtcCode();
         String size = article.getPackSize();
         String unit = article.getPackUnit();
+
+        System.out.println(atc_code + " | " + size + " | " + unit);
+
         if (atc_code!=null && !atc_code.equals("k.A.")) {
             for (GenericArticle a : searchATC(atc_code)) {
                 // Loop through "similar" articles
@@ -321,6 +324,8 @@ public class MainController extends Controller {
                                 boolean have_same_title = titleComparator(article.getPackTitle(), a.getPackTitle());
                                 boolean is_original_but_not_green = article.isOriginal() && article.getShippingStatus() > 1;
                                 boolean is_original_alternative_and_green = a.isOriginal() && a.getShippingStatus() == 1;
+
+                                System.out.println(article.getPackTitle() + " -> " + a.getPackTitle());
 
                                 if (is_original_but_not_green && is_original_alternative_and_green && have_same_title) {
                                     // Add it to the list of originals
@@ -526,6 +531,9 @@ public class MainController extends Controller {
         // Fallback to aips DB if nothing is found
         if (!article_found) {
             try {
+
+                System.out.println("--> Fallback on aips DB");
+
                 Connection conn = aips_db.getConnection();
                 Statement stat = conn.createStatement();
                 String query = "select " + PACKAGES_TABLE + " from " + AIPS_DB_TABLE + " where "
