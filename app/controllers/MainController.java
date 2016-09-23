@@ -208,8 +208,6 @@ public class MainController extends Controller {
             else
                 order_json = toJson(rose_order).toString();
 
-            System.out.println(order_json);
-
             return ok(order_json);
         }
         return ok("[]");
@@ -331,6 +329,7 @@ public class MainController extends Controller {
                                 } else {
                                     if (!a.isOriginal()) {
                                         if (checkSimilarity2(size, s, unit, u)) {
+                                            System.out.println("--> " + a.getPackTitle());
                                             list_a.add(a);
                                         }
                                     }
