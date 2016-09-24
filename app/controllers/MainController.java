@@ -494,7 +494,7 @@ public class MainController extends Controller {
      */
     private int parseSizeFromTitle(String pack_title) {
         String size = "";
-        Pattern p = Pattern.compile("(\\d+)\\s*(Stk)");
+        Pattern p = Pattern.compile("(\\d+)\\s*(stk)");
         Matcher m = p.matcher(pack_title);
         if (m.find()) {
             size = m.group(1);
@@ -709,7 +709,7 @@ public class MainController extends Controller {
                     String s[] = p.split("\\|");
                     if (s.length>10) {
                         String pack_title = s[0];
-                        article.setPackTitle(pack_title);
+                        article.setPackTitle(capitalizeFully(pack_title, 1));
                         // Parse units and dosage/size from title
                         String unit = parseUnitFromTitle(pack_title);
                         int size = parseSizeFromTitle(pack_title);
@@ -741,6 +741,24 @@ public class MainController extends Controller {
         }
 
         return article;
+    }
+
+    private String capitalizeFully(String s, int N) {
+        // Split string
+        String[] tokens = s.split("\\s");
+        // Capitalize only first word!
+        tokens[0] = tokens[0].toUpperCase();
+        // Reassemble string
+        String full_s = "";
+        if (tokens.length > 1) {
+            for (int i = 0; i < tokens.length - 1; i++) {
+                full_s += (tokens[i] + " ");
+            }
+            full_s += tokens[tokens.length - 1];
+        } else {
+            full_s = tokens[0];
+        }
+        return full_s;
     }
 }
 
