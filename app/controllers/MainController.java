@@ -329,7 +329,10 @@ public class MainController extends Controller {
                                 } else {
                                     if (!a.isOriginal()) {
                                         if (checkSimilarity2(size, s, unit, u)) {
-                                            System.out.println("--> " + a.getPackTitle());
+                                            // Allow only *same* dosages
+                                            list_a.add(a);
+                                        } else if (checkSimilarity3(size, s,unit, u)) {
+                                            // Relax search criteria, allow also "similar" dosages
                                             list_a.add(a);
                                         }
                                     }
@@ -446,9 +449,6 @@ public class MainController extends Controller {
     private boolean checkSimilarity2(String size_1, String size_2, String unit_1, String unit_2) {
         boolean check_size = false;
         boolean check_units = false;
-
-        System.out.println(size_1 + " = " + size_2 + " | " + unit_1 + " = " + unit_2);
-
         if (!size_1.isEmpty() && !size_2.isEmpty())
             check_size = basicSimilarityCheck(size_1, size_2, 0.51f);
         if (!unit_1.isEmpty() && !unit_2.isEmpty())
@@ -461,9 +461,9 @@ public class MainController extends Controller {
         if (checkSimilarity2(size_1, size_2, unit_1, unit_2))
             return true;
         if (!unit_1.isEmpty() && !unit_2.isEmpty()) {
-            unit_1 = unit_1.replaceAll("[^0-9]", "");
-            unit_2 = unit_2.replaceAll("[^0-9]", "");
-            check_units = basicSimilarityCheck(unit_1, unit_2, 1.01f);
+            unit_1 = unit_1.replaceAll("[^0-9.]", "");
+            unit_2 = unit_2.replaceAll("[^0-9.]", "");
+            check_units = basicSimilarityCheck(unit_1, unit_2, 0.51f);
         }
         return check_units;
     }
