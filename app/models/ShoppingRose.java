@@ -343,6 +343,28 @@ public class ShoppingRose {
                 .compareTo(value2);
     }
 
+    private int sortSize(GenericArticle a1, GenericArticle a2, String size) {
+        int value1 = a1.getPackSize().equals(size) ? 1 : -1;
+        int value2 = a2.getPackSize().equals(size) ? 1 : -1;
+        // Returns
+        //  = 0 if value1 = value2
+        // 	< 0 if value1 < value2
+        //  > 0 if value1 > value2
+        return -Integer.valueOf(value1)
+                .compareTo(value2);
+    }
+
+    private int sortDosage(GenericArticle a1, GenericArticle a2, String dosage) {
+        int value1 = a1.getPackUnit().equals(dosage) ? 1 : -1;
+        int value2 = a2.getPackUnit().equals(dosage) ? 1 : -1;
+        // Returns
+        //  = 0 if value1 = value2
+        // 	< 0 if value1 < value2
+        //  > 0 if value1 > value2
+        return -Integer.valueOf(value1)
+                .compareTo(value2);
+    }
+
     private int sortAutoGenerika(GenericArticle a1, GenericArticle a2) {
         int value1 = isAutoGenerikum(a1.getEanCode()) ? 1 : -1;
         int value2 = isAutoGenerikum(a2.getEanCode()) ? 1 : -1;
@@ -396,7 +418,7 @@ public class ShoppingRose {
                 .compareTo(value2);
     }
 
-    private void sortSimilarArticles(final int quantity) {
+    private void sortSimilarArticles(final int quantity, final String size, final String dosage) {
         // Loop through all entries and sort/filter
         for (Map.Entry<String, List<GenericArticle>> entry : m_map_similar_articles.entrySet()) {
             // Ean code of "key" article
@@ -431,16 +453,22 @@ public class ShoppingRose {
                         // PRIO 2: Original
                         if (c == 0)
                             c = sortOriginals(a1, a2);
-                        // PRIO 3: AG - Autogenerikum
+                        // PRIO 3:
+                        if (c == 0)
+                            c = sortSize(a1, a2, size);
+                        // PRIO 4:
+                        if (c == 0)
+                            c = sortDosage(a1, a2, dosage);
+                        // PRIO 5: AG - Autogenerikum
                         if (c == 0)
                             c = sortAutoGenerika(a1, a2);
-                        // PRIO 4: GP - Generikum Präferenz Arzt - Rabatt (%)
+                        // PRIO 6: GP - Generikum Präferenz Arzt - Rabatt (%)
                         if (c == 0)
                             c = sortRebate(a1, a2);
-                        // PRIO 5: GU - Generikum Präferenz Arzt - Umsatz (CHF)
+                        // PRIO 7: GU - Generikum Präferenz Arzt - Umsatz (CHF)
                         if (c == 0)
                             c = sortSales(a1, a2);
-                        // PRIO 6: ZRP - Generikum Präferenz zur Rose
+                        // PRIO 8: ZRP - Generikum Präferenz zur Rose
                         if (c == 0)
                             c = sortRosePreference(a1, a2);
                         return c;
@@ -567,7 +595,9 @@ public class ShoppingRose {
                     // article points to object which was inserted last...
                     if (m_map_similar_articles.containsKey(ean_code)) {
 
-                        sortSimilarArticles(quantity);
+                        String size = article.getPackSize();
+                        String dosage = article.getPackUnit();
+                        sortSimilarArticles(quantity, size, dosage);
 
                         List<GenericArticle> la = m_map_similar_articles.get(ean_code);
                         for (GenericArticle a : la) {
