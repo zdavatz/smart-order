@@ -59,6 +59,8 @@ public class FileWatchActor extends UntypedActor {
             for (WatchEvent<?> event : key.pollEvents()) {
                 // Get event type
                 WatchEvent.Kind<?> kind = event.kind();
+                WatchEvent<Path> ev = (WatchEvent<Path>)event;
+                Path file_name = ev.context();
                 @SuppressWarnings("unchecked")
                 DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
                 Date date = new Date();
@@ -70,8 +72,11 @@ public class FileWatchActor extends UntypedActor {
                 } else if (kind == ENTRY_MODIFY || kind==ENTRY_CREATE) {
                     // process modify event
                     Thread.sleep(1000);
+                    /*
                     System.out.println("Re-loading all rose files... " + dateFormat.format(date));
                     RoseData.getInstance().loadAllFiles();
+                    */
+                    RoseData.getInstance().loadFile(file_name.toString());
                     key.reset();
                 }
             }

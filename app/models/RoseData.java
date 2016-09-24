@@ -77,6 +77,23 @@ public final class RoseData {
         return this.rose_auth_keys_list;
     }
 
+    public void loadFile(String file_name) {
+        String rose_path = System.getProperty("user.dir") + Constants.ROSE_DIR;
+
+        System.out.print("# Re-loading " + file_name + "... ");
+        if (file_name.equals("rose_conditions.ser.clear"))
+            rose_user_map = loadRoseUserMap(rose_path + file_name);
+        else if (file_name.equals("rose_sales_fig.ser.clear"))
+            rose_sales_figs_map = loadRoseSalesFigures(rose_path + file_name);
+        else if (file_name.equals("rose_ids.ser.clear"))
+            rose_ids_map = loadRoseIds(rose_path + file_name);
+        else if (file_name.equals("rose_autogenerika.ser.clear"))
+            rose_autogenerika_list = loadRoseAutoGenerika(rose_path + file_name);
+        else if (file_name.equals("rose_auth_keys.txt"))
+            rose_auth_keys_list = loadRoseAuthKeys(rose_path+ file_name);
+        System.out.println("OK");
+    }
+
     public void loadAllFiles() {
         String rose_path = System.getProperty("user.dir") + Constants.ROSE_DIR;
 
