@@ -733,8 +733,8 @@ public class MainController extends Controller {
                 else
                     article.setFlags(m);
             }
-            // Set availability to RED (= not on stock!)
-            article.setAvailability("xx.xx.2153");
+            // Set availability to ORANGE (= not on stock!)
+            article.setAvailability("-2");
 
         } catch (SQLException e) {
             System.err.println(">> SqlDatabase: SQLException in cursorToShortMedi");

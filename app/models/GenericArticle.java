@@ -396,7 +396,7 @@ public class GenericArticle {
 
     public boolean isNotAvailable() { return availability.contains(".2153"); }
 
-    public boolean isOffMarket() {
-        return availability.equals("-1");
-    }
+    public boolean isOffMarket() { return availability.equals("-1"); }
+
+    public boolean isNotInStockData() { return availability.contains("-2"); }
 }
