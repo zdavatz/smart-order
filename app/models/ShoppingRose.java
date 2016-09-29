@@ -195,7 +195,7 @@ public class ShoppingRose {
         float sales_figure = 0.0f;
         // Average of sales figure over last 12 days times safety margin
         if (m_sales_figures_map.containsKey(article.getPharmaCode()))
-            sales_figure = 2.5f * m_sales_figures_map.get(article.getPharmaCode()) * 1.0f + 1.0f;
+            sales_figure = 2.5f * m_sales_figures_map.get(article.getPharmaCode()) / 12.0f + 1.0f;
         else
             return -1;
         return (int)sales_figure;
