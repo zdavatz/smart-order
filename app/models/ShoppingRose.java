@@ -192,12 +192,15 @@ public class ShoppingRose {
      * @return min stock/inventory
      */
     private int minStock(GenericArticle article) {
+        /*
         float sales_figure = 0.0f;
         // Average of sales figure over last 12 days times safety margin
         if (m_sales_figures_map.containsKey(article.getPharmaCode()))
             sales_figure = 2.5f * m_sales_figures_map.get(article.getPharmaCode()) / 12.0f + 1.0f;
         else
             return -1;
+        */
+        float sales_figure = article.getItemsOnStock() * 0.1f;
         return (int)sales_figure;
     }
 
@@ -222,6 +225,9 @@ public class ShoppingRose {
         // Calculate min stock
         int mstock = minStock(article);
         int curstock = article.getItemsOnStock();
+
+        System.out.println(article.getPackTitle() + " curstock = " + curstock + " / mstock = " + mstock);
+
 
         // @maxl 18.Jan.2016: empirical rule (see emails)
         if (mstock < 0 && curstock >= 0)
@@ -535,6 +541,7 @@ public class ShoppingRose {
 
             String top_supplier = topSupplier(m_expenses_map);
 
+            // Loop through articles in shopping basket
             for (Map.Entry<String, GenericArticle> entry : m_shopping_basket.entrySet()) {
                 GenericArticle article = entry.getValue();
 
@@ -588,8 +595,8 @@ public class ShoppingRose {
                     1. Article is on stock (green) && article is NPL
                     2. Article is a generikum && has percentage rebate
                 */
-                if (article.getShippingStatus() == 1
-                        && (article.isNplArticle() || (article.isGenerikum() && hasPercentageRebate(article)))) {
+                if (article.getShippingStatus() == 1 && (article.isNplArticle()
+                        || (article.isGenerikum() && hasPercentageRebate(article)))) {
                    rose_article.alternatives = new LinkedList<>();
                 } else {
                     // article points to object which was inserted last...
@@ -599,10 +606,12 @@ public class ShoppingRose {
                         String dosage = article.getPackUnit();
                         sortSimilarArticles(quantity, size, dosage);
 
+                        // Loop through all alternatives 'a' of 'article'
                         List<GenericArticle> la = m_map_similar_articles.get(ean_code);
                         for (GenericArticle a : la) {
-                            if (!a.getEanCode().equals(ean_code)) {
-                                if (article.isOriginal() || (article.isGenerikum() && a.isGenerikum())) {
+                            String alter_ean_code = a.getEanCode();
+                            if (!alter_ean_code.equals(ean_code)) {
+                                if (article.isOriginal() || (article.isGenerikum() && a.isGenerikum()) || (article.isGenerikum() && !isAutoGenerikum(alter_ean_code))) {
                                     if (a.isAvailable() && !a.isOffMarket()) {
                                         RoseArticle ra = new RoseArticle();
                                         cr = getCashRebate(a);
@@ -622,7 +631,7 @@ public class ShoppingRose {
                                         shipping_ = shippingStatus(a, a.getQuantity());
                                         shipping_status = shippingStatusColor(shipping_);
 
-                                        ra.setGtin(a.getEanCode());
+                                        ra.setGtin(alter_ean_code);
                                         ra.setPharma(a.getPharmaCode());
                                         ra.setTitle(a.getPackTitle());
                                         ra.setSize(a.getPackSize());
