@@ -199,9 +199,9 @@ public class ShoppingRose {
             sales_figure = 2.5f * m_sales_figures_map.get(article.getPharmaCode()) / 12.0f + 1.0f;
         else
             return -1;
-        */
-        float sales_figure = article.getItemsOnStock() * 0.1f;
         return (int)sales_figure;
+        */
+        return (int)(article.getItemsOnStock() * 0.9f); // 90%
     }
 
     /**
@@ -225,9 +225,6 @@ public class ShoppingRose {
         // Calculate min stock
         int mstock = minStock(article);
         int curstock = article.getItemsOnStock();
-
-        System.out.println(article.getPackTitle() + " curstock = " + curstock + " / mstock = " + mstock);
-
 
         // @maxl 18.Jan.2016: empirical rule (see emails)
         if (mstock < 0 && curstock >= 0)
