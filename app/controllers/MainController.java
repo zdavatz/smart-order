@@ -532,18 +532,26 @@ public class MainController extends Controller {
         if (!article_found) {
             try {
 
-                System.out.println("--> Fallback on aips DB");
+                System.out.print("--> Fallback on aips DB for " + code + "... ");
+
+                long startTime = System.currentTimeMillis();
 
                 Connection conn = aips_db.getConnection();
                 Statement stat = conn.createStatement();
+
                 String query = "select " + PACKAGES_TABLE + " from " + AIPS_DB_TABLE + " where "
                         + KEY_PACKAGES + " like '" + code + "%' or "
                         + KEY_PACKAGES + " like '%|" + code + "%'";
                 ResultSet rs = stat.executeQuery(query);
+
+                long elapsedTime = (new Date()).getTime() - startTime;
+                System.out.println("query time = " + elapsedTime + " ms");
+
                 if (rs.next()) {
                     article = extendedCursorToArticle(rs, code);
                 }
                 conn.close();
+
             } catch(SQLException e) {
                 System.err.println(">> AipsSqlDb: SQLException in extendedSearchSingleEan!");
             }
@@ -737,7 +745,7 @@ public class MainController extends Controller {
             article.setAvailability("-2");
 
         } catch (SQLException e) {
-            System.err.println(">> SqlDatabase: SQLException in cursorToShortMedi");
+            System.err.println(">> AipsDb: SQLException in extendedCursorToArticle");
         }
 
         return article;
