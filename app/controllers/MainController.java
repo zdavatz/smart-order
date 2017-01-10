@@ -195,7 +195,11 @@ public class MainController extends Controller {
             String timestamp = dateFormat.format(date);
             String hash = shopping_cart.randomHashCode(timestamp);
 
-            RoseOrder rose_order = new RoseOrder(hash, timestamp, shopping_cart.getCustomerGlnCode());
+            String customer_gln = shopping_cart.getCustomerGlnCode();
+            RoseOrder rose_order = new RoseOrder(hash, timestamp, customer_gln);
+            rose_order.setTopCustomer(shopping_cart.isTopCustomer());
+            rose_order.setTotalDlkCosts(shopping_cart.getTotalDlkCosts());
+
             rose_order.setListArticles(list_of_rose_articles);
 
             // Save to file (append)
@@ -271,6 +275,7 @@ public class MainController extends Controller {
         rose_article.setPreferences("");
         rose_article.setShippingStatus("");
         rose_article.setAvailability(generic_article.getAvailability());
+        rose_article.setDlkFlag(generic_article.getDlkFlag());
         rose_article.setNettoPriceList(generic_article.isNplArticle());
         rose_article.alternatives = new LinkedList<>();
 
@@ -534,7 +539,7 @@ public class MainController extends Controller {
 
                 System.out.print("--> Fallback on aips DB for " + code + "... ");
 
-                long startTime = System.currentTimeMillis();
+                long start_time = System.currentTimeMillis();
 
                 Connection conn = aips_db.getConnection();
                 Statement stat = conn.createStatement();
@@ -544,13 +549,18 @@ public class MainController extends Controller {
                         + KEY_PACKAGES + " like '%|" + code + "%'";
                 ResultSet rs = stat.executeQuery(query);
 
-                long elapsedTime = (new Date()).getTime() - startTime;
-                System.out.println("query time = " + elapsedTime + " ms");
+                long query_time = (new Date()).getTime() - start_time;
+                System.out.println("query time = " + query_time + " ms");
 
                 if (rs.next()) {
                     article = extendedCursorToArticle(rs, code);
                 }
                 conn.close();
+
+                if (query_time>500.0) {
+
+
+                }
 
             } catch(SQLException e) {
                 System.err.println(">> AipsSqlDb: SQLException in extendedSearchSingleEan!");
@@ -687,6 +697,7 @@ public class MainController extends Controller {
             article.setNplArticle(result.getBoolean(19));
             article.setPublicPrice(result.getString(20));    // KEY_PUBLIC_PRICE
             article.setExfactoryPrice(result.getString(21)); // KEY_ROSE_BASIS_PRICE
+            article.setDlkFlag(result.getBoolean(22));
             article.setCashRebate(0.0f);
         } catch (SQLException e) {
             System.err.println(">> RoseDb: SQLException in cursorToArticle");
@@ -741,7 +752,8 @@ public class MainController extends Controller {
                 else
                     article.setFlags(m);
             }
-            // Set availability to ORANGE (= not on stock!)
+            // Set availability to ORANGE (= not on stock hence aipsdb fallback!)
+            // This should be RARE!
             article.setAvailability("-2");
 
         } catch (SQLException e) {

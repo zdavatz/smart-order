@@ -21,8 +21,13 @@ package models;
 
 import com.maxl.java.shared.User;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by maxl on 26.06.2016.
@@ -37,6 +42,7 @@ public final class RoseData {
     private HashMap<String, String> rose_ids_map;
     private ArrayList<String> rose_autogenerika_list;
     private ArrayList<String> rose_auth_keys_list;
+    private HashMap<String, Pair<Integer, Integer>> rose_stock_map;
 
     private RoseData() {
         // loadAllFiles();
@@ -44,12 +50,13 @@ public final class RoseData {
 
     /**
      * Get the only instance of this class. Singleton pattern.
+     *
      * @return
      */
     public static RoseData getInstance() {
-        if (instance==null) {
+        if (instance == null) {
             synchronized (RoseData.class) {
-                if (instance==null) {
+                if (instance == null) {
                     instance = new RoseData();
                 }
             }
@@ -77,10 +84,15 @@ public final class RoseData {
         return this.rose_auth_keys_list;
     }
 
+    public HashMap<String, Pair<Integer, Integer>> rose_stock_map() {
+        return this.rose_stock_map;
+    }
+
     public void loadFile(String file_name) {
         String rose_path = System.getProperty("user.dir") + Constants.ROSE_DIR;
 
         System.out.print("# Re-loading " + file_name + "... ");
+
         if (file_name.equals("rose_conditions.ser.clear"))
             rose_user_map = loadRoseUserMap(rose_path + file_name);
         else if (file_name.equals("rose_sales_fig.ser.clear"))
@@ -90,7 +102,10 @@ public final class RoseData {
         else if (file_name.equals("rose_autogenerika.ser.clear"))
             rose_autogenerika_list = loadRoseAutoGenerika(rose_path + file_name);
         else if (file_name.equals("rose_auth_keys.txt"))
-            rose_auth_keys_list = loadRoseAuthKeys(rose_path+ file_name);
+            rose_auth_keys_list = loadRoseAuthKeys(rose_path + file_name);
+        else if (file_name.equals("rose_stock.csv"))
+            rose_stock_map = loadRoseStockMaps(rose_path + file_name);
+
         System.out.println("OK");
     }
 
@@ -116,6 +131,10 @@ public final class RoseData {
         // System.out.print("# Loading rose_auth_keys.txt... ");
         rose_auth_keys_list = loadRoseAuthKeys(rose_path + "rose_auth_keys.txt");
         // System.out.println("OK");
+
+        // System.out.print("# Loading rose_stock.csv... ");
+        rose_stock_map = loadRoseStockMaps(rose_path + "rose_stock.csv");
+        // System.out.println("OK");
     }
 
     private ArrayList<String> loadRoseAuthKeys(String file_name) {
@@ -125,6 +144,7 @@ public final class RoseData {
     /**
      * Loads Rose users
      * Format: gln code -> user
+     *
      * @param ser_file_name
      * @return user map
      */
@@ -132,8 +152,8 @@ public final class RoseData {
     private HashMap<String, User> loadRoseUserMap(String ser_file_name) {
         HashMap<String, User> user_map = new HashMap<String, User>();
         byte[] serialized_object = FileOps.readBytesFromFile(ser_file_name);
-        if (serialized_object!=null) {
-            user_map = (HashMap<String, User>)FileOps.deserialize(serialized_object);
+        if (serialized_object != null) {
+            user_map = (HashMap<String, User>) FileOps.deserialize(serialized_object);
         }
         return user_map;
     }
@@ -141,6 +161,7 @@ public final class RoseData {
     /**
      * Loads Rose sales figures
      * Format: pharma code -> sales figure
+     *
      * @param ser_file_name
      * @return sales figures map
      */
@@ -148,8 +169,8 @@ public final class RoseData {
     private HashMap<String, Float> loadRoseSalesFigures(String ser_file_name) {
         HashMap<String, Float> sales_figures_map = new HashMap<String, Float>();
         byte[] serialized_object = FileOps.readBytesFromFile(ser_file_name);
-        if (serialized_object!=null) {
-            sales_figures_map = (HashMap<String, Float>)FileOps.deserialize(serialized_object);
+        if (serialized_object != null) {
+            sales_figures_map = (HashMap<String, Float>) FileOps.deserialize(serialized_object);
         }
         return sales_figures_map;
     }
@@ -157,6 +178,7 @@ public final class RoseData {
     /**
      * Loads Rose ids
      * Format: gln_code -> rose id
+     *
      * @param: ser_file_name
      * @return: rose ids map
      */
@@ -164,14 +186,15 @@ public final class RoseData {
     private HashMap<String, String> loadRoseIds(String ser_file_name) {
         HashMap<String, String> rose_ids_map = new HashMap<>();
         byte[] serialized_object = FileOps.readBytesFromFile(ser_file_name);
-        if (serialized_object!=null) {
-            rose_ids_map = (HashMap<String, String>)FileOps.deserialize(serialized_object);
+        if (serialized_object != null) {
+            rose_ids_map = (HashMap<String, String>) FileOps.deserialize(serialized_object);
         }
         return rose_ids_map;
     }
 
     /**
      * Loads Rose list of autogenerika
+     *
      * @param ser_file_name
      * @return
      */
@@ -179,9 +202,41 @@ public final class RoseData {
     private ArrayList<String> loadRoseAutoGenerika(String ser_file_name) {
         ArrayList<String> auto_generika_list = new ArrayList<String>();
         byte[] serialized_object = FileOps.readBytesFromFile(ser_file_name);
-        if (serialized_object!=null) {
-            auto_generika_list = (ArrayList<String>)FileOps.deserialize(serialized_object);
+        if (serialized_object != null) {
+            auto_generika_list = (ArrayList<String>) FileOps.deserialize(serialized_object);
         }
         return auto_generika_list;
     }
+
+    /**
+     * Loads Rose stock maps (rose + voigt)
+     *
+     * @param file_name
+     * @return
+     */
+    private HashMap<String, Pair<Integer, Integer>> loadRoseStockMaps(String file_name) {
+        HashMap<String, Pair<Integer, Integer>> stock_map = new HashMap<>();
+        try {
+            File file = new File(file_name);
+            if (!file.exists())
+                return null;
+
+            FileInputStream fis = new FileInputStream(file_name);
+            BufferedReader br = new BufferedReader(new InputStreamReader(fis, "UTF-8"));
+            String line;
+            while ((line = br.readLine()) != null) {
+                String token[] = line.split(";", -1);
+                if (token.length > 2) {
+                    String gln = token[0];
+                    int stock_rose = Integer.parseInt(token[1]);
+                    int stock_voigt = Integer.parseInt(token[2]);
+                    stock_map.put(gln, new Pair<>(stock_rose, stock_voigt));
+                }
+            }
+        } catch (Exception e) {
+            System.err.println(">> Error in reading csv file: " + file_name);
+        }
+        return stock_map;
+    }
+
 }

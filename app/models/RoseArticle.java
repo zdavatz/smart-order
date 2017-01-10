@@ -30,6 +30,14 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.LinkedList;
 
+class PriceSerializer extends JsonSerializer<BigDecimal> {
+    @Override
+    public void serialize(BigDecimal value, JsonGenerator jgen, SerializerProvider provider) throws IOException {
+        // Desired price style here
+        jgen.writeString(value.setScale(2, BigDecimal.ROUND_HALF_UP).toString());
+    }
+}
+
 /**
  * Created by maxl on 28.06.2016.
  */
@@ -43,6 +51,9 @@ public class RoseArticle {
 
     @JsonProperty("title")
     private String title;
+
+    @JsonProperty("core_assort")
+    private boolean core_assort;
 
     @JsonProperty("supplier")
     private String supplier;
@@ -68,11 +79,24 @@ public class RoseArticle {
     @JsonSerialize(using = PriceSerializer.class)
     private BigDecimal cash_rebate;
 
+    @JsonProperty("generics_rebate")
+    @JsonSerialize(using = PriceSerializer.class)
+    private BigDecimal generics_rebate;
+
     @JsonProperty("prefs")
     private String prefs;
 
+    @JsonProperty("avail_date")
+    private String avail_date;
+
     @JsonProperty("shipping")
     private String shipping;
+
+    @JsonProperty("off_market")
+    private boolean off_market;
+
+    @JsonProperty("dlk_flag")
+    private boolean dlk_flag;
 
     @JsonProperty("npl")
     private boolean netto_price_list;
@@ -108,6 +132,9 @@ public class RoseArticle {
 
     @JsonIgnore
     public String getCashRebate() { return cash_rebate.toString(); }
+
+    @JsonIgnore
+    public String getGenericsRebate() { return generics_rebate.toString(); }
 
     @JsonIgnore
     public String getPreferences() { return prefs; }
@@ -165,13 +192,21 @@ public class RoseArticle {
         this.cash_rebate = new BigDecimal(cash_rebate);
     }
 
+    public void setGenericsRebate(float generics_rebate) { this.generics_rebate = new BigDecimal(generics_rebate); }
+
     public void setPreferences(String prefs) {
         this.prefs = prefs;
     }
 
+    public void setAvailDate(String avail_date) { this.avail_date = avail_date; }
+
     public void setShippingStatus(String shipping) {
         this.shipping = shipping;
     }
+
+    public void setOffMarket(boolean off_market) { this.off_market = off_market; }
+
+    public void setDlkFlag(boolean dlk_flag) { this.dlk_flag = dlk_flag; }
 
     public void setNettoPriceList(boolean netto_price_list) { this.netto_price_list = netto_price_list; }
 
@@ -182,12 +217,6 @@ public class RoseArticle {
     public void setUnit(String unit) { this.unit = unit; }
 
     public void setAvailability(String availability) { this.availability = availability; }
-}
 
-class PriceSerializer extends JsonSerializer<BigDecimal> {
-    @Override
-    public void serialize(BigDecimal value, JsonGenerator jgen, SerializerProvider provider) throws IOException {
-        // Desired price style here
-        jgen.writeString(value.setScale(2, BigDecimal.ROUND_HALF_UP).toString());
-    }
+    public void setCoreAssortment(boolean core_assort) { this.core_assort = core_assort; }
 }

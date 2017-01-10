@@ -79,7 +79,7 @@ public class FileOps {
     }
 
     static public Map<String,String> readFromCsvToMap(String filename) {
-        Map<String, String> map = new TreeMap<String, String>();
+        Map<String, String> map = new TreeMap<>();
         try {
             File file = new File(filename);
             if (!file.exists())

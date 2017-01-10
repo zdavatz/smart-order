@@ -34,15 +34,20 @@ public class ShoppingRose {
 
     private static LinkedHashMap<String, Float> m_rebate_map = null;
     private static LinkedHashMap<String, Float> m_expenses_map = null;
+    private static LinkedHashMap<String, Float> m_dlk_map = null;   // Delivery and logistic costs
     private static HashMap<String, Float> m_sales_figures_map = null;
     private static HashMap<String, String> m_rose_ids_map = null;
     private static ArrayList<String> m_auto_generika_list = null;
     private static ArrayList<String> m_auth_keys_list = null;
     private static HashMap<String, List<GenericArticle>> m_map_similar_articles = null;
+    private static HashMap<String, Pair<Integer, Integer>> m_stock_map = null;
+    private static float m_total_dlk_costs = 0.0f;
 
     private Map<String, GenericArticle> m_shopping_basket = null;
 
     private String m_customer_gln_code = "";
+
+    private boolean m_top_customer = false;
 
     private MessageDigest m_message_digest;
 
@@ -52,29 +57,13 @@ public class ShoppingRose {
     private static String[] m_fav_suppliers = {"actavis", "helvepharm", "mepha", "sandoz", "sanofi", "spirig", "teva"};
 
     /**
-     * Implements a Pair class
-     *
-     * @param <T>
-     * @param <U>
-     * @author Max
-     */
-    private class Pair<T, U> {
-        public final T first;
-        public final U second;
-
-        public Pair(T first, U second) {
-            this.first = first;
-            this.second = second;
-        }
-    }
-
-    /**
      * Constructor!
      * @param customer_id
      */
     public ShoppingRose(String customer_id) {
         // Get rose id map
         RoseData rd = RoseData.getInstance();
+
         m_rose_ids_map = rd.rose_ids_map();
         // "Normalize" id
         if (customer_id.length()==6) {
@@ -86,12 +75,20 @@ public class ShoppingRose {
         if (!m_customer_gln_code.isEmpty())
             loadRoseData();
         else
-            System.out.println(">> customer glncode or roseid is missing or wrong!");
+            System.out.println(">> Error: customer glncode or roseid is missing or wrong!");
+
+        m_stock_map = rd.rose_stock_map();
+        if (m_stock_map==null)
+            System.out.println(">> Error: stock map is missing or corrupted!");
     }
 
     public String getCustomerGlnCode() {
         return m_customer_gln_code;
     }
+
+    public boolean isTopCustomer() { return m_top_customer; }
+
+    public float getTotalDlkCosts() { return m_total_dlk_costs; }
 
     public boolean checkAuthKey(String auth_key) {
         if (m_auth_keys_list!=null)
@@ -120,6 +117,11 @@ public class ShoppingRose {
         return hash_code;
     }
 
+    /**
+     * This is a user-dependent rebate for the article
+     * @param article
+     * @return rebate in percent
+     */
     public float getCashRebate(GenericArticle article) {
         if (m_rebate_map != null) {
             String supplier = shortSupplier(article.getSupplier());
@@ -168,10 +170,22 @@ public class ShoppingRose {
         if (user_map.containsKey(m_customer_gln_code)) {
             User user = user_map.get(m_customer_gln_code);
             if (user!=null) {
-                // Get rebate map for this customer
+                // Get rebate map for this customer (percentages)
                 m_rebate_map = user.rebate_map;
-                // Get expense map for this customer
+                // Get expense map for this customer (cash)
                 m_expenses_map = user.expenses_map;
+                // Get delivery and logistic costs
+                m_dlk_map = user.dlk_map;
+                // Is it a top customer?
+                m_top_customer = user.top_customer;
+                // Calculate sum of DLK rebates
+                m_total_dlk_costs = 0.0f;
+                if (m_dlk_map!=null) {
+                    for (Map.Entry<String, Float> entry : m_dlk_map.entrySet()) {
+                        m_total_dlk_costs += entry.getValue();
+                    }
+                }
+
             }
         }
     }
@@ -205,6 +219,32 @@ public class ShoppingRose {
     }
 
     /**
+     * Returns items on stock (first: zur Rose, second: Voigt)
+     * @param gln_code
+     * @return
+     */
+    private Pair<Integer, Integer> getItemsOnStock(String gln_code) {
+        if (!gln_code.isEmpty()) {
+            if (m_stock_map != null && m_stock_map.containsKey(gln_code))
+                return m_stock_map.get(gln_code);
+        }
+        return null;
+    }
+
+    private Pair<Integer, Integer> stockInfo(Pair<Integer, Integer> current_stock) {
+        if (current_stock!=null) {
+            if (current_stock.first > 0) {
+                // zur Rose stock (current stock + min stock)
+                return new Pair<>(current_stock.first, (int) (current_stock.first * 0.9f));
+            } else if (current_stock.second > 0) {
+                // Voigt stock (current stock + min stock)
+                return new Pair<>(current_stock.second, (int) (current_stock.second * 0.85));
+            }
+        }
+        return new Pair<>(0, 0);
+    }
+
+    /**
      * Calculates shipping status as an integer given an article an arbitrary quantity
      *
      * @param article
@@ -219,12 +259,20 @@ public class ShoppingRose {
         if (article.isNotAvailable())
             return 5;
         // Beschaffungsartikel sind immer ORANGE
-        if (article.isNotInStockData() || article.getSupplier().toLowerCase().contains("voigt")) {
+        if (article.isNotInStockData() /* || article.getSupplier().toLowerCase().contains("voigt") */) {
             return 4;
         }
         // Calculate min stock
-        int mstock = minStock(article);
+        /*
         int curstock = article.getItemsOnStock();
+        int mstock = minStock(article);
+        */
+        Pair<Integer, Integer> itemsOnStock = getItemsOnStock(article.getEanCode());    // returns (zur Rose, Voigt)
+        Pair<Integer, Integer> stockInfo = stockInfo(itemsOnStock);     // returns (current, minimum)
+        int curstock = stockInfo.first;
+        int mstock = stockInfo.second;
+
+        // System.out.println(article.getPackTitle() + " | " + article.getEanCode() + " -> " + curstock + " | " + mstock + " -> " + (int)(100.0*mstock/curstock));
 
         // @maxl 18.Jan.2016: empirical rule (see emails)
         if (mstock < 0 && curstock >= 0)
@@ -578,11 +626,20 @@ public class ShoppingRose {
                 rose_article.setPublicPrice(article.getPublicPriceAsFloat());
                 rose_article.setExfactoryPrice(article.getExfactoryPriceAsFloat());
                 rose_article.setCashRebate(cash_rebate);
+                rose_article.setGenericsRebate(cr);     // sets the "cash_rebate" in percent!
                 rose_article.setQuantity(article.getQuantity());
                 rose_article.setSwissmed(flags_str);
                 rose_article.setPreferences(preference_str);
+                rose_article.setAvailDate(article.getAvailDate());
                 rose_article.setShippingStatus(shipping_status.first);
+                rose_article.setOffMarket(article.isOffMarket());
+                rose_article.setDlkFlag(article.getDlkFlag());
                 rose_article.setNettoPriceList(article.isNplArticle());
+
+                boolean core_assort = preference_str.contains("AG")
+                        && (preference_str.contains("GP") || preference_str.contains("GU"))
+                        && preference_str.contains("ZRP") && article.isNplArticle();
+                rose_article.setCoreAssortment(core_assort);
 
                 // Returns the Rose margin in CHF for article
                 getRoseMargin(article);
@@ -639,11 +696,20 @@ public class ShoppingRose {
                                         ra.setPublicPrice(a.getPublicPriceAsFloat());
                                         ra.setExfactoryPrice(a.getExfactoryPriceAsFloat());
                                         ra.setCashRebate(cash_rebate);
+                                        ra.setGenericsRebate(cr);   // Sets cash_rebate in percent
                                         ra.setQuantity(a.getQuantity());
                                         ra.setSwissmed(flags_str);
                                         ra.setPreferences(preference_str);
+                                        ra.setAvailDate(a.getAvailDate());
                                         ra.setShippingStatus(shipping_status.first);
+                                        ra.setOffMarket(a.isOffMarket());
+                                        ra.setDlkFlag(a.getDlkFlag());
                                         ra.setNettoPriceList(a.isNplArticle());
+
+                                        core_assort = (preference_str.contains("AG")
+                                                && (preference_str.contains("GP") || preference_str.contains("GU"))
+                                                && preference_str.contains("ZRP")) && a.isNplArticle();
+                                        ra.setCoreAssortment(core_assort);
 
                                         getRoseMargin(a);
 

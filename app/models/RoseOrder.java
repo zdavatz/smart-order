@@ -21,7 +21,9 @@ package models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -44,6 +46,13 @@ public class RoseOrder {
     @JsonProperty("glncode")
     private String glncode;
 
+    @JsonProperty("top_customer")
+    private boolean top_customer;
+
+    @JsonProperty("dlk_rebate")
+    @JsonSerialize(using = PriceSerializer.class)
+    private BigDecimal total_dlk_costs;
+
     @JsonProperty("order")
     private List<RoseArticle> list_of_rose_articles;
 
@@ -59,6 +68,10 @@ public class RoseOrder {
         this.glncode = glncode;
     }
 
+    public void setTopCustomer(boolean top_customer) { this.top_customer = top_customer; }
+
+    public void setTotalDlkCosts(float total_dlk_costs) { this.total_dlk_costs = new BigDecimal(total_dlk_costs); }
+
     public void setListArticles(List<RoseArticle> list_of_rose_articles) {
         this.list_of_rose_articles = list_of_rose_articles;
     }
@@ -71,7 +84,7 @@ public class RoseOrder {
     public String getOrderCSV() {
         String line_separator = System.getProperty("line.separator");
         String order_csv = "";
-        order_csv += timestamp + ";" + hash + ";" + glncode + ";" + line_separator;
+        order_csv += timestamp + ";" + hash + ";" + glncode + ";" + top_customer + ";" + line_separator;
         // List every article in the basket ("input")
         int index = 0;
         for (RoseArticle a : list_of_rose_articles) {

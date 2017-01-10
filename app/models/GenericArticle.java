@@ -19,7 +19,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 package models;
 
+import java.text.DateFormat;
 import java.text.DecimalFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
 /**
  * Created by maxl on 26.06.2016.
@@ -65,6 +69,7 @@ public class GenericArticle {
     private int free_samples;
     private int shipping_status = 1;
     private boolean npl_article;
+    private boolean dlk_flag = false;
 
     public GenericArticle() {
         //
@@ -382,6 +387,10 @@ public class GenericArticle {
 
     public boolean isNplArticle() { return npl_article; }
 
+    public void setDlkFlag(boolean dlk_flag) { this.dlk_flag = dlk_flag; }
+
+    public boolean getDlkFlag() { return this.dlk_flag; }
+
     public void setFlags(String flags) { this.flags = flags; }
 
     public String getFlags() {
@@ -399,4 +408,25 @@ public class GenericArticle {
     public boolean isOffMarket() { return availability.equals("-1"); }
 
     public boolean isNotInStockData() { return availability.contains("-2"); }
+
+    public String getAvailDate() {
+        try {
+            DateFormat df = new SimpleDateFormat("dd.MM.yyyy");
+            // Get current date
+            Calendar now = Calendar.getInstance();
+            // Get Ausstandsdatum
+            Calendar avail = Calendar.getInstance();
+            avail.setTime(df.parse(availability));
+            // Difference in ms -> days
+            long diff_ms = avail.getTime().getTime() - now.getTime().getTime();
+            long diff_days = diff_ms / (1000 * 60 * 60 * 24);
+            if (diff_days < 10 * 365)   // This are 10 years! Neg. difference are also accepted.
+                return availability;
+            else
+                return "";
+
+        } catch (ParseException e) {
+            return "";
+        }
+    }
 }
