@@ -127,10 +127,21 @@ public class MainController extends Controller {
      *
      */
     @Inject ActorSystem actorSystem;
+
     public Result getSmartBasket(String pretty, int limit, String auth_key, String gln_code, String basket) {
         ShoppingRose shopping_cart = new ShoppingRose(gln_code);
 
         if (shopping_cart.checkAuthKey(auth_key)) {
+
+            try {
+                Connection conn = rose_db.getConnection();
+                Statement stat = conn.createStatement();
+                stat.execute("PRAGMA main.cache_size=10000; PRAGMA main.temp_store=MEMORY; PRAGMA main.synchronous=NORMAL; PRAGMA main.locking_mode=EXCLUSIVE;");
+                conn.close();
+            } catch (SQLException e) {
+                System.err.println(">> RoseSqlDb: SQLException in searchMultiEan!");
+            }
+
             // Match ean codes (13 digits) and pharma codes (7 digits)
             Pattern p = Pattern.compile("\\((\\d{13}|\\d{7}),(\\d+)\\)");
             Matcher m = p.matcher(basket);
@@ -144,39 +155,52 @@ public class MainController extends Controller {
                     map_of_articles.put(code, Integer.valueOf(qty));
                 }
             }
+            // TIME: 400msec up to here
+
             // Search for ean/pharma codes in rosedb and amikodb (fallback in case nothing is found in first DB)
             List<GenericArticle> articles = list_of_articles.stream()
                     .map(this::searchSingleEan)
                     .collect(Collectors.toList());
 
+            // ArrayList<GenericArticle> articles = searchMultiEan(list_of_articles);
+
             // Set limit to list of articles displayed (either 2 or as many as possible)
             shopping_cart.setResultsLimit(limit>0);
+
+            int num_alternatives = 0;
+
+            // long startTime = System.currentTimeMillis();
 
             if (articles.size() > 0) {
                 Map<String, GenericArticle> shopping_basket = new HashMap<>();
                 Map<String, List<GenericArticle>> map_of_similar_articles = new HashMap<>();
                 // Loop through all articles found
                 for (GenericArticle article : articles) {
-                    String ean = article.getEanCode();
-                    String pharma = article.getPharmaCode();
+                    // Make sure the selected article has a price
+                    if (article.getRoseBasisPriceAsFloat()>0.0f || article.getPublicPriceAsFloat()>0.0f) {
+                        String ean = article.getEanCode();
+                        String pharma = article.getPharmaCode();
 
-                    // Check for ean/pharma code
-                    if (map_of_articles.containsKey(ean) || map_of_articles.containsKey(pharma)) {
-                        // Set quantities when found
-                        if (map_of_articles.containsKey(ean))
-                            article.setQuantity(map_of_articles.get(ean));
-                        else
-                            article.setQuantity(map_of_articles.get(pharma));
-                        // Set shipping status
-                        shopping_cart.updateShippingStatus(article);
-                        // Add article to shopping basket
-                        shopping_basket.put(ean, article);
-                        // Find all alternatives using the article's EAN code
-                        LinkedList<GenericArticle> la = listSimilarArticles(article);
-                        if (la != null) {
-                            // Check if ean code is already part of the map, if not add to map
-                            if (!map_of_similar_articles.containsKey(ean)) {
-                                map_of_similar_articles.put(ean, la);
+                        // Check for ean/pharma code
+                        if (map_of_articles.containsKey(ean) || map_of_articles.containsKey(pharma)) {
+                            // Set quantities when found
+                            if (map_of_articles.containsKey(ean))
+                                article.setQuantity(map_of_articles.get(ean));
+                            else
+                                article.setQuantity(map_of_articles.get(pharma));
+                            // Set shipping status
+                            shopping_cart.updateShippingStatus(article);
+                            // Add article to shopping basket
+                            shopping_basket.put(ean, article);
+                            // Find all alternatives using the article's EAN code
+                            LinkedList<GenericArticle> la = listSimilarArticles(article);
+
+                            num_alternatives += la.size();
+                            if (la != null) {
+                                // Check if ean code is already part of the map, if not add to map
+                                if (!map_of_similar_articles.containsKey(ean)) {
+                                    map_of_similar_articles.put(ean, la);
+                                }
                             }
                         }
                     }
@@ -185,7 +209,12 @@ public class MainController extends Controller {
                 shopping_cart.setShoppingBasket(shopping_basket);
                 // Update list of similar articles only for last insert article
                 shopping_cart.updateMapSimilarArticles(map_of_similar_articles);
+
+                // System.out.println(" Time for search = " + (System.currentTimeMillis() - startTime)/1000.0f);
+                // System.out.println("- Num alternatives found = " + num_alternatives);
             }
+
+            // TIME: From here to end 1000ms
 
             // List of articles
             List<RoseArticle> list_of_rose_articles = shopping_cart.updateShoppingCart();
@@ -211,6 +240,8 @@ public class MainController extends Controller {
                 order_json = Json.prettyPrint(toJson(rose_order));
             else
                 order_json = toJson(rose_order).toString();
+
+            // TIME: 14400ms up to here
 
             return ok(order_json);
         }
@@ -313,7 +344,13 @@ public class MainController extends Controller {
         String unit = article.getPackUnit();
 
         if (atc_code!=null && !atc_code.equals("k.A.")) {
-            for (GenericArticle a : searchATC(atc_code)) {
+
+            // long startTime = System.currentTimeMillis();
+            List<GenericArticle> list_of_potential_alternatives = searchATC(atc_code);
+            // long stopTime = System.currentTimeMillis();
+            // System.out.println("- Total time to respond " + (stopTime - startTime) / 1000.0f + " sec");
+
+            for (GenericArticle a : list_of_potential_alternatives) {
                 // Loop through "similar" articles
                 if (!a.getAtcCode().equals("k.A.")) {
                     if (!a.getEanCode().equals(article.getEanCode())) {
@@ -522,8 +559,12 @@ public class MainController extends Controller {
             Statement stat = conn.createStatement();
             String query = "select * from " + ROSE_DB_TABLE + " where "
                     + KEY_EAN + " like '" + code + "%' or "
-                    + KEY_EAN + " like '%;" + code + "%' or "
                     + KEY_PHARMA + " like " + "'" + code + "%'";
+                    // This does not make a big difference...
+                    /*
+                    + KEY_EAN + " like '" + code + "' or "
+                    + KEY_PHARMA + " like " + "'" + code + "'";
+                    */
             ResultSet rs = stat.executeQuery(query);
             if (rs.next()) {
                 article = cursorToArticle(rs);
@@ -539,8 +580,6 @@ public class MainController extends Controller {
 
                 System.out.print("--> Fallback on aips DB for " + code + "... ");
 
-                long start_time = System.currentTimeMillis();
-
                 Connection conn = aips_db.getConnection();
                 Statement stat = conn.createStatement();
 
@@ -549,18 +588,10 @@ public class MainController extends Controller {
                         + KEY_PACKAGES + " like '%|" + code + "%'";
                 ResultSet rs = stat.executeQuery(query);
 
-                long query_time = (new Date()).getTime() - start_time;
-                System.out.println("query time = " + query_time + " ms");
-
                 if (rs.next()) {
                     article = extendedCursorToArticle(rs, code);
                 }
                 conn.close();
-
-                if (query_time>500.0) {
-
-
-                }
 
             } catch(SQLException e) {
                 System.err.println(">> AipsSqlDb: SQLException in extendedSearchSingleEan!");
@@ -568,6 +599,39 @@ public class MainController extends Controller {
         }
 
         return article;
+    }
+
+    /** ----------------------------------------------------------------------------
+     * ROSE_DB + AMIKO_DB
+     ---------------------------------------------------------------------------- */
+    private ArrayList<GenericArticle> searchMultiEan(ArrayList<String> list_of_articles) {
+        ArrayList<GenericArticle> list_of_generic_articles = new ArrayList<>();
+
+        try {
+            Connection conn = rose_db.getConnection();
+            Statement stat = conn.createStatement();
+            // Generate query
+            String query = "select * from " + ROSE_DB_TABLE + " where ";
+            int index = 0;
+            for (String code : list_of_articles) {
+                query += KEY_EAN + " like '" + code + "' or " + KEY_PHARMA + " like " + "'" + code + "' or ";
+                if (index > list_of_articles.size()-2)
+                    query += KEY_EAN + " like '" + code + "' or " + KEY_PHARMA + " like " + "'" + code + "'";
+                index++;
+            }
+
+            if (!query.isEmpty()) {
+                ResultSet rs = stat.executeQuery(query);
+                while (rs.next()) {
+                    list_of_generic_articles.add(cursorToArticle(rs));
+                }
+            }
+            conn.close();
+        } catch(SQLException e) {
+            System.err.println(">> RoseSqlDb: SQLException in searchMultiEan!");
+        }
+
+        return list_of_generic_articles;
     }
 
     /** ----------------------------------------------------------------------------
@@ -605,7 +669,6 @@ public class MainController extends Controller {
         }
 
         return list_of_articles;
-
     }
 
     private List<GenericArticle> searchEan(String code) {
@@ -616,7 +679,7 @@ public class MainController extends Controller {
             Statement stat = conn.createStatement();
             String query = "select * from " + ROSE_DB_TABLE + " where "
                     + KEY_EAN + " like " + "'" + code + "%' or "
-                    + KEY_EAN + " like " + "'%;" + code + "%' or "
+                    // + KEY_EAN + " like " + "'%;" + code + "%' or "
                     + KEY_PHARMA + " like " + "'" + code + "%'";
             ResultSet rs = stat.executeQuery(query);
             while (rs.next()) {
@@ -636,9 +699,8 @@ public class MainController extends Controller {
         try {
             Connection conn = rose_db.getConnection();
             Statement stat = conn.createStatement();
-            String query = "select * from " + ROSE_DB_TABLE + " where "
-                    + KEY_ATC + " like " + "'" + atccode + "%' or "
-                    + KEY_ATC + " like " + "'%;" + atccode + "%'";
+            String query = "select * from " + ROSE_DB_TABLE + " where " + KEY_ATC + " like " + "'" + atccode + "%'";
+            // + " or " + KEY_ATC + " like " + "'%;" + atccode + "%'";
             ResultSet rs = stat.executeQuery(query);
             while (rs.next()) {
                 list_of_articles.add(cursorToArticle(rs));
@@ -654,6 +716,18 @@ public class MainController extends Controller {
     /** ----------------------------------------------------------------------------
      * MAPPINGS FROM DB Format to Article
      ---------------------------------------------------------------------------- */
+    private GenericArticle cursorToSimpleArticle(ResultSet result) {
+        GenericArticle article = new GenericArticle();
+
+        try {
+            article.setId(result.getLong(1));			 	// KEY_ROWID
+        } catch (SQLException e) {
+            System.err.println(">> RoseDb: SQLException in cursorToSimpleArticle");
+        }
+
+        return article;
+    }
+
     private GenericArticle cursorToArticle(ResultSet result) {
         GenericArticle article = new GenericArticle();
 
