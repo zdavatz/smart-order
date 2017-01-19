@@ -403,7 +403,7 @@ public class GenericArticle {
 
     public boolean isAvailable() { return !isNotAvailable(); }
 
-    public boolean isNotAvailable() { return availability.contains(".2153"); }
+    public boolean isNotAvailable()  { return availability.matches("(.*)[0-9]{4}"); } // { return availability.contains(".2153"); }
 
     public boolean isOffMarket() { return availability.equals("-1"); }
 

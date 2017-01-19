@@ -637,8 +637,9 @@ public class ShoppingRose {
                 rose_article.setNettoPriceList(article.isNplArticle());
 
                 boolean core_assort = preference_str.contains("AG")
-                        && (preference_str.contains("GP") || preference_str.contains("GU"))
-                        && preference_str.contains("ZRP") && article.isNplArticle();
+                        || (preference_str.contains("GP") || preference_str.contains("GU"))
+                        || preference_str.contains("ZRP")
+                        || article.isNplArticle();
                 rose_article.setCoreAssortment(core_assort);
 
                 // Returns the Rose margin in CHF for article
@@ -706,9 +707,10 @@ public class ShoppingRose {
                                         ra.setDlkFlag(a.getDlkFlag());
                                         ra.setNettoPriceList(a.isNplArticle());
 
-                                        core_assort = (preference_str.contains("AG")
-                                                && (preference_str.contains("GP") || preference_str.contains("GU"))
-                                                && preference_str.contains("ZRP")) && a.isNplArticle();
+                                        core_assort = preference_str.contains("AG")
+                                                || (preference_str.contains("GP") || preference_str.contains("GU"))
+                                                || preference_str.contains("ZRP")
+                                                || a.isNplArticle();
                                         ra.setCoreAssortment(core_assort);
 
                                         getRoseMargin(a);
