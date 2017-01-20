@@ -58,14 +58,11 @@ public class MainController extends Controller {
     private static final String KEY_PACK_INFO = "pack_info_str";
     private static final String KEY_PACKAGES = "packages";
 
-    private static final String PACKAGES_TABLE = String.format("%s,%s,%s,%s,%s,%s",
-            KEY_ROWID, KEY_TITLE, KEY_AUTH, KEY_ATC, KEY_PACK_INFO, KEY_PACKAGES);
-
     private static final String ROSE_DB_TABLE = "rosedb";
-    private static final String AIPS_DB_TABLE = "amikodb";
+    private static final String ROSE_DB_ATC_ONLY_TABLE = "rosedb";
 
     @Inject @NamedDatabase("rose") Database rose_db;
-    @Inject @NamedDatabase("aips") Database aips_db;
+    @Inject @NamedDatabase("rose_atc_only") Database rose_db_atc_only;
 
     public Result index() {
         return ok("Welcome to AmikoRose");
@@ -133,13 +130,20 @@ public class MainController extends Controller {
 
         if (shopping_cart.checkAuthKey(auth_key)) {
 
+            long startTime = System.currentTimeMillis();
+
             try {
-                Connection conn = rose_db.getConnection();
+                Connection conn = rose_db_atc_only.getConnection();
                 Statement stat = conn.createStatement();
-                stat.execute("PRAGMA main.cache_size=10000; PRAGMA main.temp_store=MEMORY; PRAGMA main.synchronous=NORMAL; PRAGMA main.locking_mode=EXCLUSIVE;");
+                stat.execute("PRAGMA cache_size=10000; PRAGMA temp_store=MEMORY; PRAGMA synchronous=NORMAL; PRAGMA locking_mode=EXCLUSIVE;");
+                conn.close();
+                //
+                conn = rose_db.getConnection();
+                stat = conn.createStatement();
+                stat.execute("PRAGMA cache_size=10000; PRAGMA temp_store=MEMORY; PRAGMA synchronous=NORMAL; PRAGMA locking_mode=EXCLUSIVE;");
                 conn.close();
             } catch (SQLException e) {
-                System.err.println(">> RoseSqlDb: SQLException in searchMultiEan!");
+                System.err.println(">> RoseSqlDb: SQLException while executing PRAGMA in RoseDB!");
             }
 
             // Match ean codes (13 digits) and pharma codes (7 digits)
@@ -155,21 +159,16 @@ public class MainController extends Controller {
                     map_of_articles.put(code, Integer.valueOf(qty));
                 }
             }
-            // TIME: 400msec up to here
 
-            // Search for ean/pharma codes in rosedb and amikodb (fallback in case nothing is found in first DB)
+            // Search for ean/pharma codes -> ROSE_DB
             List<GenericArticle> articles = list_of_articles.stream()
                     .map(this::searchSingleEan)
                     .collect(Collectors.toList());
-
-            // ArrayList<GenericArticle> articles = searchMultiEan(list_of_articles);
 
             // Set limit to list of articles displayed (either 2 or as many as possible)
             shopping_cart.setResultsLimit(limit>0);
 
             int num_alternatives = 0;
-
-            // long startTime = System.currentTimeMillis();
 
             if (articles.size() > 0) {
                 Map<String, GenericArticle> shopping_basket = new HashMap<>();
@@ -192,7 +191,7 @@ public class MainController extends Controller {
                             shopping_cart.updateShippingStatus(article);
                             // Add article to shopping basket
                             shopping_basket.put(ean, article);
-                            // Find all alternatives using the article's EAN code
+                            // Find all alternatives using the article's EAN code -> ROSE_DB_ATC_ONLY
                             LinkedList<GenericArticle> la = listSimilarArticles(article);
 
                             num_alternatives += la.size();
@@ -210,7 +209,6 @@ public class MainController extends Controller {
                 // Update list of similar articles only for last insert article
                 shopping_cart.updateMapSimilarArticles(map_of_similar_articles);
 
-                // System.out.println(" Time for search = " + (System.currentTimeMillis() - startTime)/1000.0f);
                 // System.out.println("- Num alternatives found = " + num_alternatives);
             }
 
@@ -241,7 +239,7 @@ public class MainController extends Controller {
             else
                 order_json = toJson(rose_order).toString();
 
-            // TIME: 14400ms up to here
+            System.out.println(">> TIME for search = " + (System.currentTimeMillis() - startTime)/1000.0f + "s");
 
             return ok(order_json);
         }
@@ -340,16 +338,13 @@ public class MainController extends Controller {
         LinkedList<GenericArticle> original_list_a = new LinkedList<>();
 
         String atc_code = article.getAtcCode();
-        String size = article.getPackSize();
-        String unit = article.getPackUnit();
 
         if (atc_code!=null && !atc_code.equals("k.A.")) {
-
-            // long startTime = System.currentTimeMillis();
+            String size = article.getPackSize();
+            String unit = article.getPackUnit();
+            // NOTE: alternatives are sought for in the small DB only (ROSE_DB_ATC_ONLY)
             List<GenericArticle> list_of_potential_alternatives = searchATC(atc_code);
-            // long stopTime = System.currentTimeMillis();
-            // System.out.println("- Total time to respond " + (stopTime - startTime) / 1000.0f + " sec");
-
+            //
             for (GenericArticle a : list_of_potential_alternatives) {
                 // Loop through "similar" articles
                 if (!a.getAtcCode().equals("k.A.")) {
@@ -552,7 +547,6 @@ public class MainController extends Controller {
      ---------------------------------------------------------------------------- */
     private GenericArticle searchSingleEan(String code) {
         GenericArticle article = new GenericArticle();
-        boolean article_found = false;
 
         try {
             Connection conn = rose_db.getConnection();
@@ -560,78 +554,16 @@ public class MainController extends Controller {
             String query = "select * from " + ROSE_DB_TABLE + " where "
                     + KEY_EAN + " like '" + code + "%' or "
                     + KEY_PHARMA + " like " + "'" + code + "%'";
-                    // This does not make a big difference...
-                    /*
-                    + KEY_EAN + " like '" + code + "' or "
-                    + KEY_PHARMA + " like " + "'" + code + "'";
-                    */
             ResultSet rs = stat.executeQuery(query);
             if (rs.next()) {
                 article = cursorToArticle(rs);
-                article_found = true;
             }
             conn.close();
         } catch(SQLException e) {
             System.err.println(">> RoseSqlDb: SQLException in searchEan!");
         }
-        // Fallback to aips DB if nothing is found
-        if (!article_found) {
-            try {
-
-                System.out.print("--> Fallback on aips DB for " + code + "... ");
-
-                Connection conn = aips_db.getConnection();
-                Statement stat = conn.createStatement();
-
-                String query = "select " + PACKAGES_TABLE + " from " + AIPS_DB_TABLE + " where "
-                        + KEY_PACKAGES + " like '" + code + "%' or "
-                        + KEY_PACKAGES + " like '%|" + code + "%'";
-                ResultSet rs = stat.executeQuery(query);
-
-                if (rs.next()) {
-                    article = extendedCursorToArticle(rs, code);
-                }
-                conn.close();
-
-            } catch(SQLException e) {
-                System.err.println(">> AipsSqlDb: SQLException in extendedSearchSingleEan!");
-            }
-        }
 
         return article;
-    }
-
-    /** ----------------------------------------------------------------------------
-     * ROSE_DB + AMIKO_DB
-     ---------------------------------------------------------------------------- */
-    private ArrayList<GenericArticle> searchMultiEan(ArrayList<String> list_of_articles) {
-        ArrayList<GenericArticle> list_of_generic_articles = new ArrayList<>();
-
-        try {
-            Connection conn = rose_db.getConnection();
-            Statement stat = conn.createStatement();
-            // Generate query
-            String query = "select * from " + ROSE_DB_TABLE + " where ";
-            int index = 0;
-            for (String code : list_of_articles) {
-                query += KEY_EAN + " like '" + code + "' or " + KEY_PHARMA + " like " + "'" + code + "' or ";
-                if (index > list_of_articles.size()-2)
-                    query += KEY_EAN + " like '" + code + "' or " + KEY_PHARMA + " like " + "'" + code + "'";
-                index++;
-            }
-
-            if (!query.isEmpty()) {
-                ResultSet rs = stat.executeQuery(query);
-                while (rs.next()) {
-                    list_of_generic_articles.add(cursorToArticle(rs));
-                }
-            }
-            conn.close();
-        } catch(SQLException e) {
-            System.err.println(">> RoseSqlDb: SQLException in searchMultiEan!");
-        }
-
-        return list_of_generic_articles;
     }
 
     /** ----------------------------------------------------------------------------
@@ -697,16 +629,17 @@ public class MainController extends Controller {
         List<GenericArticle> list_of_articles = new ArrayList<>();
 
         try {
-            Connection conn = rose_db.getConnection();
+            Connection conn = rose_db_atc_only.getConnection();
             Statement stat = conn.createStatement();
-            String query = "select * from " + ROSE_DB_TABLE + " where " + KEY_ATC + " like " + "'" + atccode + "%'";
-            // + " or " + KEY_ATC + " like " + "'%;" + atccode + "%'";
+            String query = "select * from " + ROSE_DB_ATC_ONLY_TABLE + " where "
+                    + KEY_ATC + " like " + "'" + atccode + "%'";
+                    // + " or " + KEY_ATC + " like " + "'%;" + atccode + "%'";
             ResultSet rs = stat.executeQuery(query);
             while (rs.next()) {
                 list_of_articles.add(cursorToArticle(rs));
             }
             conn.close();
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             System.err.println(">> RoseSqlDb: SQLException in searchATC!");
         }
 

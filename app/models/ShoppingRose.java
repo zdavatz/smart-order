@@ -232,7 +232,19 @@ public class ShoppingRose {
     }
 
     private Pair<Integer, Integer> stockInfo(Pair<Integer, Integer> current_stock) {
+        /*
+           INPUT
+           - first: Rose
+           - second: Voigt
+           OUTPUT
+           - first: total stock
+           - second: min stock
+        */
         if (current_stock!=null) {
+            // Sum Rose and Voigt stock
+            int total_stock = current_stock.first + current_stock.second;
+            return new Pair<>(total_stock, (int)(total_stock * 0.9f));
+            /*
             if (current_stock.first > 0) {
                 // zur Rose stock (current stock + min stock)
                 return new Pair<>(current_stock.first, (int) (current_stock.first * 0.9f));
@@ -240,6 +252,7 @@ public class ShoppingRose {
                 // Voigt stock (current stock + min stock)
                 return new Pair<>(current_stock.second, (int) (current_stock.second * 0.85));
             }
+            */
         }
         return new Pair<>(0, 0);
     }
