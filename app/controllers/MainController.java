@@ -30,15 +30,13 @@ import play.mvc.*;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.sql.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.Statement;
-import java.sql.SQLException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -168,8 +166,6 @@ public class MainController extends Controller {
             // Set limit to list of articles displayed (either 2 or as many as possible)
             shopping_cart.setResultsLimit(limit>0);
 
-            int num_alternatives = 0;
-
             if (articles.size() > 0) {
                 Map<String, GenericArticle> shopping_basket = new HashMap<>();
                 Map<String, List<GenericArticle>> map_of_similar_articles = new HashMap<>();
@@ -194,7 +190,6 @@ public class MainController extends Controller {
                             // Find all alternatives using the article's EAN code -> ROSE_DB_ATC_ONLY
                             LinkedList<GenericArticle> la = listSimilarArticles(article);
 
-                            num_alternatives += la.size();
                             if (la != null) {
                                 // Check if ean code is already part of the map, if not add to map
                                 if (!map_of_similar_articles.containsKey(ean)) {
@@ -208,11 +203,7 @@ public class MainController extends Controller {
                 shopping_cart.setShoppingBasket(shopping_basket);
                 // Update list of similar articles only for last insert article
                 shopping_cart.updateMapSimilarArticles(map_of_similar_articles);
-
-                // System.out.println("- Num alternatives found = " + num_alternatives);
             }
-
-            // TIME: From here to end 1000ms
 
             // List of articles
             List<RoseArticle> list_of_rose_articles = shopping_cart.updateShoppingCart();
@@ -239,8 +230,15 @@ public class MainController extends Controller {
             else
                 order_json = toJson(rose_order).toString();
 
-            System.out.println(">> TIME for search = " + (System.currentTimeMillis() - startTime)/1000.0f + "s");
+            long time_for_search = System.currentTimeMillis() - startTime;
+            /*
+            System.out.println("-----------------------------");
+            System.out.println(">> Time for search = " + time_for_search/1000.0f + "s");
+            System.out.println(">> Time / article = " + time_for_search/list_of_articles.size() + "ms");
 
+            System.out.println(">> Num articles in basket = " + list_of_articles.size());
+            System.out.println(">> Size of order = " + order_json.length()/1000.0f + "kB");
+            */
             return ok(order_json);
         }
         return ok("[]");
@@ -402,12 +400,18 @@ public class MainController extends Controller {
                 }
                 private int sortUnits(GenericArticle a1, GenericArticle a2) {
                     int u=0, unit1=0, unit2 = 0;
-                    if (article.getPackTitle()!=null)
-                        u = Integer.valueOf(article.getPackUnit().replaceAll("[^0-9]", ""));
-                    if (a1.getPackTitle()!=null)
-                        unit1 = Integer.valueOf(a1.getPackUnit().replaceAll("[^0-9]", ""));
-                    if (a2.getPackTitle()!=null)
-                        unit2 = Integer.valueOf(a2.getPackUnit().replaceAll("[^0-9]", ""));
+                    if (article.getPackTitle()!=null) {
+                        String s = article.getPackUnit().replaceAll("[^0-9]", "");
+                        u = !s.isEmpty() ? Integer.valueOf(s) : 0;
+                    }
+                    if (a1.getPackTitle()!=null) {
+                        String s = a1.getPackUnit().replaceAll("[^0-9]", "");
+                        unit1 = !s.isEmpty() ? Integer.valueOf(s) : 0;
+                    }
+                    if (a2.getPackTitle()!=null) {
+                        String s = a2.getPackUnit().replaceAll("[^0-9]", "");
+                        unit2 = !s.isEmpty() ? Integer.valueOf(s) : 0;
+                    }
                     return func(unit1 - u) - func(unit2 - u);
                 }
                 private int sortSize(GenericArticle a1, GenericArticle a2) {
