@@ -216,6 +216,7 @@ public class MainController extends Controller {
             String customer_gln = shopping_cart.getCustomerGlnCode();
             RoseOrder rose_order = new RoseOrder(hash, timestamp, customer_gln);
             rose_order.setTopCustomer(shopping_cart.isTopCustomer());
+            rose_order.setRevenue((shopping_cart.getRevenue()));
             rose_order.setTotalDlkCosts(shopping_cart.getTotalDlkCosts());
 
             rose_order.setListArticles(list_of_rose_articles);

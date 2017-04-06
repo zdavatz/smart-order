@@ -56,6 +56,8 @@ public class User implements java.io.Serializable {
     public String bm_type = "";
     public String status = "A";		// Default: Aktiv
 
+    // Revenue / Umsatz
+    public float revenue = 0.0f;
     // Spezialrabatt
     public float generics_rebate = 0.0f;
     // Map of GLN to list of company-specific rebate

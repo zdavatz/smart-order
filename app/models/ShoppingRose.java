@@ -49,6 +49,8 @@ public class ShoppingRose {
 
     private boolean m_top_customer = false;
 
+    private float m_revenue = 0.0f;
+
     private MessageDigest m_message_digest;
 
     private static boolean m_filter_state = true;
@@ -87,6 +89,8 @@ public class ShoppingRose {
     }
 
     public boolean isTopCustomer() { return m_top_customer; }
+
+    public float getRevenue() { return m_revenue; }
 
     public float getTotalDlkCosts() { return m_total_dlk_costs; }
 
@@ -178,6 +182,8 @@ public class ShoppingRose {
                 m_dlk_map = user.dlk_map;
                 // Is it a top customer?
                 m_top_customer = user.top_customer;
+                // Customer revenue
+                m_revenue = user.revenue;
                 // Calculate sum of DLK rebates
                 m_total_dlk_costs = 0.0f;
                 if (m_dlk_map!=null) {

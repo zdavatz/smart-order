@@ -49,6 +49,10 @@ public class RoseOrder {
     @JsonProperty("top_customer")
     private boolean top_customer;
 
+    @JsonProperty("revenue")
+    @JsonSerialize(using = PriceSerializer.class)
+    private BigDecimal revenue;
+
     @JsonProperty("dlk_rebate")
     @JsonSerialize(using = PriceSerializer.class)
     private BigDecimal total_dlk_costs;
@@ -69,6 +73,8 @@ public class RoseOrder {
     }
 
     public void setTopCustomer(boolean top_customer) { this.top_customer = top_customer; }
+
+    public void setRevenue(float revenue) { this.revenue = new BigDecimal(revenue); }
 
     public void setTotalDlkCosts(float total_dlk_costs) { this.total_dlk_costs = new BigDecimal(total_dlk_costs); }
 
