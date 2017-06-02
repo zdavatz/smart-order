@@ -226,13 +226,13 @@ public class ShoppingRose {
 
     /**
      * Returns items on stock (first: zur Rose, second: Voigt)
-     * @param gln_code
+     * @param pharma_code
      * @return
      */
-    private Pair<Integer, Integer> getItemsOnStock(String gln_code) {
-        if (!gln_code.isEmpty()) {
-            if (m_stock_map != null && m_stock_map.containsKey(gln_code))
-                return m_stock_map.get(gln_code);
+    private Pair<Integer, Integer> getItemsOnStock(String pharma_code) {
+        if (!pharma_code.isEmpty()) {
+            if (m_stock_map != null && m_stock_map.containsKey(pharma_code))
+                return m_stock_map.get(pharma_code);
         }
         return null;
     }
@@ -286,12 +286,12 @@ public class ShoppingRose {
         int curstock = article.getItemsOnStock();
         int mstock = minStock(article);
         */
-        Pair<Integer, Integer> itemsOnStock = getItemsOnStock(article.getEanCode());    // returns (zur Rose, Voigt)
+        // New on 01.Jun.2017: items on stock are retrieved using the pharmacode
+        Pair<Integer, Integer> itemsOnStock = getItemsOnStock(article.getPharmaCode());    // returns (zur Rose, Voigt)
+        // The following function sums zur Rose and Voigt stocks...
         Pair<Integer, Integer> stockInfo = stockInfo(itemsOnStock);     // returns (current, minimum)
-        int curstock = stockInfo.first;
-        int mstock = stockInfo.second;
-
-        // System.out.println(article.getPackTitle() + " | " + article.getEanCode() + " -> " + curstock + " | " + mstock + " -> " + (int)(100.0*mstock/curstock));
+        int curstock = stockInfo.first; // Current
+        int mstock = stockInfo.second;  // Minumum
 
         // @maxl 18.Jan.2016: empirical rule (see emails)
         if (mstock < 0 && curstock >= 0)
@@ -301,9 +301,9 @@ public class ShoppingRose {
             if (curstock >= mstock && curstock >= quantity && mstock >= quantity)
                 return 1;    // GREEN
             else if (curstock < mstock && curstock >= quantity && mstock > quantity)
-                return 2;    // YELLOW
+                return 2;    // YELLOW/GOLD
             else if (curstock > mstock && curstock >= quantity && mstock < quantity)
-                return 3;    // YELLOW
+                return 3;    // YELLOW/GOLD
             else if (curstock <= mstock && curstock < quantity)
                 return 4;    // ORANGE
             else
