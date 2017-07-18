@@ -497,13 +497,19 @@ public class ShoppingRose {
             LinkedList<GenericArticle> list_of_similar_articles = new LinkedList<GenericArticle>(entry.getValue());
 
             // Remove the key article itself
+            /*
             for (Iterator<GenericArticle> iterator = list_of_similar_articles.iterator(); iterator.hasNext(); ) {
                 GenericArticle article = iterator.next();
+
+                System.out.println(ean_code);
                 if (article.getEanCode().equals(ean_code)) {
                     iterator.remove();
                     break;
                 }
             }
+            */
+            // Remove the key article itself: Java 8 implementation
+            list_of_similar_articles.removeIf(a -> a.getEanCode().equals(ean_code));
 
             if (list_of_similar_articles.size() > 0) {
                 Collections.sort(list_of_similar_articles, new Comparator<GenericArticle>() {
