@@ -32,16 +32,18 @@ import java.util.*;
  */
 public class ShoppingRose {
 
-    private static LinkedHashMap<String, Float> m_rebate_map = null;
-    private static LinkedHashMap<String, Float> m_expenses_map = null;
-    private static LinkedHashMap<String, Float> m_dlk_map = null;   // Delivery and logistic costs
-    private static HashMap<String, Float> m_sales_figures_map = null;
-    private static HashMap<String, String> m_rose_ids_map = null;
-    private static ArrayList<String> m_auto_generika_list = null;
-    private static ArrayList<String> m_auth_keys_list = null;
-    private static HashMap<String, List<GenericArticle>> m_map_similar_articles = null;
-    private static HashMap<String, Pair<Integer, Integer>> m_stock_map = null;
-    private static float m_total_dlk_costs = 0.0f;
+    private static String[] m_fav_suppliers = {"actavis", "helvepharm", "mepha", "sandoz", "sanofi", "spirig", "teva"};
+
+    private LinkedHashMap<String, Float> m_rebate_map = null;
+    private LinkedHashMap<String, Float> m_expenses_map = null;
+    private LinkedHashMap<String, Float> m_dlk_map = null;   // Delivery and logistic costs
+    private HashMap<String, Float> m_sales_figures_map = null;
+    private HashMap<String, String> m_rose_ids_map = null;
+    private ArrayList<String> m_auto_generika_list = null;
+    private ArrayList<String> m_auth_keys_list = null;
+    private HashMap<String, List<GenericArticle>> m_map_similar_articles = null;
+    private HashMap<String, Pair<Integer, Integer>> m_stock_map = null;
+    private float m_total_dlk_costs = 0.0f;
 
     private Map<String, GenericArticle> m_shopping_basket = null;
 
@@ -53,10 +55,8 @@ public class ShoppingRose {
 
     private MessageDigest m_message_digest;
 
-    private static boolean m_filter_state = true;
-    private static int m_min_articles = 2;
-
-    private static String[] m_fav_suppliers = {"actavis", "helvepharm", "mepha", "sandoz", "sanofi", "spirig", "teva"};
+    private boolean m_filter_state = true;
+    private int m_min_articles = 2;
 
     /**
      * Constructor!
@@ -500,8 +500,6 @@ public class ShoppingRose {
             /*
             for (Iterator<GenericArticle> iterator = list_of_similar_articles.iterator(); iterator.hasNext(); ) {
                 GenericArticle article = iterator.next();
-
-                System.out.println(ean_code);
                 if (article.getEanCode().equals(ean_code)) {
                     iterator.remove();
                     break;
