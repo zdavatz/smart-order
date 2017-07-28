@@ -503,8 +503,8 @@ public class MainController extends Controller {
         if (checkSimilarity2(size_1, size_2, unit_1, unit_2, 0.51f))
             return true;
         if (!unit_1.isEmpty() && !unit_2.isEmpty()) {
-            unit_1 = unit_1.replaceAll("[^0-9.]", "");
-            unit_2 = unit_2.replaceAll("[^0-9.]", "");
+            unit_1 = unit_1.replaceAll("[^0-9.]", "").replaceAll("\\.{2,}", ".");
+            unit_2 = unit_2.replaceAll("[^0-9.]", "").replaceAll("\\.{2,}", ".");
             check_units = basicSimilarityCheck(unit_1, unit_2, search_window);
         }
         return check_units;
