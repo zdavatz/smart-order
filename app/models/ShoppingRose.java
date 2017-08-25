@@ -673,8 +673,7 @@ public class ShoppingRose {
                     1. Article is on stock (green) && article is NPL
                     2. Article is a generikum && has percentage rebate
                 */
-                if (article.getShippingStatus() == 1 && (article.isNplArticle()
-                        || (article.isGenerikum() && hasPercentageRebate(article)))) {
+                if (article.getShippingStatus() == 1 && (article.isNplArticle() || (article.isGenerikum() && hasPercentageRebate(article)))) {
                    rose_article.alternatives = new LinkedList<>();
                 } else {
                     // article points to object which was inserted last...
@@ -688,8 +687,12 @@ public class ShoppingRose {
                         List<GenericArticle> la = m_map_similar_articles.get(ean_code);
                         for (GenericArticle a : la) {
                             String alter_ean_code = a.getEanCode();
+
                             if (!alter_ean_code.equals(ean_code)) {
-                                if (article.isOriginal() || (article.isGenerikum() && a.isGenerikum()) || (article.isGenerikum() && !isAutoGenerikum(alter_ean_code))) {
+                                if (article.isOriginal()
+                                        || (article.isGenerikum() && a.isGenerikum())
+                                        || (article.isGenerikum() && !isAutoGenerikum(alter_ean_code))
+                                        || a.isReplacementArticle()) {
                                     if (a.isAvailable() && !a.isOffMarket()) {
                                         RoseArticle ra = new RoseArticle();
                                         cr = getCashRebate(a);
@@ -708,6 +711,9 @@ public class ShoppingRose {
 
                                         shipping_ = shippingStatus(a, a.getQuantity());
                                         shipping_status = shippingStatusColor(shipping_);
+                                        
+                                        if (a.isReplacementArticle())
+                                            ra.setReplacesArticle(article.getEanCode() + ", " + article.getPackTitle());
 
                                         ra.setGtin(alter_ean_code);
                                         ra.setPharma(a.getPharmaCode());

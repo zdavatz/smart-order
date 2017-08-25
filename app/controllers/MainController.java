@@ -438,21 +438,26 @@ public class MainController extends Controller {
             // Add to list of alternatives
             list_a.add(original_list_a.get(0));
         }
+
         // If "Ersatzartikel" exists, add it to list
         String replacement_article = article.getReplacePharma();
         if (replacement_article!=null && !replacement_article.isEmpty()) {
             // Check if article is already in list
             for (GenericArticle a : list_a) {
-                if (a.getPharmaCode().equals(replacement_article))
+                if (a.getPharmaCode().equals(replacement_article)) {
+                    a.setReplacementArticle(true);
                     return list_a;
+                }
             }
             // If not... add it to list
             List<GenericArticle> replace_article = searchEan(replacement_article);
             if (replace_article.size()>0) {
                 GenericArticle ra = replace_article.get(0);
+                ra.setReplacementArticle(true);
                 list_a.add(ra);
             }
         }
+
         return list_a;
     }
 

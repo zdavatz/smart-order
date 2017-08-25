@@ -52,6 +52,9 @@ public class RoseArticle {
     @JsonProperty("title")
     private String title;
 
+    @JsonProperty("replaces_article")
+    private String replaces_article = "";
+
     @JsonProperty("core_assort")
     private boolean core_assort;
 
@@ -165,6 +168,8 @@ public class RoseArticle {
     public void setTitle(String title) {
         this.title = title;
     }
+
+    public void setReplacesArticle(String article) { this.replaces_article = article; }
 
     public void setSupplier(String supplier) {
         this.supplier = supplier;

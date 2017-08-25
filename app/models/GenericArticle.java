@@ -56,6 +56,7 @@ public class GenericArticle {
     private String author_code = "";
     private String author_gln_code = "";
     private String replace_pharma_code = "";
+    private String replace_ean_code = "";
     private String flags = "";
     private float margin = -1.0f;	// <0.0f -> not initialized
     private float buying_price = 0.0f;
@@ -70,6 +71,7 @@ public class GenericArticle {
     private int shipping_status = 1;
     private boolean npl_article;
     private boolean dlk_flag = false;
+    private boolean is_replacement_article = false;
 
     public GenericArticle() {
         //
@@ -379,6 +381,10 @@ public class GenericArticle {
         return replace_pharma_code;
     }
 
+    public void setReplaceEan(String ean) { this.replace_ean_code = ean; }
+
+    public String getReplaceEan() { return replace_ean_code; }
+
     public void setShippingStatus(int shipping_status) { this.shipping_status = shipping_status; }
 
     public int getShippingStatus() { return shipping_status; }
@@ -408,6 +414,10 @@ public class GenericArticle {
     public boolean isOffMarket() { return availability.equals("-1"); }
 
     public boolean isNotInStockData() { return availability.contains("-2"); }
+
+    public void setReplacementArticle(boolean is_replacement) { is_replacement_article = is_replacement; }
+
+    public boolean isReplacementArticle() { return is_replacement_article; }
 
     public String getAvailDate() {
         try {
