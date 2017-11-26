@@ -514,10 +514,10 @@ public class ShoppingRose {
                     @Override
                     /*  Sortierlogik: Zuerst wird nach Lieferbarkeit sortiert (1. Priorität).
                         Falls zwei Produkte dieselbe Lieferbarkeit haben (z.B. GREEN sind), dann
-                        wird nach Original/Nicht-Original sortiert. Falls zwei Produkte Nicht-Originale,
+                        wird nach Original/Nicht-Original sortiert. Nun kommen die Ärzte-Präferenzen zum Zug.
+                        Falls zwei Produkte Nicht-Originale,
                         d.h. Generika sind, dann wird nach Autogenerika sortiert - die kommen zuoberst.
-                        Nachher kommen die Generika Präferenzen zum Zug (zuerst Arzt und zu guter letzt
-                        zur Rose).
+                        Zu guter letzt wird nach den Generika Präferenzen zur Rose sortiert.
                      */
                     public int compare(GenericArticle a1, GenericArticle a2) {
                         int c = 0;
@@ -533,15 +533,15 @@ public class ShoppingRose {
                         // PRIO 4:
                         if (c == 0)
                             c = sortDosage(a1, a2, dosage);
-                        // PRIO 5: AG - Autogenerikum
-                        if (c == 0)
-                            c = sortAutoGenerika(a1, a2);
-                        // PRIO 6: GP - Generikum Präferenz Arzt - Rabatt (%)
+                        // PRIO 5: GP - Generikum Präferenz Arzt - Rabatt (%)
                         if (c == 0)
                             c = sortRebate(a1, a2);
-                        // PRIO 7: GU - Generikum Präferenz Arzt - Umsatz (CHF)
+                        // PRIO 6: GU - Generikum Präferenz Arzt - Umsatz (CHF)
                         if (c == 0)
                             c = sortSales(a1, a2);
+                        // PRIO 7: AG - Autogenerikum
+                        if (c == 0)
+                            c = sortAutoGenerika(a1, a2);
                         // PRIO 8: ZRP - Generikum Präferenz zur Rose
                         if (c == 0)
                             c = sortRosePreference(a1, a2);
@@ -711,7 +711,7 @@ public class ShoppingRose {
 
                                         shipping_ = shippingStatus(a, a.getQuantity());
                                         shipping_status = shippingStatusColor(shipping_);
-                                        
+
                                         if (a.isReplacementArticle())
                                             ra.setReplacesArticle(article.getEanCode() + ", " + article.getPackTitle());
 
