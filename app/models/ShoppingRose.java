@@ -32,7 +32,7 @@ import java.util.*;
  */
 public class ShoppingRose {
 
-    private static String[] m_fav_suppliers = {"actavis", "helvepharm", "mepha", "sandoz", "sanofi", "spirig", "teva"};
+    private static String[] m_fav_suppliers = {"helvepharm", "mepha"};
 
     private LinkedHashMap<String, Float> m_rebate_map = null;
     private LinkedHashMap<String, Float> m_expenses_map = null;
