@@ -43,8 +43,8 @@ public class Constants {
         rosePreferences = new LinkedHashMap<>();
         rosePreferences.put("helvepharm", 1);	// helvepharm
         rosePreferences.put("mepha", 2);		// mepha schweiz ag
-        rosePreferences.put("teva", 3);			// teva pharma ag
-        rosePreferences.put("sanofi", 4);		// zentiva (Sanofi)
-        rosePreferences.put("sandoz", 5);		// sandoz pharmaceuticals ag
+        //rosePreferences.put("teva", 3);			// teva pharma ag
+        //rosePreferences.put("sanofi", 4);		// zentiva (Sanofi)
+        //rosePreferences.put("sandoz", 5);		// sandoz pharmaceuticals ag
     }
 }
