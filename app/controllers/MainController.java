@@ -232,6 +232,7 @@ public class MainController extends Controller {
                 order_json = toJson(rose_order).toString();
 
             long time_for_search = System.currentTimeMillis() - startTime;
+
             /*
             System.out.println("-----------------------------");
             System.out.println(">> Time for search = " + time_for_search/1000.0f + "s");
@@ -290,6 +291,7 @@ public class MainController extends Controller {
         rose_article.setGtin(generic_article.getEanCode());
         rose_article.setPharma(generic_article.getPharmaCode());
         rose_article.setTitle(generic_article.getPackTitle());
+        rose_article.setTitleFR(generic_article.getPackTitleFR());
         rose_article.setSize(generic_article.getPackSize());
         rose_article.setGalen(generic_article.getPackGalen());
         rose_article.setUnit(generic_article.getPackUnit());
@@ -715,9 +717,10 @@ public class MainController extends Controller {
             article.setPublicPrice(result.getString(20));    // KEY_PUBLIC_PRICE
             article.setExfactoryPrice(result.getString(21)); // KEY_ROSE_BASIS_PRICE
             article.setDlkFlag(result.getBoolean(22));
+            article.setPackTitleFR(result.getString(23));    // KEY_TITLE_FR
             article.setCashRebate(0.0f);
         } catch (SQLException e) {
-            System.err.println(">> RoseDb: SQLException in cursorToArticle");
+            System.err.printf(">> RoseDb: SQLException in cursorToArticle -> %s%n", article.getId());
         }
 
         return article;

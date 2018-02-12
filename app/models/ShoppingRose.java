@@ -288,6 +288,7 @@ public class ShoppingRose {
         */
         // New on 01.Jun.2017: items on stock are retrieved using the pharmacode
         Pair<Integer, Integer> itemsOnStock = getItemsOnStock(article.getPharmaCode());    // returns (zur Rose, Voigt)
+
         // The following function sums zur Rose and Voigt stocks...
         Pair<Integer, Integer> stockInfo = stockInfo(itemsOnStock);     // returns (current, minimum)
         int curstock = stockInfo.first; // Current
@@ -646,6 +647,7 @@ public class ShoppingRose {
                 rose_article.setGtin(ean_code);
                 rose_article.setPharma(article.getPharmaCode());
                 rose_article.setTitle(article.getPackTitle());
+                rose_article.setTitleFR(article.getPackTitleFR());
                 rose_article.setSize(article.getPackSize());
                 rose_article.setGalen(article.getPackGalen());
                 rose_article.setUnit(article.getPackUnit());
@@ -718,11 +720,12 @@ public class ShoppingRose {
                                         shipping_status = shippingStatusColor(shipping_);
 
                                         if (a.isReplacementArticle())
-                                            ra.setReplacesArticle(article.getEanCode() + ", " + article.getPackTitle());
+                                            ra.setReplacesArticle(article.getEanCode() + ", " + article.getPackTitle() + ", " + article.getPackTitleFR());
 
                                         ra.setGtin(alter_ean_code);
                                         ra.setPharma(a.getPharmaCode());
                                         ra.setTitle(a.getPackTitle());
+                                        ra.setTitleFR(a.getPackTitleFR());
                                         ra.setSize(a.getPackSize());
                                         ra.setGalen(a.getPackGalen());
                                         ra.setUnit(a.getPackUnit());
