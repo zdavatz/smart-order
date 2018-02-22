@@ -32,8 +32,6 @@ import java.util.*;
  */
 public class ShoppingRose {
 
-    private static String[] m_fav_suppliers = {"actavis", "helvepharm", "mepha", "sandoz", "sanofi", "spirig", "teva"};
-
     private LinkedHashMap<String, Float> m_rebate_map = null;
     private LinkedHashMap<String, Float> m_expenses_map = null;
     private LinkedHashMap<String, Float> m_dlk_map = null;   // Delivery and logistic costs
@@ -197,7 +195,11 @@ public class ShoppingRose {
     }
 
     private String shortSupplier(String longSupplier) {
-        for (String s : m_fav_suppliers) {
+        for (String s : Constants.doctorPreferences.keySet()) {
+            if (longSupplier.toLowerCase().contains(s))
+                return s;
+        }
+        for (String s : Constants.rosePreferences.keySet()) {
             if (longSupplier.toLowerCase().contains(s))
                 return s;
         }
