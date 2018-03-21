@@ -32,6 +32,7 @@ public class GenericArticle {
 
     private long id;
     private String pack_title;
+    private String pack_title_fr;
     private String pack_size;
     private String pack_unit;
     private String pack_galen;
@@ -137,6 +138,10 @@ public class GenericArticle {
     public void setPackTitle(String pack_title) {
         this.pack_title = pack_title;
     }
+
+    public String getPackTitleFR() { return pack_title_fr; }
+
+    public void setPackTitleFR(String pack_title_fr) { this.pack_title_fr = pack_title_fr; }
 
     public String getPackSize() {
         return pack_size;

@@ -19,32 +19,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 package models;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class Constants {
     static public final String ROSE_DIR = "/rose/";
     static public final String LOG_DIR = "/orders/";
 
-    static public final Map<String, Integer> doctorPreferences;
-    static {
-        // LinkedHashMap preserves insertion order
-        doctorPreferences = new LinkedHashMap<>();
-        doctorPreferences.put("helvepharm", 1);	// helvepharm ag, 7601001003736
-        doctorPreferences.put("mepha", 2);		// mepha schweiz ag, 7601001396685
-        doctorPreferences.put("sandoz", 3);		// sandoz pharmaceuticals ag, 7601001029439
-        doctorPreferences.put("actavis", 4);	// actavis switzerland ag, 7601001376618
-        doctorPreferences.put("spirig", 5);		// spirig healthcare ag, 7601001394834
-    }
-
-    static public final Map<String, Integer> rosePreferences;
-    static {
-        // LinkedHashMap preserves insertion order
-        rosePreferences = new LinkedHashMap<>();
-        rosePreferences.put("helvepharm", 1);	// helvepharm
-        rosePreferences.put("mepha", 2);		// mepha schweiz ag
-        //rosePreferences.put("teva", 3);			// teva pharma ag
-        //rosePreferences.put("sanofi", 4);		// zentiva (Sanofi)
-        //rosePreferences.put("sandoz", 5);		// sandoz pharmaceuticals ag
-    }
+    static public Map<String, Integer> doctorPreferences;
+    static public Map<String, Integer> rosePreferences;
 }

@@ -108,6 +108,7 @@ public class RoseOrder {
     private String articleStr(RoseArticle a) {
         String article_str = a.getGtin() + ";"
                 + a.getTitle() + ";"
+                + a.getTitleFR() + ";"
                 + a.getSize() + ";"
                 + a.getUnit() + ";"
                 + a.getGalen() + ";"

@@ -32,8 +32,6 @@ import java.util.*;
  */
 public class ShoppingRose {
 
-    private static String[] m_fav_suppliers = {"helvepharm", "mepha"};
-
     private LinkedHashMap<String, Float> m_rebate_map = null;
     private LinkedHashMap<String, Float> m_expenses_map = null;
     private LinkedHashMap<String, Float> m_dlk_map = null;   // Delivery and logistic costs
@@ -197,7 +195,11 @@ public class ShoppingRose {
     }
 
     private String shortSupplier(String longSupplier) {
-        for (String s : m_fav_suppliers) {
+        for (String s : Constants.doctorPreferences.keySet()) {
+            if (longSupplier.toLowerCase().contains(s))
+                return s;
+        }
+        for (String s : Constants.rosePreferences.keySet()) {
             if (longSupplier.toLowerCase().contains(s))
                 return s;
         }
@@ -288,6 +290,7 @@ public class ShoppingRose {
         */
         // New on 01.Jun.2017: items on stock are retrieved using the pharmacode
         Pair<Integer, Integer> itemsOnStock = getItemsOnStock(article.getPharmaCode());    // returns (zur Rose, Voigt)
+
         // The following function sums zur Rose and Voigt stocks...
         Pair<Integer, Integer> stockInfo = stockInfo(itemsOnStock);     // returns (current, minimum)
         int curstock = stockInfo.first; // Current
@@ -296,6 +299,10 @@ public class ShoppingRose {
         // @maxl 18.Jan.2016: empirical rule (see emails)
         if (mstock < 0 && curstock >= 0)
             mstock = 12;
+
+        // @maxl 2.Feb.2018
+        if (curstock == 0)
+            return 5;   // RED
 
         if (mstock >= 0) {
             if (curstock >= mstock && curstock >= quantity && mstock >= quantity)
@@ -309,6 +316,7 @@ public class ShoppingRose {
             else
                 return 5;    // RED
         }
+
         return 10;           // BLACK
     }
 
@@ -641,6 +649,7 @@ public class ShoppingRose {
                 rose_article.setGtin(ean_code);
                 rose_article.setPharma(article.getPharmaCode());
                 rose_article.setTitle(article.getPackTitle());
+                rose_article.setTitleFR(article.getPackTitleFR());
                 rose_article.setSize(article.getPackSize());
                 rose_article.setGalen(article.getPackGalen());
                 rose_article.setUnit(article.getPackUnit());
@@ -713,11 +722,12 @@ public class ShoppingRose {
                                         shipping_status = shippingStatusColor(shipping_);
 
                                         if (a.isReplacementArticle())
-                                            ra.setReplacesArticle(article.getEanCode() + ", " + article.getPackTitle());
+                                            ra.setReplacesArticle(article.getEanCode() + ", " + article.getPackTitle() + ", " + article.getPackTitleFR());
 
                                         ra.setGtin(alter_ean_code);
                                         ra.setPharma(a.getPharmaCode());
                                         ra.setTitle(a.getPackTitle());
+                                        ra.setTitleFR(a.getPackTitleFR());
                                         ra.setSize(a.getPackSize());
                                         ra.setGalen(a.getPackGalen());
                                         ra.setUnit(a.getPackUnit());

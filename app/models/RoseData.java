@@ -19,14 +19,15 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 package models;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.maxl.java.shared.User;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
+import java.io.*;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -105,6 +106,8 @@ public final class RoseData {
             rose_auth_keys_list = loadRoseAuthKeys(rose_path + file_name);
         else if (file_name.equals("rose_stock.csv"))
             rose_stock_map = loadRoseStockMaps(rose_path + file_name);
+        else if (file_name.equals("rose_settings.json"))
+            loadRoseSettingsFile(rose_path + file_name);
 
         System.out.println("OK");
     }
@@ -135,6 +138,8 @@ public final class RoseData {
         // System.out.print("# Loading rose_stock.csv... ");
         rose_stock_map = loadRoseStockMaps(rose_path + "rose_stock.csv");
         // System.out.println("OK");
+
+        loadRoseSettingsFile(rose_path + "rose_settings.json");
     }
 
     private ArrayList<String> loadRoseAuthKeys(String file_name) {
@@ -239,4 +244,25 @@ public final class RoseData {
         return stock_map;
     }
 
+    /**
+     * Loads Rose settings JSON file
+     */
+    @SuppressWarnings("unchecked")
+    public void loadRoseSettingsFile(String json_file_name) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>() {};
+
+            File json_file = Paths.get(json_file_name).toFile();
+            if (!json_file.exists())
+                System.out.println("ERROR: Could not read file " + json_file);
+
+            Map<String, Object> rose_settings = mapper.readValue(json_file, typeRef);
+
+            Constants.doctorPreferences = (LinkedHashMap<String, Integer>) rose_settings.get("doctor_preferences");
+            Constants.rosePreferences = (LinkedHashMap<String, Integer>) rose_settings.get("rose_preferences");
+       } catch(IOException e) {
+            e.printStackTrace();
+        }
+    }
 }

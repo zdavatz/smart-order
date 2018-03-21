@@ -52,6 +52,9 @@ public class RoseArticle {
     @JsonProperty("title")
     private String title;
 
+    @JsonProperty("title_FR")
+    private String title_FR;
+
     @JsonProperty("replaces_article")
     private String replaces_article = "";
 
@@ -122,6 +125,9 @@ public class RoseArticle {
     public String getTitle() { return title; }
 
     @JsonIgnore
+    public String getTitleFR() { return title_FR; }
+
+    @JsonIgnore
     public String getRoseBasisPrice() { return rose_basis_price.setScale(2, BigDecimal.ROUND_HALF_UP).toString(); }
 
     @JsonIgnore
@@ -168,6 +174,8 @@ public class RoseArticle {
     public void setTitle(String title) {
         this.title = title;
     }
+
+    public void setTitleFR(String title_FR) { this.title_FR = title_FR; }
 
     public void setReplacesArticle(String article) { this.replaces_article = article; }
 
