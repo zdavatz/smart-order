@@ -170,7 +170,7 @@ public class MainController extends Controller {
                 Map<String, GenericArticle> shopping_basket = new HashMap<>();
                 Map<String, List<GenericArticle>> map_of_similar_articles = new HashMap<>();
                 // Loop through all articles found
-                for (GenericArticle article : articles) {
+                articles.forEach((article) -> {
                     // Make sure the selected article has a price
                     if (article.getRoseBasisPriceAsFloat()>0.0f || article.getPublicPriceAsFloat()>0.0f) {
                         String ean = article.getEanCode();
@@ -186,7 +186,8 @@ public class MainController extends Controller {
                             // Set shipping status
                             shopping_cart.updateShippingStatus(article);
                             // Add article to shopping basket
-                            shopping_basket.put(ean, article);
+                            String hashed_key = shopping_cart.randomHashCode(pharma + ean);
+                            shopping_basket.put(hashed_key /*ean*/, article);
                             // Find all alternatives using the article's EAN code -> ROSE_DB_ATC_ONLY
                             LinkedList<GenericArticle> la = listSimilarArticles(article);
 
@@ -198,7 +199,7 @@ public class MainController extends Controller {
                             }
                         }
                     }
-                }
+                });
                 // Update shopping basket
                 shopping_cart.setShoppingBasket(shopping_basket);
                 // Update list of similar articles only for last insert article
@@ -346,7 +347,7 @@ public class MainController extends Controller {
             // NOTE: alternatives are sought for in the small DB only (ROSE_DB_ATC_ONLY)
             List<GenericArticle> list_of_potential_alternatives = searchATC(atc_code);
             //
-            for (GenericArticle a : list_of_potential_alternatives) {
+            list_of_potential_alternatives.forEach((a) -> {
                 // Loop through "similar" articles
                 if (!a.getAtcCode().equals("k.A.")) {
                     if (!a.getEanCode().equals(article.getEanCode())) {
@@ -384,14 +385,14 @@ public class MainController extends Controller {
                             // If the main article is off the market, get some replacements...
                             // Remove all numbers first
                             u = u.replaceAll("[^A-Za-z]", "");
-                            unit = unit.replaceAll("[^A-Za-z]", "");
-                            // System.out.println(a.getPackTitle() + " -> " + a.getAvailability() + " | " + s + "=" + size + " | " + u + "=" + unit);
-                            if (u.equals(unit) && s.equals(size) && !a.isOffMarket())
+                            String unit_clean = unit.replaceAll("[^A-Za-z]", "");
+                            // System.out.println(a.getPackTitle() + " -> " + a.getAvailability() + " | " + s + "=" + size + " | " + u + "=" + unit_clean);
+                            if (u.equals(unit_clean) && s.equals(size) && !a.isOffMarket())
                                 list_a.add(a);
                         }
                     }
                 }
-            }
+            });
         }
         // Add all special originals (checksimilarity3)
         if (original_list_a.size()>0) {

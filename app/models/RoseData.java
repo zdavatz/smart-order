@@ -155,7 +155,7 @@ public final class RoseData {
      */
     @SuppressWarnings("unchecked")
     private HashMap<String, User> loadRoseUserMap(String ser_file_name) {
-        HashMap<String, User> user_map = new HashMap<String, User>();
+        HashMap<String, User> user_map = new HashMap<>();
         byte[] serialized_object = FileOps.readBytesFromFile(ser_file_name);
         if (serialized_object != null) {
             user_map = (HashMap<String, User>) FileOps.deserialize(serialized_object);
@@ -172,7 +172,7 @@ public final class RoseData {
      */
     @SuppressWarnings("unchecked")
     private HashMap<String, Float> loadRoseSalesFigures(String ser_file_name) {
-        HashMap<String, Float> sales_figures_map = new HashMap<String, Float>();
+        HashMap<String, Float> sales_figures_map = new HashMap<>();
         byte[] serialized_object = FileOps.readBytesFromFile(ser_file_name);
         if (serialized_object != null) {
             sales_figures_map = (HashMap<String, Float>) FileOps.deserialize(serialized_object);
@@ -205,7 +205,7 @@ public final class RoseData {
      */
     @SuppressWarnings("unchecked")
     private ArrayList<String> loadRoseAutoGenerika(String ser_file_name) {
-        ArrayList<String> auto_generika_list = new ArrayList<String>();
+        ArrayList<String> auto_generika_list = new ArrayList<>();
         byte[] serialized_object = FileOps.readBytesFromFile(ser_file_name);
         if (serialized_object != null) {
             auto_generika_list = (ArrayList<String>) FileOps.deserialize(serialized_object);
