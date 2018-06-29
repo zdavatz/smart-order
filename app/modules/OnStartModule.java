@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2016 ML <cybrmx@gmail.com>
+Copyright (c) 2016 ywesee GmbH, created by ML <cybrmx@gmail.com>
 
 This file is part of AmikoRose.
 
