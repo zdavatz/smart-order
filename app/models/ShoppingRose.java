@@ -37,6 +37,7 @@ public class ShoppingRose {
     private LinkedHashMap<String, Float> m_dlk_map = null;   // Delivery and logistic costs
     private HashMap<String, Float> m_sales_figures_map = null;
     private HashMap<String, String> m_rose_ids_map = null;
+    private HashMap<String, String> m_rose_direct_subst_map = null;
     private ArrayList<String> m_auto_generika_list = null;
     private ArrayList<String> m_auth_keys_list = null;
     private HashMap<String, List<GenericArticle>> m_map_similar_articles = null;
@@ -165,6 +166,8 @@ public class ShoppingRose {
         m_sales_figures_map = rd.sales_figs_map();
         // Load auto generika file
         m_auto_generika_list = rd.autogenerika_list();
+        // Load direct substition map
+        m_rose_direct_subst_map = rd.rose_direct_subst_map();
         // Retrieve authorization keys
         m_auth_keys_list= rd.auth_keys_list();
         // Retrieve user-related information
@@ -585,6 +588,14 @@ public class ShoppingRose {
         m_filter_state = state;
     }
 
+    public String hasDirectSubstitute(String pharma_code) {
+        if (!pharma_code.isEmpty()) {
+            if (m_rose_direct_subst_map != null && m_rose_direct_subst_map.containsKey(pharma_code))
+                return m_rose_direct_subst_map.get(pharma_code);
+        }
+        return null;
+    }
+
     private String generatePreferences(GenericArticle ga) {
         String preference_str = "";
 
@@ -637,6 +648,7 @@ public class ShoppingRose {
 
                 int quantity = article.getQuantity();
 
+                String pharm_code = article.getPharmaCode();
                 String ean_code = article.getEanCode();
                 String flags_str = article.getFlags();
 
@@ -647,7 +659,7 @@ public class ShoppingRose {
                 Pair<String, Integer> shipping_status = shippingStatusColor(shipping_);
 
                 rose_article.setGtin(ean_code);
-                rose_article.setPharma(article.getPharmaCode());
+                rose_article.setPharma(pharm_code);
                 rose_article.setTitle(article.getPackTitle());
                 rose_article.setTitleFR(article.getPackTitleFR());
                 rose_article.setSize(article.getPackSize());
@@ -702,6 +714,7 @@ public class ShoppingRose {
                                         || (article.isGenerikum() && a.isGenerikum())
                                         || (article.isGenerikum() && !isAutoGenerikum(alter_ean_code))
                                         || a.isReplacementArticle()) {
+
                                     if (a.isAvailable() && !a.isOffMarket()) {
                                         RoseArticle ra = new RoseArticle();
                                         cr = getCashRebate(a);

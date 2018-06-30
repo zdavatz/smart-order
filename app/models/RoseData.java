@@ -41,12 +41,13 @@ public final class RoseData {
     private HashMap<String, User> rose_user_map;
     private HashMap<String, Float> rose_sales_figs_map;
     private HashMap<String, String> rose_ids_map;
+    private HashMap<String, String> rose_direct_subst_map;
     private ArrayList<String> rose_autogenerika_list;
     private ArrayList<String> rose_auth_keys_list;
     private HashMap<String, Pair<Integer, Integer>> rose_stock_map;
 
     private RoseData() {
-        // loadAllFiles();
+        loadAllFiles();
     }
 
     /**
@@ -77,6 +78,10 @@ public final class RoseData {
         return this.rose_ids_map;
     }
 
+    public HashMap<String, String> rose_direct_subst_map() {
+        return this.rose_direct_subst_map;
+    }
+
     public ArrayList<String> autogenerika_list() {
         return this.rose_autogenerika_list;
     }
@@ -89,6 +94,7 @@ public final class RoseData {
         return this.rose_stock_map;
     }
 
+
     public void loadFile(String file_name) {
         String rose_path = System.getProperty("user.dir") + Constants.ROSE_DIR;
 
@@ -100,6 +106,8 @@ public final class RoseData {
             rose_sales_figs_map = loadRoseSalesFigures(rose_path + file_name);
         else if (file_name.equals("rose_ids.ser.clear"))
             rose_ids_map = loadRoseIds(rose_path + file_name);
+        else if (file_name.equals("rose_direct_subst.ser.clear"))
+            rose_direct_subst_map = loadRoseDirectSubst(rose_path + file_name);
         else if (file_name.equals("rose_autogenerika.ser.clear"))
             rose_autogenerika_list = loadRoseAutoGenerika(rose_path + file_name);
         else if (file_name.equals("rose_auth_keys.txt"))
@@ -125,6 +133,10 @@ public final class RoseData {
 
         // System.out.print("# Loading rose_ids.ser.clear... ");
         rose_ids_map = loadRoseIds(rose_path + "rose_ids.ser.clear");
+        // System.out.println("OK");
+
+        // System.out.print("# Loading rose_direct_subst.ser.clear... ");
+        rose_direct_subst_map = loadRoseDirectSubst(rose_path + "rose_direct_subst.ser.clear");
         // System.out.println("OK");
 
         // System.out.print("# Loading rose_autogenerika.ser.clear... ");
@@ -195,6 +207,23 @@ public final class RoseData {
             rose_ids_map = (HashMap<String, String>) FileOps.deserialize(serialized_object);
         }
         return rose_ids_map;
+    }
+
+    /**
+     * Loads Rose direct substitutions map
+     * Format: from -> to
+     *
+     * @param: ser_file_name
+     * @return: rose ids map
+     */
+    @SuppressWarnings("unchecked")
+    private HashMap<String, String> loadRoseDirectSubst(String ser_file_name) {
+        HashMap<String, String> rose_direct_subst_map = new HashMap<>();
+        byte[] serialized_object = FileOps.readBytesFromFile(ser_file_name);
+        if (serialized_object != null) {
+            rose_direct_subst_map = (HashMap<String, String>) FileOps.deserialize(serialized_object);
+        }
+        return rose_direct_subst_map;
     }
 
     /**

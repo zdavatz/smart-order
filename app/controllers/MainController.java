@@ -190,7 +190,17 @@ public class MainController extends Controller {
                             shopping_basket.put(hashed_key /*ean*/, article);
                             // Find all alternatives using the article's EAN code -> ROSE_DB_ATC_ONLY
                             LinkedList<GenericArticle> la = listSimilarArticles(article);
-
+                            // Check if article has direct substitute
+                            String subst_pharma = shopping_cart.hasDirectSubstitute(pharma);
+                            if (subst_pharma !=null) {
+                                List<GenericArticle> subst_articles = searchEan(subst_pharma);
+                                // If substitute article exists add it to the list
+                                if (subst_articles.size()>0) {
+                                    GenericArticle ga = subst_articles.get(0);
+                                    ga.setReplacementArticle(true);
+                                    la.addFirst(ga);
+                                }
+                            }
                             if (la != null) {
                                 // Check if ean code is already part of the map, if not add to map
                                 if (!map_of_similar_articles.containsKey(ean)) {
@@ -200,6 +210,7 @@ public class MainController extends Controller {
                         }
                     }
                 });
+
                 // Update shopping basket
                 shopping_cart.setShoppingBasket(shopping_basket);
                 // Update list of similar articles only for last insert article
