@@ -73,6 +73,8 @@ public class GenericArticle {
     private boolean npl_article;
     private boolean dlk_flag = false;
     private boolean is_replacement_article = false;
+    private boolean is_nota_article = false;
+    private String nota_status = "";
 
     public GenericArticle() {
         //
@@ -444,4 +446,12 @@ public class GenericArticle {
             return "";
         }
     }
+
+    public void setNotaArticle(boolean is_nota) { is_nota_article = is_nota; }
+
+    public boolean isNotaArticle() { return is_nota_article; }
+
+    public void setNotaStatus(String status) { nota_status = status; }
+
+    public String getNotaStatus() { return nota_status; }
 }

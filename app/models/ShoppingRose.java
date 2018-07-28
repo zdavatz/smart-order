@@ -19,6 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 package models;
 
+import com.maxl.java.shared.NotaPosition;
 import com.maxl.java.shared.User;
 
 import java.io.UnsupportedEncodingException;
@@ -38,6 +39,7 @@ public class ShoppingRose {
     private HashMap<String, Float> m_sales_figures_map = null;
     private HashMap<String, String> m_rose_ids_map = null;
     private HashMap<String, String> m_rose_direct_subst_map = null;
+    private HashMap<String, List<NotaPosition>> m_rose_nota_map = null;
     private ArrayList<String> m_auto_generika_list = null;
     private ArrayList<String> m_auth_keys_list = null;
     private HashMap<String, List<GenericArticle>> m_map_similar_articles = null;
@@ -168,6 +170,8 @@ public class ShoppingRose {
         m_auto_generika_list = rd.autogenerika_list();
         // Load direct substition map
         m_rose_direct_subst_map = rd.rose_direct_subst_map();
+        // Load nota position amp
+        m_rose_nota_map = rd.rose_nota_map();
         // Retrieve authorization keys
         m_auth_keys_list= rd.auth_keys_list();
         // Retrieve user-related information
@@ -679,6 +683,8 @@ public class ShoppingRose {
                 rose_article.setOffMarket(article.isOffMarket());
                 rose_article.setDlkFlag(article.getDlkFlag());
                 rose_article.setNettoPriceList(article.isNplArticle());
+                rose_article.setNota(article.isNotaArticle());
+                rose_article.setNotaStatus(article.getNotaStatus());
 
                 boolean core_assort = preference_str.contains("AG")
                         || (preference_str.contains("GP") || preference_str.contains("GU"))
@@ -758,6 +764,8 @@ public class ShoppingRose {
                                         ra.setOffMarket(a.isOffMarket());
                                         ra.setDlkFlag(a.getDlkFlag());
                                         ra.setNettoPriceList(a.isNplArticle());
+                                        ra.setNota(a.isNotaArticle());
+                                        ra.setNotaStatus(a.getNotaStatus());
 
                                         core_assort = preference_str.contains("AG")
                                                 || (preference_str.contains("GP") || preference_str.contains("GU"))
