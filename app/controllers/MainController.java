@@ -21,6 +21,7 @@ package controllers;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
+import com.maxl.java.shared.NotaPosition;
 import models.*;
 import myactors.OrderLogActor;
 import play.db.NamedDatabase;
@@ -83,7 +84,7 @@ public class MainController extends Controller {
         } catch(MalformedURLException e) {
             e.printStackTrace();
         }
-        Result result = getSmartBasket("on", 0, "1111", "950757", basket);
+        Result result = getSmartBasket("on", 0, "1111", "950757", basket, "");
         String duration = String.format("Duration: %dms\n", (System.currentTimeMillis() - starttime));
         System.out.println(basket);
         System.out.println("Test duration in [ms] = " + duration);
@@ -123,7 +124,7 @@ public class MainController extends Controller {
      */
     @Inject ActorSystem actorSystem;
 
-    public Result getSmartBasket(String pretty, int limit, String auth_key, String gln_code, String basket) {
+    public Result getSmartBasket(String pretty, int limit, String auth_key, String gln_code, String basket, String nota) {
         ShoppingRose shopping_cart = new ShoppingRose(gln_code);
 
         if (shopping_cart.checkAuthKey(auth_key)) {
@@ -144,6 +145,17 @@ public class MainController extends Controller {
                 System.err.println(">> RoseSqlDb: SQLException while executing PRAGMA in RoseDB!");
             }
 
+            // Generate a basket with the nota positions
+            boolean nota_on = false;
+            final RoseData rd = RoseData.getInstance();
+            if (basket.isEmpty() && !nota.isEmpty()) {
+                String lang = nota.toLowerCase();
+                if (lang.equals("de") || lang.equals("fr")) {
+                    basket = rd.rose_nota_basket(gln_code);
+                    nota_on = true;
+                }
+            }
+
             // Match ean codes (13 digits) and pharma codes (7 digits)
             Pattern p = Pattern.compile("\\((\\d{13}|\\d{7}),(\\d+)\\)");
             Matcher m = p.matcher(basket);
@@ -162,6 +174,15 @@ public class MainController extends Controller {
             List<GenericArticle> articles = list_of_articles.stream()
                     .map(this::searchSingleEan)
                     .collect(Collectors.toList());
+
+            // Set availabilities for nota positions
+            if (nota_on) {
+                articles.forEach(a -> {
+                    String status = rd.rose_nota_status(gln_code, a.getPharmaCode(), nota);
+                    a.setNotaStatus(status);
+                    a.setNotaArticle(true);
+                });
+            }
 
             // Set limit to list of articles displayed (either 2 or as many as possible)
             shopping_cart.setResultsLimit(limit>0);

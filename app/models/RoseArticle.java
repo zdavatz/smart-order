@@ -107,6 +107,12 @@ public class RoseArticle {
     @JsonProperty("npl")
     private boolean netto_price_list;
 
+    @JsonProperty("is_nota")
+    private boolean is_nota;
+
+    @JsonProperty("nota_status")
+    private String nota_status;
+
     @JsonProperty("alternatives")
     public LinkedList<RoseArticle> alternatives;
 
@@ -232,4 +238,8 @@ public class RoseArticle {
     public void setAvailability(String availability) { this.availability = availability; }
 
     public void setCoreAssortment(boolean core_assort) { this.core_assort = core_assort; }
+
+    public void setNota(boolean is_nota) { this.is_nota = is_nota; }
+
+    public void setNotaStatus(String status) { this.nota_status = status; }
 }

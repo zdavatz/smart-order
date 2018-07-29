@@ -21,14 +21,12 @@ package models;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.maxl.java.shared.NotaPosition;
 import com.maxl.java.shared.User;
 
 import java.io.*;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by maxl on 26.06.2016.
@@ -44,6 +42,7 @@ public final class RoseData {
     private HashMap<String, String> rose_direct_subst_map;
     private ArrayList<String> rose_autogenerika_list;
     private ArrayList<String> rose_auth_keys_list;
+    private HashMap<String, List<NotaPosition>> rose_nota_map;
     private HashMap<String, Pair<Integer, Integer>> rose_stock_map;
 
     private RoseData() {
@@ -94,6 +93,9 @@ public final class RoseData {
         return this.rose_stock_map;
     }
 
+    public HashMap<String, List<NotaPosition>> rose_nota_map() {
+        return this.rose_nota_map;
+    }
 
     public void loadFile(String file_name) {
         String rose_path = System.getProperty("user.dir") + Constants.ROSE_DIR;
@@ -110,6 +112,8 @@ public final class RoseData {
             rose_direct_subst_map = loadRoseDirectSubst(rose_path + file_name);
         else if (file_name.equals("rose_autogenerika.ser.clear"))
             rose_autogenerika_list = loadRoseAutoGenerika(rose_path + file_name);
+        else if (file_name.equals("rose_nota.ser.clear"))
+            rose_nota_map = loadRoseNotaMap(rose_path + file_name);
         else if (file_name.equals("rose_auth_keys.txt"))
             rose_auth_keys_list = loadRoseAuthKeys(rose_path + file_name);
         else if (file_name.equals("rose_stock.csv"))
@@ -141,6 +145,10 @@ public final class RoseData {
 
         // System.out.print("# Loading rose_autogenerika.ser.clear... ");
         rose_autogenerika_list = loadRoseAutoGenerika(rose_path + "rose_autogenerika.ser.clear");
+        // System.out.println("OK");
+
+        // System.out.print("# Loading rose_nota.ser.clear... ");
+        rose_nota_map = loadRoseNotaMap(rose_path + "rose_nota.ser.clear");
         // System.out.println("OK");
 
         // System.out.print("# Loading rose_auth_keys.txt... ");
@@ -243,6 +251,23 @@ public final class RoseData {
     }
 
     /**
+     * Loads Rose nota
+     * Format: customer nr -> list of nota positions
+     *
+     * @param ser_file_name
+     * @return nota map
+     */
+    @SuppressWarnings("unchecked")
+    private HashMap<String, List<NotaPosition>> loadRoseNotaMap(String ser_file_name) {
+        HashMap<String, List<NotaPosition>> nota_map = new HashMap<>();
+        byte[] serialized_object = FileOps.readBytesFromFile(ser_file_name);
+        if (serialized_object != null) {
+            nota_map = (HashMap<String, List<NotaPosition>>) FileOps.deserialize(serialized_object);
+        }
+        return nota_map;
+    }
+
+    /**
      * Loads Rose stock maps (rose + voigt)
      *
      * @param file_name
@@ -293,5 +318,55 @@ public final class RoseData {
        } catch(IOException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Generates a smartorder conform shopping basket for a spefic gln code
+     * @param gln_code
+     * @return
+     */
+    public String rose_nota_basket(String gln_code) {
+        String nota_basket = "";
+        if (rose_nota_map.containsKey(gln_code)) {
+            List<NotaPosition> list_of_nota_positions = rose_nota_map.get(gln_code);
+            for (NotaPosition p : list_of_nota_positions) {
+                nota_basket += "(" + p.pharma_code + "," + p.quantity + ")";
+            }
+        }
+        return nota_basket;
+    }
+
+    /**
+     * Retrieves status for nota position given a gln code a pharma code and a language
+     * @param gln_code
+     * @param pharma_code
+     * @param lang (de, fr)
+     * @return
+     */
+    public String rose_nota_status(String gln_code, String pharma_code, String lang) {
+        if (rose_nota_map.containsKey(gln_code)) {
+            List<NotaPosition> list_of_nota_positions = rose_nota_map.get(gln_code);
+            for (NotaPosition p : list_of_nota_positions) {
+                if (p.pharma_code.equals(pharma_code)) {
+                    if (p.status.equals("10")) {
+                        if (lang.equals("de"))
+                            return "Fehlt auf unbestimmte Zeit beim Hersteller";
+                        else if (lang.equals("fr"))
+                            return "Manque pour une durée indéterminée chez le fabricant";
+                    } else if (p.status.equals("20")) {
+                        if (lang.equals("de"))
+                            return "Ausstand bis: " + p.delivery_date;
+                        else if (lang.equals("fr"))
+                            return "Quantité due jusqu’à: " + p.delivery_date;
+                    } else if (p.status.equals("30")) {
+                        if (lang.equals("de"))
+                            return "Beim Lieferanten bestellt";
+                        else if (lang.equals("fr"))
+                            return "Commandé au fournisseur";
+                    }
+                }
+            }
+        }
+        return "";
     }
 }
