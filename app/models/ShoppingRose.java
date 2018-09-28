@@ -309,7 +309,7 @@ public class ShoppingRose {
 
         // @maxl 2.Feb.2018
         if (curstock == 0)
-            return 5;   // RED
+            return 4;   // ORANGE 
 
         if (mstock >= 0) {
             if (curstock >= mstock && curstock >= quantity && mstock >= quantity)
