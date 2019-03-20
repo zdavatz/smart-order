@@ -113,6 +113,9 @@ public class RoseArticle {
     @JsonProperty("nota_status")
     private String nota_status;
 
+    @JsonProperty("last_order")
+    private String last_order;
+
     @JsonProperty("alternatives")
     public LinkedList<RoseArticle> alternatives;
 
@@ -242,4 +245,6 @@ public class RoseArticle {
     public void setNota(boolean is_nota) { this.is_nota = is_nota; }
 
     public void setNotaStatus(String status) { this.nota_status = status; }
+
+    public void setLastOrder(String last_order) { this.last_order = last_order; }
 }

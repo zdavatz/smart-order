@@ -75,6 +75,7 @@ public class GenericArticle {
     private boolean is_replacement_article = false;
     private boolean is_nota_article = false;
     private String nota_status = "";
+    private String last_order = "";
 
     public GenericArticle() {
         //
@@ -454,4 +455,8 @@ public class GenericArticle {
     public void setNotaStatus(String status) { nota_status = status; }
 
     public String getNotaStatus() { return nota_status; }
+
+    public void setLastOrder(String order) { last_order = order; }
+
+    public String getLastOrder() { return last_order; }
 }

@@ -175,12 +175,14 @@ public class MainController extends Controller {
                     .map(this::searchSingleEan)
                     .collect(Collectors.toList());
 
-            // Set availabilities for nota positions
+            // Set availabilities and last order date for nota positions
             if (nota_on) {
                 articles.forEach(a -> {
+                    a.setNotaArticle(true);
                     String status = rd.rose_nota_status(gln_code, a.getPharmaCode(), nota);
                     a.setNotaStatus(status);
-                    a.setNotaArticle(true);
+                    String last_order_date = rd.rose_last_order_date(gln_code, a.getPharmaCode());
+                    a.setLastOrder(last_order_date);
                 });
             }
 
