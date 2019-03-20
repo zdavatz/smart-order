@@ -369,4 +369,15 @@ public final class RoseData {
         }
         return "";
     }
+
+    public String rose_last_order_date(String gln_code, String pharma_code) {
+        if (rose_nota_map.containsKey(gln_code)) {
+            List<NotaPosition> list_of_nota_positions = rose_nota_map.get(gln_code);
+            for (NotaPosition p : list_of_nota_positions) {
+                if (p.pharma_code.equals(pharma_code))
+                    return p.last_order_date;
+            }
+        }
+        return "";
+    }
 }

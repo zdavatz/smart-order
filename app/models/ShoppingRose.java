@@ -196,7 +196,6 @@ public class ShoppingRose {
                         m_total_dlk_costs += entry.getValue();
                     }
                 }
-
             }
         }
     }
@@ -685,6 +684,7 @@ public class ShoppingRose {
                 rose_article.setNettoPriceList(article.isNplArticle());
                 rose_article.setNota(article.isNotaArticle());
                 rose_article.setNotaStatus(article.getNotaStatus());
+                rose_article.setLastOrder(article.getLastOrder());
 
                 boolean core_assort = preference_str.contains("AG")
                         || (preference_str.contains("GP") || preference_str.contains("GU"))
@@ -766,6 +766,7 @@ public class ShoppingRose {
                                         ra.setNettoPriceList(a.isNplArticle());
                                         ra.setNota(a.isNotaArticle());
                                         ra.setNotaStatus(a.getNotaStatus());
+                                        ra.setLastOrder(a.getLastOrder());
 
                                         core_assort = preference_str.contains("AG")
                                                 || (preference_str.contains("GP") || preference_str.contains("GU"))
