@@ -1,5 +1,7 @@
 # smart-order
 Smart Order REST API
+## Purpose
+Generate JSON output from sqlite and csv input files.
 ## License
 GPLv3.0
 ## Contact
