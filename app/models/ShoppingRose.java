@@ -279,7 +279,13 @@ public class ShoppingRose {
      * @return shipping status
      */
     private int shippingStatus(GenericArticle article, int quantity) {
-        
+       
+        // Diese Artikel sind ausser handel -> SCHWARZ
+        if (article.isOffMarket())
+            return 10;
+        // Diese Artikel fehlen auf unbestimmte Zeit -> ROT
+        if (article.isNotAvailable())
+            return 5;
         // Beschaffungsartikel sind immer ORANGE
         if (article.isNotInStockData() /* || article.getSupplier().toLowerCase().contains("voigt") */) {
             return 4;
@@ -317,14 +323,6 @@ public class ShoppingRose {
             else
                 return 5;    // RED
         }
-        
-        // Issue #2
-        // Diese Artikel sind ausser handel -> SCHWARZ
-        if (article.isOffMarket())
-            return 10;
-        // Diese Artikel fehlen auf unbestimmte Zeit -> ROT
-        if (article.isNotAvailable())
-            return 5;
 
         return 10;           // BLACK
     }
