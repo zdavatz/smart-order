@@ -279,22 +279,6 @@ public class ShoppingRose {
      * @return shipping status
      */
     private int shippingStatus(GenericArticle article, int quantity) {
-       
-        // Diese Artikel sind ausser handel -> SCHWARZ
-        if (article.isOffMarket())
-            return 10;
-        // Diese Artikel fehlen auf unbestimmte Zeit -> ROT
-        if (article.isNotAvailable())
-            return 5;
-        // Beschaffungsartikel sind immer ORANGE
-        if (article.isNotInStockData() /* || article.getSupplier().toLowerCase().contains("voigt") */) {
-            return 4;
-        }
-        // Calculate min stock
-        /*
-        int curstock = article.getItemsOnStock();
-        int mstock = minStock(article);
-        */
         // New on 01.Jun.2017: items on stock are retrieved using the pharmacode
         Pair<Integer, Integer> itemsOnStock = getItemsOnStock(article.getPharmaCode());    // returns (zur Rose, Voigt)
 
@@ -302,6 +286,17 @@ public class ShoppingRose {
         Pair<Integer, Integer> stockInfo = stockInfo(itemsOnStock);     // returns (current, minimum)
         int curstock = stockInfo.first; // Current
         int mstock = stockInfo.second;  // Minumum
+
+        // Diese Artikel sind ausser handel -> SCHWARZ
+        if (article.isOffMarket() && curstock <= 0)
+            return 10;
+        // Diese Artikel fehlen auf unbestimmte Zeit -> ROT
+        if (article.isNotAvailable() && curstock <= 0)
+            return 5;
+        // Beschaffungsartikel sind immer ORANGE
+        if (article.isNotInStockData() /* || article.getSupplier().toLowerCase().contains("voigt") */) {
+            return 4;
+        }
 
         // @maxl 18.Jan.2016: empirical rule (see emails)
         if (mstock < 0 && curstock >= 0)
