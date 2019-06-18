@@ -306,6 +306,9 @@ public class ShoppingRose {
         if (curstock == 0)
             return 4;   // ORANGE 
 
+        if (curstock < 0)
+                return 5; //  RED (ein negativer Lagerbestand soll schlechter als Lagerbestand = 0 behandelt werden)
+
         if (mstock >= 0) {
             if (curstock >= mstock && curstock >= quantity && mstock >= quantity)
                 return 1;    // GREEN
