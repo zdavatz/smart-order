@@ -176,9 +176,28 @@ public final class RoseData {
     @SuppressWarnings("unchecked")
     private HashMap<String, User> loadRoseUserMap(String ser_file_name) {
         HashMap<String, User> user_map = new HashMap<>();
-        byte[] serialized_object = FileOps.readBytesFromFile(ser_file_name);
-        if (serialized_object != null) {
-            user_map = (HashMap<String, User>) FileOps.deserialize(serialized_object);
+
+        String json_file_path = ser_file_name.replace(".clear", ".json");
+        File json_file = new File(json_file_path);
+        boolean json_success = false;
+        if (json_file.exists()) {
+            System.out.println("Using json file instead of .ser.clear: " + json_file_path);
+            ObjectMapper mapper = new ObjectMapper();
+            try {
+                user_map = mapper.readValue(json_file,
+                    new TypeReference<HashMap<String, User>>() { } );
+                json_success = true;
+            } catch (Exception e) {
+                System.out.println("Exception in loadRoseUserMap: " + e.getMessage());
+            }
+        }
+
+        if (!json_success) {
+            System.out.println("JSON file not found or not success, fallback to ser file: " + json_file_path);
+            byte[] serialized_object = FileOps.readBytesFromFile(ser_file_name);
+            if (serialized_object != null) {
+                user_map = (HashMap<String, User>) FileOps.deserialize(serialized_object);
+            }
         }
         return user_map;
     }
@@ -210,9 +229,28 @@ public final class RoseData {
     @SuppressWarnings("unchecked")
     private HashMap<String, String> loadRoseIds(String ser_file_name) {
         HashMap<String, String> rose_ids_map = new HashMap<>();
-        byte[] serialized_object = FileOps.readBytesFromFile(ser_file_name);
-        if (serialized_object != null) {
-            rose_ids_map = (HashMap<String, String>) FileOps.deserialize(serialized_object);
+
+        String json_file_path = ser_file_name.replace(".clear", ".json");
+        File json_file = new File(json_file_path);
+        boolean json_success = false;
+        if (json_file.exists()) {
+            System.out.println("Using json file instead of .ser.clear: " + json_file_path);
+            ObjectMapper mapper = new ObjectMapper();
+            try {
+                rose_ids_map = mapper.readValue(json_file,
+                    new TypeReference<HashMap<String, String>>() { } );
+                json_success = true;
+            } catch (Exception e) {
+                System.out.println("Exception in loadRoseIds: " + e.getMessage());
+            }
+        }
+
+        if (!json_success) {
+            System.out.println("JSON file not found or not success, fallback to ser file: " + json_file_path);
+            byte[] serialized_object = FileOps.readBytesFromFile(ser_file_name);
+            if (serialized_object != null) {
+                rose_ids_map = (HashMap<String, String>) FileOps.deserialize(serialized_object);
+            }
         }
         return rose_ids_map;
     }
@@ -227,10 +265,30 @@ public final class RoseData {
     @SuppressWarnings("unchecked")
     private HashMap<String, String> loadRoseDirectSubst(String ser_file_name) {
         HashMap<String, String> rose_direct_subst_map = new HashMap<>();
-        byte[] serialized_object = FileOps.readBytesFromFile(ser_file_name);
-        if (serialized_object != null) {
-            rose_direct_subst_map = (HashMap<String, String>) FileOps.deserialize(serialized_object);
+
+        String json_file_path = ser_file_name.replace(".clear", ".json");
+        File json_file = new File(json_file_path);
+        boolean json_success = false;
+        if (json_file.exists()) {
+            System.out.println("Using json file instead of .ser.clear: " + json_file_path);
+            ObjectMapper mapper = new ObjectMapper();
+            try {
+                rose_direct_subst_map = mapper.readValue(json_file,
+                    new TypeReference<HashMap<String, String>>() { } );
+                json_success = true;
+            } catch (Exception e) {
+                System.out.println("Exception in loadRoseDirectSubst: " + e.getMessage());
+            }
         }
+
+        if (!json_success) {
+            System.out.println("JSON file not found or not success, fallback to ser file: " + json_file_path);
+            byte[] serialized_object = FileOps.readBytesFromFile(ser_file_name);
+            if (serialized_object != null) {
+                rose_direct_subst_map = (HashMap<String, String>) FileOps.deserialize(serialized_object);
+            }
+        }
+
         return rose_direct_subst_map;
     }
 
@@ -243,10 +301,30 @@ public final class RoseData {
     @SuppressWarnings("unchecked")
     private ArrayList<String> loadRoseAutoGenerika(String ser_file_name) {
         ArrayList<String> auto_generika_list = new ArrayList<>();
-        byte[] serialized_object = FileOps.readBytesFromFile(ser_file_name);
-        if (serialized_object != null) {
-            auto_generika_list = (ArrayList<String>) FileOps.deserialize(serialized_object);
+
+        String json_file_path = ser_file_name.replace(".clear", ".json");
+        File json_file = new File(json_file_path);
+        boolean json_success = false;
+        if (json_file.exists()) {
+            System.out.println("Using json file instead of .ser.clear: " + json_file_path);
+            ObjectMapper mapper = new ObjectMapper();
+            try {
+                auto_generika_list = mapper.readValue(json_file,
+                    new TypeReference<ArrayList<String>>() { } );
+                json_success = true;
+            } catch (Exception e) {
+                System.out.println("Exception in loadRoseAutoGenerika: " + e.getMessage());
+            }
         }
+
+        if (!json_success) {
+            System.out.println("JSON file not found or not success, fallback to ser file: " + json_file_path);
+            byte[] serialized_object = FileOps.readBytesFromFile(ser_file_name);
+            if (serialized_object != null) {
+                auto_generika_list = (ArrayList<String>) FileOps.deserialize(serialized_object);
+            }
+        }
+
         return auto_generika_list;
     }
 
@@ -260,10 +338,30 @@ public final class RoseData {
     @SuppressWarnings("unchecked")
     private HashMap<String, List<NotaPosition>> loadRoseNotaMap(String ser_file_name) {
         HashMap<String, List<NotaPosition>> nota_map = new HashMap<>();
-        byte[] serialized_object = FileOps.readBytesFromFile(ser_file_name);
-        if (serialized_object != null) {
-            nota_map = (HashMap<String, List<NotaPosition>>) FileOps.deserialize(serialized_object);
+
+        String json_file_path = ser_file_name.replace(".clear", ".json");
+        File json_file = new File(json_file_path);
+        boolean json_success = false;
+        if (json_file.exists()) {
+            System.out.println("Using json file instead of .ser.clear: " + json_file_path);
+            ObjectMapper mapper = new ObjectMapper();
+            try {
+                nota_map = mapper.readValue(json_file,
+                    new TypeReference<HashMap<String, List<NotaPosition>>>() { } );
+                json_success = true;
+            } catch (Exception e) {
+                System.out.println("Exception in loadRoseNotaMap: " + e.getMessage());
+            }
         }
+
+        if (!json_success) {
+            System.out.println("JSON file not found or not success, fallback to ser file: " + json_file_path);
+            byte[] serialized_object = FileOps.readBytesFromFile(ser_file_name);
+            if (serialized_object != null) {
+                nota_map = (HashMap<String, List<NotaPosition>>) FileOps.deserialize(serialized_object);
+            }
+        }
+
         return nota_map;
     }
 
