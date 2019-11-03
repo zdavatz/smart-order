@@ -59,7 +59,7 @@ public class User implements java.io.Serializable {
     // Revenue / Umsatz
     public float revenue = 0.0f;
     // Spezialrabatt
-    public float generics_rebate = 0.0f;
+    public float special_rebate = 0.0f;
     // Map of GLN to list of company-specific rebate
     public LinkedHashMap<String, Float> rebate_map = null;
     // Map of GLN to list of company-specific expenses
