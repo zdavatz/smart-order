@@ -177,7 +177,7 @@ public final class RoseData {
     private HashMap<String, User> loadRoseUserMap(String ser_file_name) {
         HashMap<String, User> user_map = new HashMap<>();
 
-        String json_file_path = ser_file_name.replace(".clear", ".json");
+        String json_file_path = ser_file_name.replace(".ser.clear", ".json");
         File json_file = new File(json_file_path);
         boolean json_success = false;
         if (json_file.exists()) {
@@ -230,7 +230,7 @@ public final class RoseData {
     private HashMap<String, String> loadRoseIds(String ser_file_name) {
         HashMap<String, String> rose_ids_map = new HashMap<>();
 
-        String json_file_path = ser_file_name.replace(".clear", ".json");
+        String json_file_path = ser_file_name.replace(".ser.clear", ".json");
         File json_file = new File(json_file_path);
         boolean json_success = false;
         if (json_file.exists()) {
@@ -266,7 +266,7 @@ public final class RoseData {
     private HashMap<String, String> loadRoseDirectSubst(String ser_file_name) {
         HashMap<String, String> rose_direct_subst_map = new HashMap<>();
 
-        String json_file_path = ser_file_name.replace(".clear", ".json");
+        String json_file_path = ser_file_name.replace(".ser.clear", ".json");
         File json_file = new File(json_file_path);
         boolean json_success = false;
         if (json_file.exists()) {
@@ -302,7 +302,7 @@ public final class RoseData {
     private ArrayList<String> loadRoseAutoGenerika(String ser_file_name) {
         ArrayList<String> auto_generika_list = new ArrayList<>();
 
-        String json_file_path = ser_file_name.replace(".clear", ".json");
+        String json_file_path = ser_file_name.replace(".ser.clear", ".json");
         File json_file = new File(json_file_path);
         boolean json_success = false;
         if (json_file.exists()) {
@@ -339,7 +339,7 @@ public final class RoseData {
     private HashMap<String, List<NotaPosition>> loadRoseNotaMap(String ser_file_name) {
         HashMap<String, List<NotaPosition>> nota_map = new HashMap<>();
 
-        String json_file_path = ser_file_name.replace(".clear", ".json");
+        String json_file_path = ser_file_name.replace(".ser.clear", ".json");
         File json_file = new File(json_file_path);
         boolean json_success = false;
         if (json_file.exists()) {
