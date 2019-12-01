@@ -119,6 +119,12 @@ public class RoseArticle {
     @JsonProperty("alternatives")
     public LinkedList<RoseArticle> alternatives;
 
+    /**
+     * The default number of alternatives to display by GUI
+     */
+    @JsonProperty("alt")
+    private Integer alt = 2;
+
     private String size;
 
     private String galen;
@@ -126,6 +132,8 @@ public class RoseArticle {
     private String unit;
 
     private String availability;
+
+    private Boolean isOriginal = false;
 
     @JsonIgnore
     public String getGtin() { return gtin; }
@@ -171,6 +179,15 @@ public class RoseArticle {
 
     @JsonIgnore
     public String getAvailability() { return availability; }
+
+    @JsonIgnore
+    public Integer getAlt() { return alt; }
+
+    @JsonIgnore
+    public boolean isOriginal() { return isOriginal; }
+
+    @JsonIgnore
+    public boolean isNota() { return is_nota; }
 
     public void setGtin(String gtin) {
         this.gtin = gtin;
@@ -247,4 +264,8 @@ public class RoseArticle {
     public void setNotaStatus(String status) { this.nota_status = status; }
 
     public void setLastOrder(String last_order) { this.last_order = last_order; }
+
+    public void setAlt(Integer alt) { this.alt = alt; }
+
+    public void setIsOriginal(Boolean isOriginal) { this.isOriginal = isOriginal; }
 }
