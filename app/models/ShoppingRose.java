@@ -666,8 +666,10 @@ public class ShoppingRose {
         }
 
         if (!m_user_preference.isPreferenceEmpty() && isOrangeOrRed) {
-            boolean hasOriginalAlternative = article.alternatives.stream().anyMatch(ra -> ra.isOriginal());
-            if (hasOriginalAlternative) {
+            boolean hasBetterAlternative = article.alternatives
+                .stream()
+                .anyMatch(ra -> ra.isOriginal() && m_user_preference.isEanPreferred(ra.getGtin()));
+            if (hasBetterAlternative) {
                 return 2;
             }
         }
