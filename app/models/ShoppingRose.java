@@ -21,6 +21,7 @@ package models;
 
 import com.maxl.java.shared.NotaPosition;
 import com.maxl.java.shared.User;
+import com.maxl.java.shared.NewUser;
 
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
@@ -45,6 +46,7 @@ public class ShoppingRose {
     private HashMap<String, List<GenericArticle>> m_map_similar_articles = null;
     private HashMap<String, Pair<Integer, Integer>> m_stock_map = null;
     private float m_total_dlk_costs = 0.0f;
+    private NewUser m_user_preference = null;
 
     private Map<String, GenericArticle> m_shopping_basket = null;
 
@@ -198,6 +200,16 @@ public class ShoppingRose {
                 }
             }
         }
+        HashMap<String, NewUser> new_user_map = rd.new_user_map();
+        for (NewUser new_user : new_user_map.values()) {
+            if (new_user.gln_code.equals(m_customer_gln_code)) {
+                m_user_preference = new_user;
+                break;
+            }
+        }
+        if (m_user_preference == null) {
+            m_user_preference = new NewUser();
+        }
     }
 
     private String shortSupplier(String longSupplier) {
@@ -304,7 +316,7 @@ public class ShoppingRose {
 
         // @maxl 2.Feb.2018
         if (curstock == 0)
-            return 4;   // ORANGE 
+            return 4;   // ORANGE
 
         if (curstock < 0)
                 return 5; //  RED (ein negativer Lagerbestand soll schlechter als Lagerbestand = 0 behandelt werden)
@@ -622,6 +634,55 @@ public class ShoppingRose {
         return preference_str;
     }
 
+    private Integer generateAlt(RoseArticle article, GenericArticle ga) {
+        // Generate the default number of alternatives displayed
+        boolean isOrangeOrRed = ga.getShippingStatus() == 4 || ga.getShippingStatus() == 5;
+        if (ga.isNplArticle()) {
+            if (ga.getShippingStatus() == 1) {
+                // Green
+                return 0;
+            } else if (isOrangeOrRed) {
+                // Orange or Red
+                return 2;
+            }
+        }
+        if (m_user_preference.isPreferenceEmpty()
+            && isPreferredByRose(ga)
+            && ga.getShippingStatus() == 1
+        ) {
+            return 0;
+        }
+
+        if (!m_user_preference.isPreferenceEmpty()
+            && !m_user_preference.isEanPreferred(article.getGtin())
+            && ga.getShippingStatus() == 1
+        ) {
+            boolean hasPreferredAlternative = article.alternatives
+                .stream()
+                .anyMatch(a -> m_user_preference.isEanPreferred(a.getGtin()));
+            if (hasPreferredAlternative) {
+                return 1;
+            }
+        }
+
+        if (!m_user_preference.isPreferenceEmpty() && isOrangeOrRed) {
+            boolean hasOriginalAlternative = article.alternatives.stream().anyMatch(ra -> ra.isOriginal());
+            if (hasOriginalAlternative) {
+                return 2;
+            }
+        }
+
+        if (m_user_preference.isPreferenceEmpty() && isOrangeOrRed) {
+            return 2;
+        }
+        if (article.isNota()) {
+            return 2;
+        }
+
+        // Default value of Alt is 2
+        return 2;
+    }
+
     public List<RoseArticle> updateShoppingCart() {
 
         List<RoseArticle> list_rose_articles = new ArrayList<>();
@@ -636,6 +697,7 @@ public class ShoppingRose {
 
                 RoseArticle rose_article = new RoseArticle();
                 rose_article.alternatives = new LinkedList<>();
+                rose_article.setAlt(2);
 
                 // Get cash rebate
                 float cr = getCashRebate(article);
@@ -684,6 +746,7 @@ public class ShoppingRose {
                 rose_article.setNota(article.isNotaArticle());
                 rose_article.setNotaStatus(article.getNotaStatus());
                 rose_article.setLastOrder(article.getLastOrder());
+                rose_article.setIsOriginal(article.isOriginal());
 
                 boolean core_assort = preference_str.contains("AG")
                         || (preference_str.contains("GP") || preference_str.contains("GU"))
@@ -766,6 +829,7 @@ public class ShoppingRose {
                                         ra.setNota(a.isNotaArticle());
                                         ra.setNotaStatus(a.getNotaStatus());
                                         ra.setLastOrder(a.getLastOrder());
+                                        ra.setIsOriginal(a.isOriginal());
 
                                         core_assort = preference_str.contains("AG")
                                                 || (preference_str.contains("GP") || preference_str.contains("GU"))
@@ -782,6 +846,7 @@ public class ShoppingRose {
                         }
                     }
                 }
+                rose_article.setAlt(generateAlt(rose_article, article));
                 list_rose_articles.add(rose_article);
             }
         }

@@ -127,158 +127,156 @@ public class MainController extends Controller {
     public Result getSmartBasket(String pretty, int limit, String auth_key, String gln_code, String basket, String nota) {
         ShoppingRose shopping_cart = new ShoppingRose(gln_code);
 
-        if (shopping_cart.checkAuthKey(auth_key)) {
+        if (!shopping_cart.checkAuthKey(auth_key)) {
+            return ok("[]");
+        }
 
-            long startTime = System.currentTimeMillis();
+        long startTime = System.currentTimeMillis();
 
-            try {
-                Connection conn = rose_db_atc_only.getConnection();
-                Statement stat = conn.createStatement();
-                stat.execute("PRAGMA cache_size=10000; PRAGMA temp_store=MEMORY; PRAGMA synchronous=NORMAL; PRAGMA locking_mode=EXCLUSIVE;");
-                conn.close();
-                //
-                conn = rose_db.getConnection();
-                stat = conn.createStatement();
-                stat.execute("PRAGMA cache_size=10000; PRAGMA temp_store=MEMORY; PRAGMA synchronous=NORMAL; PRAGMA locking_mode=EXCLUSIVE;");
-                conn.close();
-            } catch (SQLException e) {
-                System.err.println(">> RoseSqlDb: SQLException while executing PRAGMA in RoseDB!");
+        try {
+            Connection conn = rose_db_atc_only.getConnection();
+            Statement stat = conn.createStatement();
+            stat.execute("PRAGMA cache_size=10000; PRAGMA temp_store=MEMORY; PRAGMA synchronous=NORMAL; PRAGMA locking_mode=EXCLUSIVE;");
+            conn.close();
+            //
+            conn = rose_db.getConnection();
+            stat = conn.createStatement();
+            stat.execute("PRAGMA cache_size=10000; PRAGMA temp_store=MEMORY; PRAGMA synchronous=NORMAL; PRAGMA locking_mode=EXCLUSIVE;");
+            conn.close();
+        } catch (SQLException e) {
+            System.err.println(">> RoseSqlDb: SQLException while executing PRAGMA in RoseDB!");
+        }
+
+        // Generate a basket with the nota positions
+        boolean nota_on = false;
+        final RoseData rd = RoseData.getInstance();
+        if (basket.isEmpty() && !nota.isEmpty()) {
+            String lang = nota.toLowerCase();
+            if (lang.equals("de") || lang.equals("fr")) {
+                basket = rd.rose_nota_basket(gln_code);
+                nota_on = true;
             }
+        }
 
-            // Generate a basket with the nota positions
-            boolean nota_on = false;
-            final RoseData rd = RoseData.getInstance();
-            if (basket.isEmpty() && !nota.isEmpty()) {
-                String lang = nota.toLowerCase();
-                if (lang.equals("de") || lang.equals("fr")) {
-                    basket = rd.rose_nota_basket(gln_code);
-                    nota_on = true;
-                }
+        // Match ean codes (13 digits) and pharma codes (7 digits)
+        Pattern p = Pattern.compile("\\((\\d{13}|\\d{7}),(\\d+)\\)");
+        Matcher m = p.matcher(basket);
+        ArrayList<String> list_of_articles = new ArrayList<>();
+        HashMap<String, Integer> map_of_articles = new HashMap<>();
+        while (m.find()) {
+            String code = m.group(1);
+            String qty = m.group(2);
+            if (!code.isEmpty() && !qty.isEmpty()) {
+                list_of_articles.add(code);
+                map_of_articles.put(code, Integer.valueOf(qty));
             }
+        }
 
-            // Match ean codes (13 digits) and pharma codes (7 digits)
-            Pattern p = Pattern.compile("\\((\\d{13}|\\d{7}),(\\d+)\\)");
-            Matcher m = p.matcher(basket);
-            ArrayList<String> list_of_articles = new ArrayList<>();
-            HashMap<String, Integer> map_of_articles = new HashMap<>();
-            while (m.find()) {
-                String code = m.group(1);
-                String qty = m.group(2);
-                if (!code.isEmpty() && !qty.isEmpty()) {
-                    list_of_articles.add(code);
-                    map_of_articles.put(code, Integer.valueOf(qty));
-                }
-            }
+        // Search for ean/pharma codes -> ROSE_DB
+        List<GenericArticle> articles = list_of_articles.stream()
+                .map(this::searchSingleEan)
+                .collect(Collectors.toList());
 
-            // Search for ean/pharma codes -> ROSE_DB
-            List<GenericArticle> articles = list_of_articles.stream()
-                    .map(this::searchSingleEan)
-                    .collect(Collectors.toList());
+        // Set availabilities and last order date for nota positions
+        if (nota_on) {
+            articles.forEach(a -> {
+                a.setNotaArticle(true);
+                String status = rd.rose_nota_status(gln_code, a.getPharmaCode(), nota);
+                a.setNotaStatus(status);
+                String last_order_date = rd.rose_last_order_date(gln_code, a.getPharmaCode());
+                a.setLastOrder(last_order_date);
+            });
+        }
 
-            // Set availabilities and last order date for nota positions
-            if (nota_on) {
-                articles.forEach(a -> {
-                    a.setNotaArticle(true);
-                    String status = rd.rose_nota_status(gln_code, a.getPharmaCode(), nota);
-                    a.setNotaStatus(status);
-                    String last_order_date = rd.rose_last_order_date(gln_code, a.getPharmaCode());
-                    a.setLastOrder(last_order_date);
-                });
-            }
+        // Set limit to list of articles displayed (either 2 or as many as possible)
+        shopping_cart.setResultsLimit(limit>0);
 
-            // Set limit to list of articles displayed (either 2 or as many as possible)
-            shopping_cart.setResultsLimit(limit>0);
-
-            if (articles.size() > 0) {
-                Map<String, GenericArticle> shopping_basket = new HashMap<>();
-                Map<String, List<GenericArticle>> map_of_similar_articles = new HashMap<>();
-                // Loop through all articles found
-                articles.forEach((article) -> {
-                    // Make sure the selected article has a price
-                    if (article.getRoseBasisPriceAsFloat()>0.0f || article.getPublicPriceAsFloat()>0.0f) {
-                        String ean = article.getEanCode();
-                        String pharma = article.getPharmaCode();
-
-                        // Check for ean/pharma code
-                        if (map_of_articles.containsKey(ean) || map_of_articles.containsKey(pharma)) {
-                            // Set quantities when found
-                            if (map_of_articles.containsKey(ean))
-                                article.setQuantity(map_of_articles.get(ean));
-                            else
-                                article.setQuantity(map_of_articles.get(pharma));
-                            // Set shipping status
-                            shopping_cart.updateShippingStatus(article);
-                            // Add article to shopping basket
-                            String hashed_key = shopping_cart.randomHashCode(pharma + ean);
-                            shopping_basket.put(hashed_key /*ean*/, article);
-                            // Find all alternatives using the article's EAN code -> ROSE_DB_ATC_ONLY
-                            LinkedList<GenericArticle> la = listSimilarArticles(article);
-                            // Check if article has direct substitute
-                            String subst_pharma = shopping_cart.hasDirectSubstitute(pharma);
-                            if (subst_pharma !=null) {
-                                List<GenericArticle> subst_articles = searchEan(subst_pharma);
-                                // If substitute article exists add it to the list
-                                if (subst_articles.size()>0) {
-                                    GenericArticle ga = subst_articles.get(0);
-                                    ga.setReplacementArticle(true);
-                                    la.addFirst(ga);
-                                }
+        if (articles.size() > 0) {
+            Map<String, GenericArticle> shopping_basket = new HashMap<>();
+            Map<String, List<GenericArticle>> map_of_similar_articles = new HashMap<>();
+            // Loop through all articles found
+            articles.forEach((article) -> {
+                // Make sure the selected article has a price
+                if (article.getRoseBasisPriceAsFloat()>0.0f || article.getPublicPriceAsFloat()>0.0f) {
+                    String ean = article.getEanCode();
+                    String pharma = article.getPharmaCode();
+                    // Check for ean/pharma code
+                    if (map_of_articles.containsKey(ean) || map_of_articles.containsKey(pharma)) {
+                        // Set quantities when found
+                        if (map_of_articles.containsKey(ean))
+                            article.setQuantity(map_of_articles.get(ean));
+                        else
+                            article.setQuantity(map_of_articles.get(pharma));
+                        // Set shipping status
+                        shopping_cart.updateShippingStatus(article);
+                        // Add article to shopping basket
+                        String hashed_key = shopping_cart.randomHashCode(pharma + ean);
+                        shopping_basket.put(hashed_key /*ean*/, article);
+                        // Find all alternatives using the article's EAN code -> ROSE_DB_ATC_ONLY
+                        LinkedList<GenericArticle> la = listSimilarArticles(article);
+                        // Check if article has direct substitute
+                        String subst_pharma = shopping_cart.hasDirectSubstitute(pharma);
+                        if (subst_pharma !=null) {
+                            List<GenericArticle> subst_articles = searchEan(subst_pharma);
+                            // If substitute article exists add it to the list
+                            if (subst_articles.size()>0) {
+                                GenericArticle ga = subst_articles.get(0);
+                                ga.setReplacementArticle(true);
+                                la.addFirst(ga);
                             }
-                            if (la != null) {
-                                // Check if ean code is already part of the map, if not add to map
-                                if (!map_of_similar_articles.containsKey(ean)) {
-                                    map_of_similar_articles.put(ean, la);
-                                }
+                        }
+                        if (la != null) {
+                            // Check if ean code is already part of the map, if not add to map
+                            if (!map_of_similar_articles.containsKey(ean)) {
+                                map_of_similar_articles.put(ean, la);
                             }
                         }
                     }
-                });
-
-                // Update shopping basket
-                shopping_cart.setShoppingBasket(shopping_basket);
-                // Update list of similar articles only for last insert article
-                shopping_cart.updateMapSimilarArticles(map_of_similar_articles);
-            }
-
-            // List of articles
-            List<RoseArticle> list_of_rose_articles = shopping_cart.updateShoppingCart();
-            // Calc hash for order
-            DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            Date date = new Date();
-            String timestamp = dateFormat.format(date);
-            String hash = shopping_cart.randomHashCode(timestamp);
-
-            String customer_gln = shopping_cart.getCustomerGlnCode();
-            RoseOrder rose_order = new RoseOrder(hash, timestamp, customer_gln);
-            rose_order.setTopCustomer(shopping_cart.isTopCustomer());
-            rose_order.setRevenue((shopping_cart.getRevenue()));
-            rose_order.setTotalDlkCosts(shopping_cart.getTotalDlkCosts());
-
-            rose_order.setListArticles(list_of_rose_articles);
-
-            // Save to file (append)
-            ActorRef myActor = actorSystem.actorOf(OrderLogActor.props);
-            myActor.tell(rose_order, ActorRef.noSender());
-
-            String order_json;
-            if (pretty.equals("on"))
-                order_json = Json.prettyPrint(toJson(rose_order));
-            else
-                order_json = toJson(rose_order).toString();
-
-            long time_for_search = System.currentTimeMillis() - startTime;
-
-            /*
-            System.out.println("-----------------------------");
-            System.out.println(">> Time for search = " + time_for_search/1000.0f + "s");
-            System.out.println(">> Time / article = " + time_for_search/list_of_articles.size() + "ms");
-
-            System.out.println(">> Num articles in basket = " + list_of_articles.size());
-            System.out.println(">> Size of order = " + order_json.length()/1000.0f + "kB");
-            */
-            return ok(order_json);
+                }
+            });
+            // Update shopping basket
+            shopping_cart.setShoppingBasket(shopping_basket);
+            // Update list of similar articles only for last insert article
+            shopping_cart.updateMapSimilarArticles(map_of_similar_articles);
         }
-        return ok("[]");
+
+        // List of articles
+        List<RoseArticle> list_of_rose_articles = shopping_cart.updateShoppingCart();
+        // Calc hash for order
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Date date = new Date();
+        String timestamp = dateFormat.format(date);
+        String hash = shopping_cart.randomHashCode(timestamp);
+
+        String customer_gln = shopping_cart.getCustomerGlnCode();
+        RoseOrder rose_order = new RoseOrder(hash, timestamp, customer_gln);
+        rose_order.setTopCustomer(shopping_cart.isTopCustomer());
+        rose_order.setRevenue((shopping_cart.getRevenue()));
+        rose_order.setTotalDlkCosts(shopping_cart.getTotalDlkCosts());
+
+        rose_order.setListArticles(list_of_rose_articles);
+
+        // Save to file (append)
+        ActorRef myActor = actorSystem.actorOf(OrderLogActor.props);
+        myActor.tell(rose_order, ActorRef.noSender());
+
+        String order_json;
+        if (pretty.equals("on"))
+            order_json = Json.prettyPrint(toJson(rose_order));
+        else
+            order_json = toJson(rose_order).toString();
+
+        long time_for_search = System.currentTimeMillis() - startTime;
+
+        /*
+        System.out.println("-----------------------------");
+        System.out.println(">> Time for search = " + time_for_search/1000.0f + "s");
+        System.out.println(">> Time / article = " + time_for_search/list_of_articles.size() + "ms");
+
+        System.out.println(">> Num articles in basket = " + list_of_articles.size());
+        System.out.println(">> Size of order = " + order_json.length()/1000.0f + "kB");
+        */
+        return ok(order_json);
     }
 
     public Result getUserArticles(String pretty, String auth_key, String gln_code) {
@@ -342,6 +340,7 @@ public class MainController extends Controller {
         rose_article.setAvailability(generic_article.getAvailability());
         rose_article.setDlkFlag(generic_article.getDlkFlag());
         rose_article.setNettoPriceList(generic_article.isNplArticle());
+        rose_article.setIsOriginal(generic_article.isOriginal());
         rose_article.alternatives = new LinkedList<>();
 
         return rose_article;

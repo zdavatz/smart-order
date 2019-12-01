@@ -24,6 +24,12 @@ import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.AbstractMap.*;
+import java.util.stream.Stream;
+import java.util.stream.Collectors;
 
 /**
  * Created by maxl on 26.06.2016.
@@ -76,6 +82,13 @@ public class GenericArticle {
     private boolean is_nota_article = false;
     private String nota_status = "";
     private String last_order = "";
+
+    public static final Map<String, String> eanNameMap = Stream.of(
+            new SimpleEntry<>("7601001396685", "mepha"),
+            new SimpleEntry<>("7601001029439", "sandoz"),
+            new SimpleEntry<>("7601001003736", "helvepharm"),
+            new SimpleEntry<>("7601001394834", "spirig"))
+            .collect(Collectors.toMap(SimpleEntry::getKey, SimpleEntry::getValue));
 
     public GenericArticle() {
         //
