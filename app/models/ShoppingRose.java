@@ -666,8 +666,10 @@ public class ShoppingRose {
         }
 
         if (!m_user_preference.isPreferenceEmpty() && isOrangeOrRed) {
-            boolean hasOriginalAlternative = article.alternatives.stream().anyMatch(ra -> ra.isOriginal());
-            if (hasOriginalAlternative) {
+            boolean hasBetterAlternative = article.alternatives
+                .stream()
+                .anyMatch(ra -> ra.isOriginal() && m_user_preference.isEanPreferred(ra.getGtin()));
+            if (hasBetterAlternative) {
                 return 2;
             }
         }
@@ -757,90 +759,81 @@ public class ShoppingRose {
                 // Returns the Rose margin in CHF for article
                 getRoseMargin(article);
 
-                /*
-                    In the following cases we do not need to indicate alternatives:
-                    1. Article is on stock (green) && article is NPL
-                    2. Article is a generikum && has percentage rebate
-                */
-                if (article.getShippingStatus() == 1 && (article.isNplArticle() || (article.isGenerikum() && hasPercentageRebate(article)))) {
-                   rose_article.alternatives = new LinkedList<>();
-                } else {
-                    // article points to object which was inserted last...
-                    if (m_map_similar_articles.containsKey(ean_code)) {
+                // article points to object which was inserted last...
+                if (m_map_similar_articles.containsKey(ean_code)) {
 
-                        String size = article.getPackSize();
-                        String dosage = article.getPackUnit();
-                        sortSimilarArticles(quantity, size, dosage);
+                    String size = article.getPackSize();
+                    String dosage = article.getPackUnit();
+                    sortSimilarArticles(quantity, size, dosage);
 
-                        // Loop through all alternatives 'a' of 'article'
-                        List<GenericArticle> la = m_map_similar_articles.get(ean_code);
-                        for (GenericArticle a : la) {
-                            String alter_ean_code = a.getEanCode();
+                    // Loop through all alternatives 'a' of 'article'
+                    List<GenericArticle> la = m_map_similar_articles.get(ean_code);
+                    for (GenericArticle a : la) {
+                        String alter_ean_code = a.getEanCode();
 
-                            if (!alter_ean_code.equals(ean_code)) {
-                                if (article.isOriginal()
-                                        || (article.isGenerikum() && a.isGenerikum())
-                                        || (article.isGenerikum() && !isAutoGenerikum(alter_ean_code))
-                                        || a.isReplacementArticle()) {
+                        if (!alter_ean_code.equals(ean_code)) {
+                            if (article.isOriginal()
+                                    || (article.isGenerikum() && a.isGenerikum())
+                                    || (article.isGenerikum() && !isAutoGenerikum(alter_ean_code))
+                                    || a.isReplacementArticle()) {
 
-                                    if (a.isAvailable() && !a.isOffMarket()) {
-                                        RoseArticle ra = new RoseArticle();
-                                        cr = getCashRebate(a);
-                                        if (cr >= 0.0f)
-                                            a.setCashRebate(cr);
+                                if (a.isAvailable() && !a.isOffMarket()) {
+                                    RoseArticle ra = new RoseArticle();
+                                    cr = getCashRebate(a);
+                                    if (cr >= 0.0f)
+                                        a.setCashRebate(cr);
 
-                                        rose_price = a.getRoseBasisPriceAsFloat();
-                                        cash_rebate = rose_price * a.getCashRebate() * 0.01f;
+                                    rose_price = a.getRoseBasisPriceAsFloat();
+                                    cash_rebate = rose_price * a.getCashRebate() * 0.01f;
 
-                                        a.setBuyingPrice(rose_price);
-                                        a.setQuantity(quantity);
+                                    a.setBuyingPrice(rose_price);
+                                    a.setQuantity(quantity);
 
-                                        flags_str = a.getFlags();
+                                    flags_str = a.getFlags();
 
-                                        preference_str = generatePreferences(a);
+                                    preference_str = generatePreferences(a);
 
-                                        shipping_ = shippingStatus(a, a.getQuantity());
-                                        shipping_status = shippingStatusColor(shipping_);
+                                    shipping_ = shippingStatus(a, a.getQuantity());
+                                    shipping_status = shippingStatusColor(shipping_);
 
-                                        if (a.isReplacementArticle())
-                                            ra.setReplacesArticle(article.getEanCode() + ", " + article.getPackTitle() + ", " + article.getPackTitleFR());
+                                    if (a.isReplacementArticle())
+                                        ra.setReplacesArticle(article.getEanCode() + ", " + article.getPackTitle() + ", " + article.getPackTitleFR());
 
-                                        ra.setGtin(alter_ean_code);
-                                        ra.setPharma(a.getPharmaCode());
-                                        ra.setTitle(a.getPackTitle());
-                                        ra.setTitleFR(a.getPackTitleFR());
-                                        ra.setSize(a.getPackSize());
-                                        ra.setGalen(a.getPackGalen());
-                                        ra.setUnit(a.getPackUnit());
-                                        ra.setSupplier(a.getSupplier());
-                                        ra.setRoseBasisPrice(rose_price);
-                                        ra.setPublicPrice(a.getPublicPriceAsFloat());
-                                        ra.setExfactoryPrice(a.getExfactoryPriceAsFloat());
-                                        ra.setCashRebate(cash_rebate);
-                                        ra.setGenericsRebate(cr);   // Sets cash_rebate in percent
-                                        ra.setQuantity(a.getQuantity());
-                                        ra.setSwissmed(flags_str);
-                                        ra.setPreferences(preference_str);
-                                        ra.setAvailDate(a.getAvailDate());
-                                        ra.setShippingStatus(shipping_status.first);
-                                        ra.setOffMarket(a.isOffMarket());
-                                        ra.setDlkFlag(a.getDlkFlag());
-                                        ra.setNettoPriceList(a.isNplArticle());
-                                        ra.setNota(a.isNotaArticle());
-                                        ra.setNotaStatus(a.getNotaStatus());
-                                        ra.setLastOrder(a.getLastOrder());
-                                        ra.setIsOriginal(a.isOriginal());
+                                    ra.setGtin(alter_ean_code);
+                                    ra.setPharma(a.getPharmaCode());
+                                    ra.setTitle(a.getPackTitle());
+                                    ra.setTitleFR(a.getPackTitleFR());
+                                    ra.setSize(a.getPackSize());
+                                    ra.setGalen(a.getPackGalen());
+                                    ra.setUnit(a.getPackUnit());
+                                    ra.setSupplier(a.getSupplier());
+                                    ra.setRoseBasisPrice(rose_price);
+                                    ra.setPublicPrice(a.getPublicPriceAsFloat());
+                                    ra.setExfactoryPrice(a.getExfactoryPriceAsFloat());
+                                    ra.setCashRebate(cash_rebate);
+                                    ra.setGenericsRebate(cr);   // Sets cash_rebate in percent
+                                    ra.setQuantity(a.getQuantity());
+                                    ra.setSwissmed(flags_str);
+                                    ra.setPreferences(preference_str);
+                                    ra.setAvailDate(a.getAvailDate());
+                                    ra.setShippingStatus(shipping_status.first);
+                                    ra.setOffMarket(a.isOffMarket());
+                                    ra.setDlkFlag(a.getDlkFlag());
+                                    ra.setNettoPriceList(a.isNplArticle());
+                                    ra.setNota(a.isNotaArticle());
+                                    ra.setNotaStatus(a.getNotaStatus());
+                                    ra.setLastOrder(a.getLastOrder());
+                                    ra.setIsOriginal(a.isOriginal());
 
-                                        core_assort = preference_str.contains("AG")
-                                                || (preference_str.contains("GP") || preference_str.contains("GU"))
-                                                || preference_str.contains("ZRP")
-                                                || a.isNplArticle();
-                                        ra.setCoreAssortment(core_assort);
+                                    core_assort = preference_str.contains("AG")
+                                            || (preference_str.contains("GP") || preference_str.contains("GU"))
+                                            || preference_str.contains("ZRP")
+                                            || a.isNplArticle();
+                                    ra.setCoreAssortment(core_assort);
 
-                                        getRoseMargin(a);
+                                    getRoseMargin(a);
 
-                                        rose_article.alternatives.add(ra);
-                                    }
+                                    rose_article.alternatives.add(ra);
                                 }
                             }
                         }
