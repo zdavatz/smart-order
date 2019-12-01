@@ -411,9 +411,19 @@ public class GenericArticle {
         return flags;
     }
 
-    public boolean isOriginal() { return flags.endsWith("O"); }
+    public ArrayList<String> getFlagsArray() {
+        return Arrays.stream(this.getFlags().split(","))
+            .map(s -> s.trim())
+            .collect(Collectors.toCollection(ArrayList::new));
+    }
 
-    public boolean isGenerikum() { return flags.endsWith("G"); }
+    public boolean isOriginal() {
+        return this.getFlagsArray().contains("O");
+    }
+
+    public boolean isGenerikum() {
+        return this.getFlagsArray().contains("G");
+    }
 
     public boolean isAvailable() { return !isNotAvailable(); }
 
