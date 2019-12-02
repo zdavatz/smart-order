@@ -116,14 +116,14 @@ public class RoseArticle {
     @JsonProperty("last_order")
     private String last_order;
 
-    @JsonProperty("alternatives")
-    public LinkedList<RoseArticle> alternatives;
-
     /**
      * The default number of alternatives to display by GUI
      */
     @JsonProperty("alt")
     private Integer alt = 2;
+
+    @JsonProperty("alternatives")
+    public LinkedList<RoseArticle> alternatives;
 
     private String size;
 
