@@ -830,6 +830,7 @@ public class ShoppingRose {
                                             || preference_str.contains("ZRP")
                                             || a.isNplArticle();
                                     ra.setCoreAssortment(core_assort);
+                                    ra.setAlt(null);
 
                                     getRoseMargin(a);
 
@@ -839,7 +840,14 @@ public class ShoppingRose {
                         }
                     }
                 }
-                rose_article.setAlt(generateAlt(rose_article, article));
+                if (rose_article.alternatives == null) {
+                    rose_article.setAlt(null);
+                } else {
+                    rose_article.setAlt(Math.min(
+                        rose_article.alternatives.size(),
+                        generateAlt(rose_article, article)
+                    ));
+                }
                 list_rose_articles.add(rose_article);
             }
         }
