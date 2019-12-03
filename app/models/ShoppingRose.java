@@ -138,18 +138,6 @@ public class ShoppingRose {
         }
     }
 
-    private String shortSupplier(String longSupplier) {
-        for (String s : Constants.doctorPreferences.keySet()) {
-            if (longSupplier.toLowerCase().contains(s))
-                return s;
-        }
-        for (String s : Constants.rosePreferences.keySet()) {
-            if (longSupplier.toLowerCase().contains(s))
-                return s;
-        }
-        return "";
-    }
-
     /**
      * Calculates minimum stock (MB) for the given article
      * Return -1 if article is not listed
@@ -277,28 +265,6 @@ public class ShoppingRose {
                 return new Pair<>("red", 5);
         }
         return new Pair<>("black", -1);
-    }
-
-    private String getShortSupplier(GenericArticle article) {
-        String supplier = article.getSupplier().toLowerCase();
-        String short_supplier = "";
-        for (String p : Constants.doctorPreferences.keySet()) {
-            if (supplier.contains(p))
-                short_supplier = p;
-        }
-        return short_supplier;
-    }
-
-    private float supplierDataForMap(GenericArticle article, LinkedHashMap<String, Float> map) {
-        if (map!=null) {
-            String short_supplier = getShortSupplier(article);
-            float value = 0.0f;
-            if (!short_supplier.isEmpty())
-                if (map.containsKey(short_supplier))
-                    value = map.get(short_supplier);
-            return value;
-        }
-        return 0.0f;
     }
 
     private int rosePreference(GenericArticle article) {

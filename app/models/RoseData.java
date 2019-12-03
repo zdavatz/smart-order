@@ -389,7 +389,6 @@ public final class RoseData {
 
             Map<String, Object> rose_settings = mapper.readValue(json_file, typeRef);
 
-            Constants.doctorPreferences = (LinkedHashMap<String, Integer>) rose_settings.get("doctor_preferences");
             Constants.rosePreferences = (LinkedHashMap<String, Integer>) rose_settings.get("rose_preferences");
        } catch(IOException e) {
             e.printStackTrace();
