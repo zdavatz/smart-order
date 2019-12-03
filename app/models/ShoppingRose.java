@@ -34,9 +34,6 @@ import java.util.*;
  */
 public class ShoppingRose {
 
-    private LinkedHashMap<String, Float> m_rebate_map = null;
-    private LinkedHashMap<String, Float> m_expenses_map = null;
-    private LinkedHashMap<String, Float> m_dlk_map = null;   // Delivery and logistic costs
     private HashMap<String, Float> m_sales_figures_map = null;
     private HashMap<String, String> m_rose_ids_map = null;
     private HashMap<String, String> m_rose_direct_subst_map = null;
@@ -51,10 +48,6 @@ public class ShoppingRose {
     private Map<String, GenericArticle> m_shopping_basket = null;
 
     private String m_customer_gln_code = "";
-
-    private boolean m_top_customer = false;
-
-    private float m_revenue = 0.0f;
 
     private MessageDigest m_message_digest;
 
@@ -90,12 +83,6 @@ public class ShoppingRose {
     public String getCustomerGlnCode() {
         return m_customer_gln_code;
     }
-
-    public boolean isTopCustomer() { return m_top_customer; }
-
-    public float getRevenue() { return m_revenue; }
-
-    public float getTotalDlkCosts() { return m_total_dlk_costs; }
 
     public boolean checkAuthKey(String auth_key) {
         if (m_auth_keys_list!=null)
@@ -142,29 +129,6 @@ public class ShoppingRose {
         // Retrieve authorization keys
         m_auth_keys_list= rd.auth_keys_list();
         // Retrieve user-related information
-        HashMap<String, User> user_map = rd.user_map();
-        if (user_map.containsKey(m_customer_gln_code)) {
-            User user = user_map.get(m_customer_gln_code);
-            if (user!=null) {
-                // Get rebate map for this customer (percentages)
-                m_rebate_map = user.rebate_map;
-                // Get expense map for this customer (cash)
-                m_expenses_map = user.expenses_map;
-                // Get delivery and logistic costs
-                m_dlk_map = user.dlk_map;
-                // Is it a top customer?
-                m_top_customer = user.top_customer;
-                // Customer revenue
-                m_revenue = user.revenue;
-                // Calculate sum of DLK rebates
-                m_total_dlk_costs = 0.0f;
-                if (m_dlk_map!=null) {
-                    for (Map.Entry<String, Float> entry : m_dlk_map.entrySet()) {
-                        m_total_dlk_costs += entry.getValue();
-                    }
-                }
-            }
-        }
         HashMap<String, NewUser> new_user_map = rd.new_user_map();
         for (NewUser new_user : new_user_map.values()) {
             if (new_user.gln_code.equals(m_customer_gln_code)) {
@@ -316,21 +280,6 @@ public class ShoppingRose {
                 return new Pair<>("red", 5);
         }
         return new Pair<>("black", -1);
-    }
-
-    private String topSupplier(LinkedHashMap<String, Float> map) {
-        // Extract top supplier from map
-        float top_value = 0.0f;
-        String top_supplier = "";
-        for (Map.Entry<String, Float> entry : map.entrySet()) {
-            float value = entry.getValue();
-            String supplier = entry.getKey();
-            if (value>top_value) {
-                top_value = value;
-                top_supplier = supplier;
-            }
-        }
-        return top_supplier;
     }
 
     private String getShortSupplier(GenericArticle article) {
@@ -604,9 +553,6 @@ public class ShoppingRose {
         List<RoseArticle> list_rose_articles = new ArrayList<>();
 
         if (m_shopping_basket!=null && m_shopping_basket.size()>0) {
-
-            String top_supplier = topSupplier(m_expenses_map);
-
             // Loop through articles in shopping basket
             for (Map.Entry<String, GenericArticle> entry : m_shopping_basket.entrySet()) {
                 GenericArticle article = entry.getValue();
