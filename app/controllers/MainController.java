@@ -279,40 +279,6 @@ public class MainController extends Controller {
         return ok(order_json);
     }
 
-    public Result getUserArticles(String pretty, String auth_key, String gln_code) {
-        ShoppingRose shopping_cart = new ShoppingRose(gln_code);
-
-        if (shopping_cart.checkAuthKey(auth_key)) {
-            // List all articles
-            List<GenericArticle> list_of_articles = retrieveAllArticles();
-            // Select all articles for which there are discounts for a particular user
-            ArrayList<GenericArticle> rebated_articles = new ArrayList<>();
-            list_of_articles.forEach( a ->
-            {
-                if (shopping_cart.getCashRebate(a)>0.0f) {
-                    float rbp = a.getRoseBasisPriceAsFloat();
-                    a.setCashRebate(rbp * shopping_cart.getCashRebate(a)/100.0f);
-                    rebated_articles.add(a);
-                }
-            });
-            // Transform to rose articles
-            ArrayList<RoseArticle> rose_articles = rebated_articles.stream()
-                    .map(this::genericArticleToRose)
-                    .collect(Collectors.toCollection(ArrayList::new));
-
-            // System.out.println("num articles with rebate = " + rose_articles.size() + "/" + list_of_articles.size());
-
-            String order_json;
-            if (pretty.equals("on"))
-                order_json = Json.prettyPrint(toJson(rose_articles));
-            else
-                order_json = toJson(rose_articles).toString();
-
-            return ok(order_json);
-        }
-        return ok("[]");
-    }
-
     /**
      * Maps a generic article to a rose smart order system compatible article
      * @param generic_article
