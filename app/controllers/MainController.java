@@ -298,7 +298,6 @@ public class MainController extends Controller {
         rose_article.setRoseBasisPrice(generic_article.getRoseBasisPriceAsFloat());
         rose_article.setPublicPrice(generic_article.getPublicPriceAsFloat());
         rose_article.setExfactoryPrice(generic_article.getExfactoryPriceAsFloat());
-        rose_article.setCashRebate(generic_article.getCashRebate());
         rose_article.setQuantity(1);
         rose_article.setSwissmed(generic_article.getFlags());
         rose_article.setPreferences("");
@@ -718,7 +717,6 @@ public class MainController extends Controller {
             article.setExfactoryPrice(result.getString(21)); // KEY_ROSE_BASIS_PRICE
             article.setDlkFlag(result.getBoolean(22));
             article.setPackTitleFR(result.getString(23));    // KEY_TITLE_FR
-            article.setCashRebate(0.0f);
         } catch (SQLException e) {
             System.err.printf(">> RoseDb: SQLException in cursorToArticle -> %s%n", article.getId());
         }

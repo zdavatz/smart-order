@@ -115,7 +115,6 @@ public class RoseOrder {
                 + a.getRoseBasisPrice() + ";"
                 + a.getPublicPrice() + ";"
                 + a.getQuantity() + ";"
-                + a.getCashRebate() + ";"
                 + a.getShippingStatus() + ";"
                 + a.getPreferences();
         return article_str;

@@ -124,41 +124,6 @@ public class ShoppingRose {
         return hash_code;
     }
 
-    /**
-     * This is a user-dependent rebate for the article
-     * @param article
-     * @return rebate in percent
-     */
-    public float getCashRebate(GenericArticle article) {
-        if (m_rebate_map != null) {
-            String supplier = shortSupplier(article.getSupplier());
-            if (m_rebate_map.containsKey(supplier)) {
-                return m_rebate_map.get(supplier);
-            }
-        }
-        return 0.0f;
-    }
-
-    public float getRoseMargin(GenericArticle article) {
-        /*
-        Marge in CHF = PP - ( RBP- ( GP in Prozent * EXF ) )
-        where
-        - PP (Publikumspreis)
-        - EXF (Exfactory-Preis)
-        - RBP (Rosenbasispreis)
-        - GP in Prozent
-        */
-        float pp = article.getPublicPriceAsFloat();
-        float exf = article.getExfactoryPriceAsFloat();
-        float rbp = article.getRoseBasisPriceAsFloat();
-        float gp = supplierDataForMap(article, m_rebate_map) * 0.01f;
-        float margin_CHF = pp - (rbp - (gp*exf));
-
-        // System.out.println("pp="+ pp + " | exf=" + exf + " | rbp=" + rbp + " | gp=" + gp + " -> margin=" + margin_CHF);
-
-        return margin_CHF;
-    }
-
     public void updateShippingStatus(GenericArticle article) {
         int shipping_status = shippingStatus(article, article.getQuantity());
         article.setShippingStatus(shipping_status);
@@ -390,14 +355,6 @@ public class ShoppingRose {
         return 0.0f;
     }
 
-    private boolean hasPercentageRebate(GenericArticle article) {
-        return supplierDataForMap(article, m_rebate_map)>0.0f;
-    }
-
-    private boolean hasCashRebate(GenericArticle article) {
-        return supplierDataForMap(article, m_expenses_map)>0.0f;
-    }
-
     private int rosePreference(GenericArticle article) {
         String supplier = article.getSupplier().toLowerCase();
         for (String p : Constants.rosePreferences.keySet()) {
@@ -474,34 +431,6 @@ public class ShoppingRose {
                 .compareTo(value2);
     }
 
-    private int sortRebate(GenericArticle a1, GenericArticle a2) {
-        float value1 = supplierDataForMap(a1, m_rebate_map);
-        float value2 = supplierDataForMap(a2, m_rebate_map);
-
-        // System.out.println("GR: " + a1.getSupplier() + " -> " + value1 + " | " + a2.getSupplier() + " -> " + value2);
-
-        // Returns
-        //  = 0 if value1 = value2
-        // 	< 0 if value1 < value2
-        //  > 0 if value1 > value2
-        return -Float.valueOf(value1)
-                .compareTo(value2);
-    }
-
-    private int sortSales(GenericArticle a1, GenericArticle a2) {
-        float value1 = supplierDataForMap(a1, m_expenses_map);
-        float value2 = supplierDataForMap(a2, m_expenses_map);
-
-        // System.out.println("SA: " + a1.getSupplier() + " -> " + value1 + " | " + a2.getSupplier() + " -> " + value2);
-
-        // Returns
-        //  = 0 if value1 = value2
-        // 	< 0 if value1 < value2
-        //  > 0 if value1 > value2
-        return -Float.valueOf(value1)
-                .compareTo(value2);
-    }
-
     private int sortRosePreference(GenericArticle a1, GenericArticle a2) {
         int value1 = rosePreference(a1);
         int value2 = rosePreference(a2);
@@ -558,12 +487,6 @@ public class ShoppingRose {
                         // PRIO 4:
                         if (c == 0)
                             c = sortDosage(a1, a2, dosage);
-                        // PRIO 5: GP - Generikum Präferenz Arzt - Rabatt (%)
-                        if (c == 0)
-                            c = sortRebate(a1, a2);
-                        // PRIO 6: GU - Generikum Präferenz Arzt - Umsatz (CHF)
-                        if (c == 0)
-                            c = sortSales(a1, a2);
                         // PRIO 7: AG - Autogenerikum
                         if (c == 0)
                             c = sortAutoGenerika(a1, a2);
@@ -615,15 +538,6 @@ public class ShoppingRose {
 
         if (isAutoGenerikum(ga.getEanCode())) {
             preference_str += "AG";
-        }
-        if (hasPercentageRebate(ga)) {
-            if (!preference_str.isEmpty())
-                preference_str += ", ";
-            preference_str += "GP";
-        } else if (hasCashRebate(ga)) {
-            if (!preference_str.isEmpty())
-                preference_str += ", ";
-            preference_str += "GU";
         }
         if (isPreferredByRose(ga)) {
             if (!preference_str.isEmpty())
@@ -701,16 +615,9 @@ public class ShoppingRose {
                 rose_article.alternatives = new LinkedList<>();
                 rose_article.setAlt(2);
 
-                // Get cash rebate
-                float cr = getCashRebate(article);
-                if (cr >= 0.0f)
-                    article.setCashRebate(cr);
-
                 // Set buying price
                 float rose_price = article.getRoseBasisPriceAsFloat();
                 article.setBuyingPrice(rose_price);
-
-                float cash_rebate = rose_price * article.getCashRebate() * 0.01f;
 
                 int quantity = article.getQuantity();
 
@@ -735,8 +642,6 @@ public class ShoppingRose {
                 rose_article.setRoseBasisPrice(rose_price);
                 rose_article.setPublicPrice(article.getPublicPriceAsFloat());
                 rose_article.setExfactoryPrice(article.getExfactoryPriceAsFloat());
-                rose_article.setCashRebate(cash_rebate);
-                rose_article.setGenericsRebate(cr);     // sets the "cash_rebate" in percent!
                 rose_article.setQuantity(article.getQuantity());
                 rose_article.setSwissmed(flags_str);
                 rose_article.setPreferences(preference_str);
@@ -755,9 +660,6 @@ public class ShoppingRose {
                         || preference_str.contains("ZRP")
                         || article.isNplArticle();
                 rose_article.setCoreAssortment(core_assort);
-
-                // Returns the Rose margin in CHF for article
-                getRoseMargin(article);
 
                 // article points to object which was inserted last...
                 if (m_map_similar_articles.containsKey(ean_code)) {
@@ -779,12 +681,8 @@ public class ShoppingRose {
 
                                 if (a.isAvailable() && !a.isOffMarket()) {
                                     RoseArticle ra = new RoseArticle();
-                                    cr = getCashRebate(a);
-                                    if (cr >= 0.0f)
-                                        a.setCashRebate(cr);
 
                                     rose_price = a.getRoseBasisPriceAsFloat();
-                                    cash_rebate = rose_price * a.getCashRebate() * 0.01f;
 
                                     a.setBuyingPrice(rose_price);
                                     a.setQuantity(quantity);
@@ -810,8 +708,6 @@ public class ShoppingRose {
                                     ra.setRoseBasisPrice(rose_price);
                                     ra.setPublicPrice(a.getPublicPriceAsFloat());
                                     ra.setExfactoryPrice(a.getExfactoryPriceAsFloat());
-                                    ra.setCashRebate(cash_rebate);
-                                    ra.setGenericsRebate(cr);   // Sets cash_rebate in percent
                                     ra.setQuantity(a.getQuantity());
                                     ra.setSwissmed(flags_str);
                                     ra.setPreferences(preference_str);
@@ -831,8 +727,6 @@ public class ShoppingRose {
                                             || a.isNplArticle();
                                     ra.setCoreAssortment(core_assort);
                                     ra.setAlt(null);
-
-                                    getRoseMargin(a);
 
                                     rose_article.alternatives.add(ra);
                                 }
