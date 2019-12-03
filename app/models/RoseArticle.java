@@ -81,14 +81,6 @@ public class RoseArticle {
     @JsonIgnore
     private BigDecimal exfactory_price;
 
-    @JsonProperty("cash_rebate")
-    @JsonSerialize(using = PriceSerializer.class)
-    private BigDecimal cash_rebate;
-
-    @JsonProperty("generics_rebate")
-    @JsonSerialize(using = PriceSerializer.class)
-    private BigDecimal generics_rebate;
-
     @JsonProperty("prefs")
     private String prefs;
 
@@ -116,14 +108,14 @@ public class RoseArticle {
     @JsonProperty("last_order")
     private String last_order;
 
-    @JsonProperty("alternatives")
-    public LinkedList<RoseArticle> alternatives;
-
     /**
      * The default number of alternatives to display by GUI
      */
     @JsonProperty("alt")
     private Integer alt = 2;
+
+    @JsonProperty("alternatives")
+    public LinkedList<RoseArticle> alternatives;
 
     private String size;
 
@@ -155,12 +147,6 @@ public class RoseArticle {
 
     @JsonIgnore
     public String getQuantity() { return Integer.toString(quantity); }
-
-    @JsonIgnore
-    public String getCashRebate() { return cash_rebate.toString(); }
-
-    @JsonIgnore
-    public String getGenericsRebate() { return generics_rebate.toString(); }
 
     @JsonIgnore
     public String getPreferences() { return prefs; }
@@ -226,12 +212,6 @@ public class RoseArticle {
     }
 
     public void setExfactoryPrice(float exfactory_price) { this.exfactory_price = new BigDecimal(exfactory_price); }
-
-    public void setCashRebate(float cash_rebate) {
-        this.cash_rebate = new BigDecimal(cash_rebate);
-    }
-
-    public void setGenericsRebate(float generics_rebate) { this.generics_rebate = new BigDecimal(generics_rebate); }
 
     public void setPreferences(String prefs) {
         this.prefs = prefs;

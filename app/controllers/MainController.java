@@ -84,7 +84,7 @@ public class MainController extends Controller {
         } catch(MalformedURLException e) {
             e.printStackTrace();
         }
-        Result result = getSmartBasket("on", 0, "1111", "950757", basket, "");
+        Result result = getSmartBasket("on", "1111", "950757", basket, "");
         String duration = String.format("Duration: %dms\n", (System.currentTimeMillis() - starttime));
         System.out.println(basket);
         System.out.println("Test duration in [ms] = " + duration);
@@ -124,7 +124,7 @@ public class MainController extends Controller {
      */
     @Inject ActorSystem actorSystem;
 
-    public Result getSmartBasket(String pretty, int limit, String auth_key, String gln_code, String basket, String nota) {
+    public Result getSmartBasket(String pretty, String auth_key, String gln_code, String basket, String nota) {
         ShoppingRose shopping_cart = new ShoppingRose(gln_code);
 
         if (!shopping_cart.checkAuthKey(auth_key)) {
@@ -188,9 +188,6 @@ public class MainController extends Controller {
             });
         }
 
-        // Set limit to list of articles displayed (either 2 or as many as possible)
-        shopping_cart.setResultsLimit(limit>0);
-
         if (articles.size() > 0) {
             Map<String, GenericArticle> shopping_basket = new HashMap<>();
             Map<String, List<GenericArticle>> map_of_similar_articles = new HashMap<>();
@@ -250,9 +247,6 @@ public class MainController extends Controller {
 
         String customer_gln = shopping_cart.getCustomerGlnCode();
         RoseOrder rose_order = new RoseOrder(hash, timestamp, customer_gln);
-        rose_order.setTopCustomer(shopping_cart.isTopCustomer());
-        rose_order.setRevenue((shopping_cart.getRevenue()));
-        rose_order.setTotalDlkCosts(shopping_cart.getTotalDlkCosts());
 
         rose_order.setListArticles(list_of_rose_articles);
 
@@ -279,40 +273,6 @@ public class MainController extends Controller {
         return ok(order_json);
     }
 
-    public Result getUserArticles(String pretty, String auth_key, String gln_code) {
-        ShoppingRose shopping_cart = new ShoppingRose(gln_code);
-
-        if (shopping_cart.checkAuthKey(auth_key)) {
-            // List all articles
-            List<GenericArticle> list_of_articles = retrieveAllArticles();
-            // Select all articles for which there are discounts for a particular user
-            ArrayList<GenericArticle> rebated_articles = new ArrayList<>();
-            list_of_articles.forEach( a ->
-            {
-                if (shopping_cart.getCashRebate(a)>0.0f) {
-                    float rbp = a.getRoseBasisPriceAsFloat();
-                    a.setCashRebate(rbp * shopping_cart.getCashRebate(a)/100.0f);
-                    rebated_articles.add(a);
-                }
-            });
-            // Transform to rose articles
-            ArrayList<RoseArticle> rose_articles = rebated_articles.stream()
-                    .map(this::genericArticleToRose)
-                    .collect(Collectors.toCollection(ArrayList::new));
-
-            // System.out.println("num articles with rebate = " + rose_articles.size() + "/" + list_of_articles.size());
-
-            String order_json;
-            if (pretty.equals("on"))
-                order_json = Json.prettyPrint(toJson(rose_articles));
-            else
-                order_json = toJson(rose_articles).toString();
-
-            return ok(order_json);
-        }
-        return ok("[]");
-    }
-
     /**
      * Maps a generic article to a rose smart order system compatible article
      * @param generic_article
@@ -332,7 +292,6 @@ public class MainController extends Controller {
         rose_article.setRoseBasisPrice(generic_article.getRoseBasisPriceAsFloat());
         rose_article.setPublicPrice(generic_article.getPublicPriceAsFloat());
         rose_article.setExfactoryPrice(generic_article.getExfactoryPriceAsFloat());
-        rose_article.setCashRebate(generic_article.getCashRebate());
         rose_article.setQuantity(1);
         rose_article.setSwissmed(generic_article.getFlags());
         rose_article.setPreferences("");
@@ -752,7 +711,6 @@ public class MainController extends Controller {
             article.setExfactoryPrice(result.getString(21)); // KEY_ROSE_BASIS_PRICE
             article.setDlkFlag(result.getBoolean(22));
             article.setPackTitleFR(result.getString(23));    // KEY_TITLE_FR
-            article.setCashRebate(0.0f);
         } catch (SQLException e) {
             System.err.printf(">> RoseDb: SQLException in cursorToArticle -> %s%n", article.getId());
         }

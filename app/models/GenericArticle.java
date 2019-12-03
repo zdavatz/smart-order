@@ -70,7 +70,6 @@ public class GenericArticle {
     private float selling_price = 0.0f;;
     private int quantity = 1;
     private int draufgabe = 0;
-    private float cash_rebate = 0.0f; // [%]
     private int onstock;
     private int likes;
     private int visible;
@@ -329,21 +328,6 @@ public class GenericArticle {
         else	// default
             selling_price = 1.8f*buying_price;
         this.buying_price = buying_price;
-    }
-
-    public void setCashRebate(float cash_rebate) {
-        if (cash_rebate>0)
-            draufgabe = 0;
-        this.cash_rebate = cash_rebate;
-    }
-
-    public float getCashRebate() {
-        if ((cash_rebate>=0.0f && cash_rebate<0.01f) || (cash_rebate<=0.0f && cash_rebate>-0.01f))
-            cash_rebate = 0.0f;
-        if (draufgabe>0)
-            return (100.0f*(float)draufgabe/(draufgabe+quantity));
-        else
-            return cash_rebate;
     }
 
     public void setMargin(float margin) {

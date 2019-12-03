@@ -46,17 +46,6 @@ public class RoseOrder {
     @JsonProperty("glncode")
     private String glncode;
 
-    @JsonProperty("top_customer")
-    private boolean top_customer;
-
-    @JsonProperty("revenue")
-    @JsonSerialize(using = PriceSerializer.class)
-    private BigDecimal revenue;
-
-    @JsonProperty("dlk_rebate")
-    @JsonSerialize(using = PriceSerializer.class)
-    private BigDecimal total_dlk_costs;
-
     @JsonProperty("order")
     private List<RoseArticle> list_of_rose_articles;
 
@@ -72,12 +61,6 @@ public class RoseOrder {
         this.glncode = glncode;
     }
 
-    public void setTopCustomer(boolean top_customer) { this.top_customer = top_customer; }
-
-    public void setRevenue(float revenue) { this.revenue = new BigDecimal(revenue); }
-
-    public void setTotalDlkCosts(float total_dlk_costs) { this.total_dlk_costs = new BigDecimal(total_dlk_costs); }
-
     public void setListArticles(List<RoseArticle> list_of_rose_articles) {
         this.list_of_rose_articles = list_of_rose_articles;
     }
@@ -90,7 +73,7 @@ public class RoseOrder {
     public String getOrderCSV() {
         String line_separator = System.getProperty("line.separator");
         String order_csv = "";
-        order_csv += timestamp + ";" + hash + ";" + glncode + ";" + top_customer + ";" + line_separator;
+        order_csv += timestamp + ";" + hash + ";" + glncode + ";" + line_separator;
         // List every article in the basket ("input")
         int index = 0;
         for (RoseArticle a : list_of_rose_articles) {
@@ -115,7 +98,6 @@ public class RoseOrder {
                 + a.getRoseBasisPrice() + ";"
                 + a.getPublicPrice() + ";"
                 + a.getQuantity() + ";"
-                + a.getCashRebate() + ";"
                 + a.getShippingStatus() + ";"
                 + a.getPreferences();
         return article_str;

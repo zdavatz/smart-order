@@ -34,9 +34,6 @@ import java.util.*;
  */
 public class ShoppingRose {
 
-    private LinkedHashMap<String, Float> m_rebate_map = null;
-    private LinkedHashMap<String, Float> m_expenses_map = null;
-    private LinkedHashMap<String, Float> m_dlk_map = null;   // Delivery and logistic costs
     private HashMap<String, Float> m_sales_figures_map = null;
     private HashMap<String, String> m_rose_ids_map = null;
     private HashMap<String, String> m_rose_direct_subst_map = null;
@@ -52,14 +49,7 @@ public class ShoppingRose {
 
     private String m_customer_gln_code = "";
 
-    private boolean m_top_customer = false;
-
-    private float m_revenue = 0.0f;
-
     private MessageDigest m_message_digest;
-
-    private boolean m_filter_state = true;
-    private int m_min_articles = 2;
 
     /**
      * Constructor!
@@ -91,12 +81,6 @@ public class ShoppingRose {
         return m_customer_gln_code;
     }
 
-    public boolean isTopCustomer() { return m_top_customer; }
-
-    public float getRevenue() { return m_revenue; }
-
-    public float getTotalDlkCosts() { return m_total_dlk_costs; }
-
     public boolean checkAuthKey(String auth_key) {
         if (m_auth_keys_list!=null)
             return m_auth_keys_list.contains(auth_key);
@@ -124,41 +108,6 @@ public class ShoppingRose {
         return hash_code;
     }
 
-    /**
-     * This is a user-dependent rebate for the article
-     * @param article
-     * @return rebate in percent
-     */
-    public float getCashRebate(GenericArticle article) {
-        if (m_rebate_map != null) {
-            String supplier = shortSupplier(article.getSupplier());
-            if (m_rebate_map.containsKey(supplier)) {
-                return m_rebate_map.get(supplier);
-            }
-        }
-        return 0.0f;
-    }
-
-    public float getRoseMargin(GenericArticle article) {
-        /*
-        Marge in CHF = PP - ( RBP- ( GP in Prozent * EXF ) )
-        where
-        - PP (Publikumspreis)
-        - EXF (Exfactory-Preis)
-        - RBP (Rosenbasispreis)
-        - GP in Prozent
-        */
-        float pp = article.getPublicPriceAsFloat();
-        float exf = article.getExfactoryPriceAsFloat();
-        float rbp = article.getRoseBasisPriceAsFloat();
-        float gp = supplierDataForMap(article, m_rebate_map) * 0.01f;
-        float margin_CHF = pp - (rbp - (gp*exf));
-
-        // System.out.println("pp="+ pp + " | exf=" + exf + " | rbp=" + rbp + " | gp=" + gp + " -> margin=" + margin_CHF);
-
-        return margin_CHF;
-    }
-
     public void updateShippingStatus(GenericArticle article) {
         int shipping_status = shippingStatus(article, article.getQuantity());
         article.setShippingStatus(shipping_status);
@@ -177,29 +126,6 @@ public class ShoppingRose {
         // Retrieve authorization keys
         m_auth_keys_list= rd.auth_keys_list();
         // Retrieve user-related information
-        HashMap<String, User> user_map = rd.user_map();
-        if (user_map.containsKey(m_customer_gln_code)) {
-            User user = user_map.get(m_customer_gln_code);
-            if (user!=null) {
-                // Get rebate map for this customer (percentages)
-                m_rebate_map = user.rebate_map;
-                // Get expense map for this customer (cash)
-                m_expenses_map = user.expenses_map;
-                // Get delivery and logistic costs
-                m_dlk_map = user.dlk_map;
-                // Is it a top customer?
-                m_top_customer = user.top_customer;
-                // Customer revenue
-                m_revenue = user.revenue;
-                // Calculate sum of DLK rebates
-                m_total_dlk_costs = 0.0f;
-                if (m_dlk_map!=null) {
-                    for (Map.Entry<String, Float> entry : m_dlk_map.entrySet()) {
-                        m_total_dlk_costs += entry.getValue();
-                    }
-                }
-            }
-        }
         HashMap<String, NewUser> new_user_map = rd.new_user_map();
         for (NewUser new_user : new_user_map.values()) {
             if (new_user.gln_code.equals(m_customer_gln_code)) {
@@ -210,18 +136,6 @@ public class ShoppingRose {
         if (m_user_preference == null) {
             m_user_preference = new NewUser();
         }
-    }
-
-    private String shortSupplier(String longSupplier) {
-        for (String s : Constants.doctorPreferences.keySet()) {
-            if (longSupplier.toLowerCase().contains(s))
-                return s;
-        }
-        for (String s : Constants.rosePreferences.keySet()) {
-            if (longSupplier.toLowerCase().contains(s))
-                return s;
-        }
-        return "";
     }
 
     /**
@@ -353,51 +267,6 @@ public class ShoppingRose {
         return new Pair<>("black", -1);
     }
 
-    private String topSupplier(LinkedHashMap<String, Float> map) {
-        // Extract top supplier from map
-        float top_value = 0.0f;
-        String top_supplier = "";
-        for (Map.Entry<String, Float> entry : map.entrySet()) {
-            float value = entry.getValue();
-            String supplier = entry.getKey();
-            if (value>top_value) {
-                top_value = value;
-                top_supplier = supplier;
-            }
-        }
-        return top_supplier;
-    }
-
-    private String getShortSupplier(GenericArticle article) {
-        String supplier = article.getSupplier().toLowerCase();
-        String short_supplier = "";
-        for (String p : Constants.doctorPreferences.keySet()) {
-            if (supplier.contains(p))
-                short_supplier = p;
-        }
-        return short_supplier;
-    }
-
-    private float supplierDataForMap(GenericArticle article, LinkedHashMap<String, Float> map) {
-        if (map!=null) {
-            String short_supplier = getShortSupplier(article);
-            float value = 0.0f;
-            if (!short_supplier.isEmpty())
-                if (map.containsKey(short_supplier))
-                    value = map.get(short_supplier);
-            return value;
-        }
-        return 0.0f;
-    }
-
-    private boolean hasPercentageRebate(GenericArticle article) {
-        return supplierDataForMap(article, m_rebate_map)>0.0f;
-    }
-
-    private boolean hasCashRebate(GenericArticle article) {
-        return supplierDataForMap(article, m_expenses_map)>0.0f;
-    }
-
     private int rosePreference(GenericArticle article) {
         String supplier = article.getSupplier().toLowerCase();
         for (String p : Constants.rosePreferences.keySet()) {
@@ -474,34 +343,6 @@ public class ShoppingRose {
                 .compareTo(value2);
     }
 
-    private int sortRebate(GenericArticle a1, GenericArticle a2) {
-        float value1 = supplierDataForMap(a1, m_rebate_map);
-        float value2 = supplierDataForMap(a2, m_rebate_map);
-
-        // System.out.println("GR: " + a1.getSupplier() + " -> " + value1 + " | " + a2.getSupplier() + " -> " + value2);
-
-        // Returns
-        //  = 0 if value1 = value2
-        // 	< 0 if value1 < value2
-        //  > 0 if value1 > value2
-        return -Float.valueOf(value1)
-                .compareTo(value2);
-    }
-
-    private int sortSales(GenericArticle a1, GenericArticle a2) {
-        float value1 = supplierDataForMap(a1, m_expenses_map);
-        float value2 = supplierDataForMap(a2, m_expenses_map);
-
-        // System.out.println("SA: " + a1.getSupplier() + " -> " + value1 + " | " + a2.getSupplier() + " -> " + value2);
-
-        // Returns
-        //  = 0 if value1 = value2
-        // 	< 0 if value1 < value2
-        //  > 0 if value1 > value2
-        return -Float.valueOf(value1)
-                .compareTo(value2);
-    }
-
     private int sortRosePreference(GenericArticle a1, GenericArticle a2) {
         int value1 = rosePreference(a1);
         int value2 = rosePreference(a2);
@@ -558,12 +399,6 @@ public class ShoppingRose {
                         // PRIO 4:
                         if (c == 0)
                             c = sortDosage(a1, a2, dosage);
-                        // PRIO 5: GP - Generikum Präferenz Arzt - Rabatt (%)
-                        if (c == 0)
-                            c = sortRebate(a1, a2);
-                        // PRIO 6: GU - Generikum Präferenz Arzt - Umsatz (CHF)
-                        if (c == 0)
-                            c = sortSales(a1, a2);
                         // PRIO 7: AG - Autogenerikum
                         if (c == 0)
                             c = sortAutoGenerika(a1, a2);
@@ -575,12 +410,6 @@ public class ShoppingRose {
                 });
                 // Assert
                 assert (list_of_similar_articles.size() > 0);
-
-                if (m_filter_state) {
-                    // Return only m_min_articles
-                    if (list_of_similar_articles.size() > m_min_articles)
-                        list_of_similar_articles = new LinkedList<>(list_of_similar_articles.subList(0, m_min_articles));
-                }
             }
 
             m_map_similar_articles.put(ean_code, list_of_similar_articles);
@@ -598,10 +427,6 @@ public class ShoppingRose {
         m_map_similar_articles = new HashMap<>(similar_articles);
     }
 
-    public void setResultsLimit(boolean state) {
-        m_filter_state = state;
-    }
-
     public String hasDirectSubstitute(String pharma_code) {
         if (!pharma_code.isEmpty()) {
             if (m_rose_direct_subst_map != null && m_rose_direct_subst_map.containsKey(pharma_code))
@@ -615,15 +440,6 @@ public class ShoppingRose {
 
         if (isAutoGenerikum(ga.getEanCode())) {
             preference_str += "AG";
-        }
-        if (hasPercentageRebate(ga)) {
-            if (!preference_str.isEmpty())
-                preference_str += ", ";
-            preference_str += "GP";
-        } else if (hasCashRebate(ga)) {
-            if (!preference_str.isEmpty())
-                preference_str += ", ";
-            preference_str += "GU";
         }
         if (isPreferredByRose(ga)) {
             if (!preference_str.isEmpty())
@@ -690,9 +506,6 @@ public class ShoppingRose {
         List<RoseArticle> list_rose_articles = new ArrayList<>();
 
         if (m_shopping_basket!=null && m_shopping_basket.size()>0) {
-
-            String top_supplier = topSupplier(m_expenses_map);
-
             // Loop through articles in shopping basket
             for (Map.Entry<String, GenericArticle> entry : m_shopping_basket.entrySet()) {
                 GenericArticle article = entry.getValue();
@@ -701,16 +514,9 @@ public class ShoppingRose {
                 rose_article.alternatives = new LinkedList<>();
                 rose_article.setAlt(2);
 
-                // Get cash rebate
-                float cr = getCashRebate(article);
-                if (cr >= 0.0f)
-                    article.setCashRebate(cr);
-
                 // Set buying price
                 float rose_price = article.getRoseBasisPriceAsFloat();
                 article.setBuyingPrice(rose_price);
-
-                float cash_rebate = rose_price * article.getCashRebate() * 0.01f;
 
                 int quantity = article.getQuantity();
 
@@ -735,8 +541,6 @@ public class ShoppingRose {
                 rose_article.setRoseBasisPrice(rose_price);
                 rose_article.setPublicPrice(article.getPublicPriceAsFloat());
                 rose_article.setExfactoryPrice(article.getExfactoryPriceAsFloat());
-                rose_article.setCashRebate(cash_rebate);
-                rose_article.setGenericsRebate(cr);     // sets the "cash_rebate" in percent!
                 rose_article.setQuantity(article.getQuantity());
                 rose_article.setSwissmed(flags_str);
                 rose_article.setPreferences(preference_str);
@@ -755,9 +559,6 @@ public class ShoppingRose {
                         || preference_str.contains("ZRP")
                         || article.isNplArticle();
                 rose_article.setCoreAssortment(core_assort);
-
-                // Returns the Rose margin in CHF for article
-                getRoseMargin(article);
 
                 // article points to object which was inserted last...
                 if (m_map_similar_articles.containsKey(ean_code)) {
@@ -779,12 +580,8 @@ public class ShoppingRose {
 
                                 if (a.isAvailable() && !a.isOffMarket()) {
                                     RoseArticle ra = new RoseArticle();
-                                    cr = getCashRebate(a);
-                                    if (cr >= 0.0f)
-                                        a.setCashRebate(cr);
 
                                     rose_price = a.getRoseBasisPriceAsFloat();
-                                    cash_rebate = rose_price * a.getCashRebate() * 0.01f;
 
                                     a.setBuyingPrice(rose_price);
                                     a.setQuantity(quantity);
@@ -810,8 +607,6 @@ public class ShoppingRose {
                                     ra.setRoseBasisPrice(rose_price);
                                     ra.setPublicPrice(a.getPublicPriceAsFloat());
                                     ra.setExfactoryPrice(a.getExfactoryPriceAsFloat());
-                                    ra.setCashRebate(cash_rebate);
-                                    ra.setGenericsRebate(cr);   // Sets cash_rebate in percent
                                     ra.setQuantity(a.getQuantity());
                                     ra.setSwissmed(flags_str);
                                     ra.setPreferences(preference_str);
@@ -830,8 +625,7 @@ public class ShoppingRose {
                                             || preference_str.contains("ZRP")
                                             || a.isNplArticle();
                                     ra.setCoreAssortment(core_assort);
-
-                                    getRoseMargin(a);
+                                    ra.setAlt(null);
 
                                     rose_article.alternatives.add(ra);
                                 }
@@ -839,7 +633,14 @@ public class ShoppingRose {
                         }
                     }
                 }
-                rose_article.setAlt(generateAlt(rose_article, article));
+                if (rose_article.alternatives == null) {
+                    rose_article.setAlt(null);
+                } else {
+                    rose_article.setAlt(Math.min(
+                        rose_article.alternatives.size(),
+                        generateAlt(rose_article, article)
+                    ));
+                }
                 list_rose_articles.add(rose_article);
             }
         }
