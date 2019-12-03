@@ -84,7 +84,7 @@ public class MainController extends Controller {
         } catch(MalformedURLException e) {
             e.printStackTrace();
         }
-        Result result = getSmartBasket("on", 0, "1111", "950757", basket, "");
+        Result result = getSmartBasket("on", "1111", "950757", basket, "");
         String duration = String.format("Duration: %dms\n", (System.currentTimeMillis() - starttime));
         System.out.println(basket);
         System.out.println("Test duration in [ms] = " + duration);
@@ -124,7 +124,7 @@ public class MainController extends Controller {
      */
     @Inject ActorSystem actorSystem;
 
-    public Result getSmartBasket(String pretty, int limit, String auth_key, String gln_code, String basket, String nota) {
+    public Result getSmartBasket(String pretty, String auth_key, String gln_code, String basket, String nota) {
         ShoppingRose shopping_cart = new ShoppingRose(gln_code);
 
         if (!shopping_cart.checkAuthKey(auth_key)) {
@@ -187,9 +187,6 @@ public class MainController extends Controller {
                 a.setLastOrder(last_order_date);
             });
         }
-
-        // Set limit to list of articles displayed (either 2 or as many as possible)
-        shopping_cart.setResultsLimit(limit>0);
 
         if (articles.size() > 0) {
             Map<String, GenericArticle> shopping_basket = new HashMap<>();

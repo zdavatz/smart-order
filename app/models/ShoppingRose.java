@@ -51,9 +51,6 @@ public class ShoppingRose {
 
     private MessageDigest m_message_digest;
 
-    private boolean m_filter_state = true;
-    private int m_min_articles = 2;
-
     /**
      * Constructor!
      * @param customer_id
@@ -447,12 +444,6 @@ public class ShoppingRose {
                 });
                 // Assert
                 assert (list_of_similar_articles.size() > 0);
-
-                if (m_filter_state) {
-                    // Return only m_min_articles
-                    if (list_of_similar_articles.size() > m_min_articles)
-                        list_of_similar_articles = new LinkedList<>(list_of_similar_articles.subList(0, m_min_articles));
-                }
             }
 
             m_map_similar_articles.put(ean_code, list_of_similar_articles);
@@ -468,10 +459,6 @@ public class ShoppingRose {
     public void updateMapSimilarArticles(Map<String, List<GenericArticle>> similar_articles) {
         // Make a copy of the hash map
         m_map_similar_articles = new HashMap<>(similar_articles);
-    }
-
-    public void setResultsLimit(boolean state) {
-        m_filter_state = state;
     }
 
     public String hasDirectSubstitute(String pharma_code) {
