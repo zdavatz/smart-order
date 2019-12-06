@@ -501,6 +501,20 @@ public class ShoppingRose {
         return 2;
     }
 
+    private boolean generateCoreAssort(GenericArticle article) {
+        if (article.isNplArticle()) {
+            return true;
+        }
+        String ean = article.getEanCode();
+        String name = GenericArticle.eanNameMap.get(ean);
+        if (m_user_preference.isEanPreferred(ean) || "mepha".equals(name)) {
+            if (!article.isBiotechnologica()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public List<RoseArticle> updateShoppingCart() {
 
         List<RoseArticle> list_rose_articles = new ArrayList<>();
@@ -553,12 +567,7 @@ public class ShoppingRose {
                 rose_article.setNotaStatus(article.getNotaStatus());
                 rose_article.setLastOrder(article.getLastOrder());
                 rose_article.setIsOriginal(article.isOriginal());
-
-                boolean core_assort = preference_str.contains("AG")
-                        || (preference_str.contains("GP") || preference_str.contains("GU"))
-                        || preference_str.contains("ZRP")
-                        || article.isNplArticle();
-                rose_article.setCoreAssortment(core_assort);
+                rose_article.setCoreAssortment(generateCoreAssort(article));
 
                 // article points to object which was inserted last...
                 if (m_map_similar_articles.containsKey(ean_code)) {
@@ -620,11 +629,7 @@ public class ShoppingRose {
                                     ra.setLastOrder(a.getLastOrder());
                                     ra.setIsOriginal(a.isOriginal());
 
-                                    core_assort = preference_str.contains("AG")
-                                            || (preference_str.contains("GP") || preference_str.contains("GU"))
-                                            || preference_str.contains("ZRP")
-                                            || a.isNplArticle();
-                                    ra.setCoreAssortment(core_assort);
+                                    ra.setCoreAssortment(generateCoreAssort(a));
                                     ra.setAlt(null);
 
                                     rose_article.alternatives.add(ra);

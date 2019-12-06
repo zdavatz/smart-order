@@ -422,6 +422,10 @@ public class GenericArticle {
         return this.getFlagsArray().contains("G");
     }
 
+    public boolean isBiotechnologica() {
+        return this.getFlagsArray().contains("BioT");
+    }
+
     public boolean isAvailable() { return !isNotAvailable(); }
 
     public boolean isNotAvailable()  { return availability.matches("(.*)[0-9]{4}"); } // { return availability.contains(".2153"); }
