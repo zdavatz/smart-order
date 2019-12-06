@@ -268,6 +268,11 @@ public class ShoppingRose {
     }
 
     private int rosePreference(GenericArticle article) {
+        String name = GenericArticle.eanNameMap.get(article.getEanCode());
+        if (name != null && Constants.rosePreferences.containsKey(name)) {
+            return Constants.rosePreferences.get(name);
+        }
+
         String supplier = article.getSupplier().toLowerCase();
         for (String p : Constants.rosePreferences.keySet()) {
             if (supplier.contains(p))
