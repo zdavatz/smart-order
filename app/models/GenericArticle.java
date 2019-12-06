@@ -470,4 +470,21 @@ public class GenericArticle {
     public void setLastOrder(String order) { last_order = order; }
 
     public String getLastOrder() { return last_order; }
+
+    /**
+     * Compares two strings (titles)
+     * @param title1
+     * @param title2
+     * @return boolean denoting similarity or not
+     */
+    public boolean isSimilarByTitle(GenericArticle g) {
+        // Tokenize titles first
+        String[] t1 = this.getPackTitle().split("\\s+");
+        String[] t2 = g.getPackTitle().split("\\s+");
+        if (t1.length>0 && t2.length>0) {
+            if (t1[0].toLowerCase().equals(t2[0].toLowerCase()))
+                return true;
+        }
+        return false;
+    }
 }
