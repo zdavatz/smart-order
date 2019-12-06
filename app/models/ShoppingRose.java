@@ -268,6 +268,11 @@ public class ShoppingRose {
     }
 
     private int rosePreference(GenericArticle article) {
+        String name = GenericArticle.eanNameMap.get(article.getEanCode());
+        if (name != null && Constants.rosePreferences.containsKey(name)) {
+            return Constants.rosePreferences.get(name);
+        }
+
         String supplier = article.getSupplier().toLowerCase();
         for (String p : Constants.rosePreferences.keySet()) {
             if (supplier.contains(p))
@@ -283,6 +288,28 @@ public class ShoppingRose {
 
     private boolean isPreferredByRose(GenericArticle article) {
         return rosePreference(article) < 10;
+    }
+
+    private int sortCustomerPreference(GenericArticle a1, GenericArticle a2) {
+        boolean is1Preferred = m_user_preference.isEanPreferred(a1.getEanCode());
+        boolean is2Preferred = m_user_preference.isEanPreferred(a2.getEanCode());
+        if (is1Preferred && !is2Preferred) {
+            return -1;
+        } else if (!is1Preferred && is2Preferred) {
+            return 1;
+        }
+        return 0;
+    }
+
+    private int sortSameArticleWithDifferentSize(GenericArticle mainArticle, GenericArticle a1, GenericArticle a2) {
+        boolean is1Same = mainArticle.isSimilarByTitle(a1);
+        boolean is2Same = mainArticle.isSimilarByTitle(a2);
+        if (is1Same && !is2Same) {
+            return -1;
+        } else if (!is1Same && is2Same) {
+            return 1;
+        }
+        return 0;
     }
 
     private int sortShippingStatus(GenericArticle a1, GenericArticle a2, final int quantity) {
@@ -354,26 +381,26 @@ public class ShoppingRose {
                 .compareTo(value2);
     }
 
-    private void sortSimilarArticles(final int quantity, final String size, final String dosage) {
+    private void sortSimilarArticles(GenericArticle article) {
+        int quantity = article.getQuantity();
+        String size = article.getPackSize();
+        String dosage = article.getPackUnit();
+        boolean isOrangeOrRed = article.getShippingStatus() == 4 || article.getShippingStatus() == 5;
         // Loop through all entries and sort/filter
         for (Map.Entry<String, List<GenericArticle>> entry : m_map_similar_articles.entrySet()) {
             // Ean code of "key" article
             String ean_code = entry.getKey();
             // Copy list of similar/comparable articles
             LinkedList<GenericArticle> list_of_similar_articles = new LinkedList<GenericArticle>(entry.getValue());
-
             // Remove the key article itself
-            /*
-            for (Iterator<GenericArticle> iterator = list_of_similar_articles.iterator(); iterator.hasNext(); ) {
-                GenericArticle article = iterator.next();
-                if (article.getEanCode().equals(ean_code)) {
-                    iterator.remove();
-                    break;
-                }
-            }
-            */
-            // Remove the key article itself: Java 8 implementation
             list_of_similar_articles.removeIf(a -> a.getEanCode().equals(ean_code));
+
+            boolean isCase6 = !m_user_preference.isEanPreferred(article.getEanCode()) &&
+                list_of_similar_articles
+                    .stream()
+                    .anyMatch(a -> m_user_preference.isEanPreferred(a.getEanCode()) && a.isOriginal());
+            boolean isCase7 = isOrangeOrRed && m_user_preference.isPreferenceEmpty();
+            boolean isCase8 = article.isNotaArticle();
 
             if (list_of_similar_articles.size() > 0) {
                 Collections.sort(list_of_similar_articles, new Comparator<GenericArticle>() {
@@ -384,9 +411,42 @@ public class ShoppingRose {
                         Falls zwei Produkte Nicht-Originale,
                         d.h. Generika sind, dann wird nach Autogenerika sortiert - die kommen zuoberst.
                         Zu guter letzt wird nach den Generika Präferenzen zur Rose sortiert.
+
+                        v1.3:
+                        Case6. Hat der Kunde eine Präferenz und gibt es gemäss BAG ein Original von diesem Produkt,
+                        zuerst Kundenpräferenz und dann Original gemäss BAG.
+
+                        Case7. Ist das bestellte Produkt vom Kunden ohne Präferenz nicht an Lager (orange, rot),
+                        zur Rose sortiert.
+
+                        Case8. Die Sortierung bei der Nota-Präferenz ist immer zuerst gleiches
+                        Produkt (andere Packungsgrösse), dann Kundenpräferenz,
+                        dann Original gemäss BAG falls vorhanden dann zur Rose Präferenz.
                      */
                     public int compare(GenericArticle a1, GenericArticle a2) {
                         int c = 0;
+                        // v1.3 Case 6.
+                        if (isCase6) {
+                            if (c == 0)
+                                c = sortCustomerPreference(a1, a2);
+                            if (c == 0)
+                                c = sortOriginals(a1, a2);
+                        }
+                        if (isCase7) {
+                            if (c == 0)
+                                c = sortRosePreference(a1, a2);
+                        }
+                        if (isCase8) {
+                            if (c == 0)
+                                c = sortSameArticleWithDifferentSize(article, a1, a2);
+                            if (c == 0)
+                                c = sortCustomerPreference(a1, a2);
+                            if (c == 0)
+                                c = sortOriginals(a1, a2);
+                            if (c == 0)
+                                c = sortRosePreference(a1, a2);
+                        }
+
                         // PRIO 1: Lieferbarkeit
                         if (c == 0)
                             c = sortShippingStatus(a1, a2, quantity);
@@ -399,10 +459,10 @@ public class ShoppingRose {
                         // PRIO 4:
                         if (c == 0)
                             c = sortDosage(a1, a2, dosage);
-                        // PRIO 7: AG - Autogenerikum
+                        // PRIO 5: AG - Autogenerikum
                         if (c == 0)
                             c = sortAutoGenerika(a1, a2);
-                        // PRIO 8: ZRP - Generikum Präferenz zur Rose
+                        // PRIO 6: ZRP - Generikum Präferenz zur Rose
                         if (c == 0)
                             c = sortRosePreference(a1, a2);
                         return c;
@@ -501,6 +561,20 @@ public class ShoppingRose {
         return 2;
     }
 
+    private boolean generateCoreAssort(GenericArticle article) {
+        if (article.isNplArticle()) {
+            return true;
+        }
+        String ean = article.getEanCode();
+        String name = GenericArticle.eanNameMap.get(ean);
+        if (m_user_preference.isEanPreferred(ean) || "mepha".equals(name)) {
+            if (!article.isBiotechnologica()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public List<RoseArticle> updateShoppingCart() {
 
         List<RoseArticle> list_rose_articles = new ArrayList<>();
@@ -553,19 +627,11 @@ public class ShoppingRose {
                 rose_article.setNotaStatus(article.getNotaStatus());
                 rose_article.setLastOrder(article.getLastOrder());
                 rose_article.setIsOriginal(article.isOriginal());
-
-                boolean core_assort = preference_str.contains("AG")
-                        || (preference_str.contains("GP") || preference_str.contains("GU"))
-                        || preference_str.contains("ZRP")
-                        || article.isNplArticle();
-                rose_article.setCoreAssortment(core_assort);
+                rose_article.setCoreAssortment(generateCoreAssort(article));
 
                 // article points to object which was inserted last...
                 if (m_map_similar_articles.containsKey(ean_code)) {
-
-                    String size = article.getPackSize();
-                    String dosage = article.getPackUnit();
-                    sortSimilarArticles(quantity, size, dosage);
+                    sortSimilarArticles(article);
 
                     // Loop through all alternatives 'a' of 'article'
                     List<GenericArticle> la = m_map_similar_articles.get(ean_code);
@@ -620,11 +686,7 @@ public class ShoppingRose {
                                     ra.setLastOrder(a.getLastOrder());
                                     ra.setIsOriginal(a.isOriginal());
 
-                                    core_assort = preference_str.contains("AG")
-                                            || (preference_str.contains("GP") || preference_str.contains("GU"))
-                                            || preference_str.contains("ZRP")
-                                            || a.isNplArticle();
-                                    ra.setCoreAssortment(core_assort);
+                                    ra.setCoreAssortment(generateCoreAssort(a));
                                     ra.setAlt(null);
 
                                     rose_article.alternatives.add(ra);

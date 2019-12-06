@@ -350,7 +350,7 @@ public class MainController extends Controller {
                                 // Make sure that articles added to the list are NOT off-the-market
                                 // s AND size -> stückzahl, e.g. 12
                                 // u AND unit -> dosierung, e.g. 100mg
-                                boolean have_same_title = titleComparator(article.getPackTitle(), a.getPackTitle());
+                                boolean have_same_title = article.isSimilarByTitle(a);
                                 boolean is_original_but_not_green = article.isOriginal() && article.getShippingStatus() > 1;
                                 boolean is_original_alternative_and_green = a.isOriginal() && a.getShippingStatus() == 1;
 
@@ -359,7 +359,7 @@ public class MainController extends Controller {
                                     original_list_a.add(a);
                                 } else {
                                     if (!a.isOriginal()) {
-                                        if (checkSimilarity2(size, s, unit, u, 0.51f)) {
+                                        if (checkSimilarity2(size, s, unit, u, 0.901f)) {
                                             // Allow only *same* dosages
                                             list_a.add(a);
                                         } else if (checkSimilarity3(size, s,unit, u, 1.01f)) {
@@ -456,23 +456,6 @@ public class MainController extends Controller {
         return list_a;
     }
 
-    /**
-     * Compares two strings (titles)
-     * @param title1
-     * @param title2
-     * @return boolean denoting similarity or not
-     */
-    private boolean titleComparator(String title1, String title2) {
-        // Tokenize titles first
-        String[] t1 = title1.split("\\s+");
-        String[] t2 = title2.split("\\s+");
-        if (t1.length>0 && t2.length>0) {
-            if (t1[0].toLowerCase().equals(t2[0].toLowerCase()))
-                return true;
-        }
-        return false;
-    }
-
     private boolean basicSimilarityCheck(String a1, String a2, float s) {
         float s1 = Float.valueOf(a1);
         float s2 = Float.valueOf(a2);
@@ -500,7 +483,7 @@ public class MainController extends Controller {
 
     private boolean checkSimilarity3(String size_1, String size_2, String unit_1, String unit_2, float search_window) {
         boolean check_units = false;
-        if (checkSimilarity2(size_1, size_2, unit_1, unit_2, 0.51f))
+        if (checkSimilarity2(size_1, size_2, unit_1, unit_2, 0.901f))
             return true;
         if (!unit_1.isEmpty() && !unit_2.isEmpty()) {
             unit_1 = unit_1.replaceAll("[^0-9.]", "").replaceAll("\\.{2,}", ".");
