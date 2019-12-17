@@ -23,7 +23,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.maxl.java.shared.NotaPosition;
 import com.maxl.java.shared.User;
-import com.maxl.java.shared.NewUser;
+import com.maxl.java.shared.User;
 
 import java.io.*;
 import java.nio.file.Paths;
@@ -37,7 +37,7 @@ public final class RoseData {
 
     private static volatile RoseData instance;
 
-    private HashMap<String, NewUser> rose_new_user_map;
+    private HashMap<String, User> rose_user_map;
     private HashMap<String, Float> rose_sales_figs_map;
     private HashMap<String, String> rose_ids_map;
     private HashMap<String, String> rose_direct_subst_map;
@@ -66,8 +66,8 @@ public final class RoseData {
         return instance;
     }
 
-    public HashMap<String, NewUser> new_user_map() {
-        return this.rose_new_user_map;
+    public HashMap<String, User> user_map() {
+        return this.rose_user_map;
     }
 
     public HashMap<String, Float> sales_figs_map() {
@@ -104,7 +104,7 @@ public final class RoseData {
         System.out.print("# Re-loading " + file_name + "... ");
 
         if (file_name.equals("rose_conditions_new.json"))
-            rose_new_user_map = loadRoseNewUserMap(rose_path + file_name);
+            rose_user_map = loadRoseUserMap(rose_path + file_name);
         else if (file_name.equals("rose_sales_fig.ser.clear"))
             rose_sales_figs_map = loadRoseSalesFigures(rose_path + file_name);
         else if (file_name.equals("rose_ids.ser.clear"))
@@ -128,7 +128,7 @@ public final class RoseData {
     public void loadAllFiles() {
         String rose_path = System.getProperty("user.dir") + Constants.ROSE_DIR;
 
-        rose_new_user_map = loadRoseNewUserMap(rose_path + "rose_conditions_new.json");
+        rose_user_map = loadRoseUserMap(rose_path + "rose_conditions_new.json");
 
         // System.out.print("# Loading rose_sales_fig.ser.clear... ");
         rose_sales_figs_map = loadRoseSalesFigures(rose_path + "rose_sales_fig.ser.clear");
@@ -165,19 +165,19 @@ public final class RoseData {
         return FileOps.readFromTxtToList(file_name);
     }
 
-    private HashMap<String, NewUser> loadRoseNewUserMap(String file_name) {
-        HashMap<String, NewUser> new_user_map = new HashMap<>();
+    private HashMap<String, User> loadRoseUserMap(String file_name) {
+        HashMap<String, User> user_map = new HashMap<>();
         File json_file = new File(file_name);
 
         ObjectMapper mapper = new ObjectMapper();
         try {
-            new_user_map = mapper.readValue(json_file,
-                new TypeReference<HashMap<String, NewUser>>() { } );
+            user_map = mapper.readValue(json_file,
+                new TypeReference<HashMap<String, User>>() { } );
         } catch (Exception e) {
-            System.out.println("Exception in loadRoseNewUserMap: " + e.getMessage());
+            System.out.println("Exception in loadRoseUserMap: " + e.getMessage());
         }
 
-        return new_user_map;
+        return user_map;
     }
 
     /**

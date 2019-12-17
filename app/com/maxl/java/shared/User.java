@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2016, ywesee GmbH, created by ML <cybrmx@gmail.com>
+Copyright (c) 2019, ywesee GmbH, created by b123400 <i@b123400.net>
 
 This file is part of AmikoRose.
 
@@ -19,55 +19,44 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 package com.maxl.java.shared;
 
-import java.util.LinkedHashMap;
+import java.util.HashMap;
+import java.util.Set;
+import java.util.stream.Collectors;
+import models.GenericArticle;
 
-public class User implements java.io.Serializable {
+public class User {
 
-    private static final long serialVersionUID = 1L;
-
-    public String gln_code = "";
-    public String ideale_id = "";
-    public String xpris_id = "";
-    public String addr_type = "";	// S: shipping, B: billing, O: Office
-    public String category = "";	// arzt, spital, drogerie, ...
-    public String title = "";
-    public String first_name = "";
-    public String last_name = "";
-    public String name1 = "";		// company name 1
-    public String name2 = "";		// company name 2
-    public String name3 = "";		// company name 3
-    public String street = "";		// street / pobox
-    public String number = "";
-    public String zip = "";
-    public String city = "";
-    public String country = "";
-    public String phone = "";
-    public String fax = "";
-    public String email = "";
-    public String owner = "";		// owner[0]=i -> IBSA, owner[1]=d -> Desitin, etc...
-    public boolean selbst_disp = false;
-    public boolean bet_mittel = false;
-    public boolean is_human = true;
-    public boolean top_customer = false;    // Topkunde FLAG (zur Rose)
-
-    public String sap_id = "";
-    public String specialities = "";
-    public String capabilities = "";
-    public String bm_type = "";
-    public String status = "A";		// Default: Aktiv
-
-    // Revenue / Umsatz
-    public float revenue = 0.0f;
-    // Spezialrabatt
-    public float special_rebate = 0.0f;
-    // Map of GLN to list of company-specific rebate
-    public LinkedHashMap<String, Float> rebate_map = null;
-    // Map of GLN to list of company-specific expenses
-    public LinkedHashMap<String, Float> expenses_map = null;
-    // Map of GLN to list of company-specific delivery and logistic costs
-    public LinkedHashMap<String, Float> dlk_map = null;
+    public String city;
+    public String gln_code;
+    public String name1;
+    public HashMap<String, Integer> neu_map;
+    public String street;
+    public String zip;
 
     public User() {
-        // Struct-like class... 'nough said.
+    }
+
+    public boolean isPreferenceEmpty() {
+        return this.getPreferences().isEmpty();
+    }
+
+    public Integer getPreferenceCount() {
+        return this.getPreferences().size();
+    }
+
+    public Set<String> getPreferences() {
+         return neu_map
+            .keySet()
+            .stream()
+            .filter(k -> neu_map.getOrDefault(k, 0) == 1)
+            .collect(Collectors.toSet());
+    }
+
+    public boolean isEanPreferred(String ean_code) {
+        String name = GenericArticle.eanNameMap.getOrDefault(ean_code, null);
+        if (name == null) {
+            return false;
+        }
+        return this.getPreferences().contains(name);
     }
 }

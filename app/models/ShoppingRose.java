@@ -21,7 +21,6 @@ package models;
 
 import com.maxl.java.shared.NotaPosition;
 import com.maxl.java.shared.User;
-import com.maxl.java.shared.NewUser;
 
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
@@ -43,7 +42,7 @@ public class ShoppingRose {
     private HashMap<String, List<GenericArticle>> m_map_similar_articles = null;
     private HashMap<String, Pair<Integer, Integer>> m_stock_map = null;
     private float m_total_dlk_costs = 0.0f;
-    private NewUser m_user_preference = null;
+    private User m_user_preference = null;
 
     private Map<String, GenericArticle> m_shopping_basket = null;
 
@@ -126,15 +125,15 @@ public class ShoppingRose {
         // Retrieve authorization keys
         m_auth_keys_list= rd.auth_keys_list();
         // Retrieve user-related information
-        HashMap<String, NewUser> new_user_map = rd.new_user_map();
-        for (NewUser new_user : new_user_map.values()) {
-            if (new_user.gln_code.equals(m_customer_gln_code)) {
-                m_user_preference = new_user;
+        HashMap<String, User> user_map = rd.user_map();
+        for (User user : user_map.values()) {
+            if (user.gln_code.equals(m_customer_gln_code)) {
+                m_user_preference = user;
                 break;
             }
         }
         if (m_user_preference == null) {
-            m_user_preference = new NewUser();
+            System.out.println(">> Error: Cannot find customer preferences");
         }
     }
 
