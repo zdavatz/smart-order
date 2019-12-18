@@ -333,15 +333,15 @@ public class ShoppingRose {
                 .compareTo(value2);
     }
 
-    private int sortSize(GenericArticle a1, GenericArticle a2, String size) {
-        int value1 = a1.getPackSize().equals(size) ? 1 : -1;
-        int value2 = a2.getPackSize().equals(size) ? 1 : -1;
-        // Returns
-        //  = 0 if value1 = value2
-        // 	< 0 if value1 < value2
-        //  > 0 if value1 > value2
-        return -Integer.valueOf(value1)
-                .compareTo(value2);
+    private int sortSize(GenericArticle a1, GenericArticle a2, String sizeStr) {
+        try {
+            int size1 = Integer.parseInt(a1.getPackSize());
+            int size2 = Integer.parseInt(a2.getPackSize());
+            int size = Integer.parseInt(sizeStr);
+            return Math.abs(size - size1) - Math.abs(size - size2);
+        } catch (Exception e) {
+            return 0;
+        }
     }
 
     private int sortDosage(GenericArticle a1, GenericArticle a2, String dosage) {
@@ -426,44 +426,57 @@ public class ShoppingRose {
                         int c = 0;
                         // v1.3 Case 6.
                         if (isCase6) {
-                            if (c == 0)
+                            if (c == 0) {
                                 c = sortCustomerPreference(a1, a2);
-                            if (c == 0)
+                            }
+                            if (c == 0) {
                                 c = sortOriginals(a1, a2);
+                            }
                         }
                         if (isCase7) {
-                            if (c == 0)
+                            if (c == 0) {
                                 c = sortRosePreference(a1, a2);
+                            }
                         }
                         if (isCase8) {
-                            if (c == 0)
+                            if (c == 0) {
                                 c = sortSameArticleWithDifferentSize(article, a1, a2);
-                            if (c == 0)
+                            }
+                            if (c == 0) {
                                 c = sortCustomerPreference(a1, a2);
-                            if (c == 0)
+                            }
+                            if (c == 0) {
                                 c = sortOriginals(a1, a2);
-                            if (c == 0)
+                            }
+                            if (c == 0) {
                                 c = sortRosePreference(a1, a2);
+                            }
                         }
 
                         // PRIO 1: Lieferbarkeit
-                        if (c == 0)
+                        if (c == 0) {
                             c = sortShippingStatus(a1, a2, quantity);
+                        }
                         // PRIO 2: Original
-                        if (c == 0)
+                        if (c == 0) {
                             c = sortOriginals(a1, a2);
+                        }
                         // PRIO 3:
-                        if (c == 0)
-                            c = sortSize(a1, a2, size);
-                        // PRIO 4:
-                        if (c == 0)
+                        if (c == 0) {
                             c = sortDosage(a1, a2, dosage);
+                        }
+                        // PRIO 4:
+                        if (c == 0) {
+                            c = sortSize(a1, a2, size);
+                        }
                         // PRIO 5: AG - Autogenerikum
-                        if (c == 0)
+                        if (c == 0) {
                             c = sortAutoGenerika(a1, a2);
+                        }
                         // PRIO 6: ZRP - Generikum Präferenz zur Rose
-                        if (c == 0)
+                        if (c == 0) {
                             c = sortRosePreference(a1, a2);
+                        }
                         return c;
                     }
                 });
