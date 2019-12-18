@@ -63,7 +63,6 @@ public class GenericArticle {
     private String author_code = "";
     private String author_gln_code = "";
     private String replace_pharma_code = "";
-    private String replace_ean_code = "";
     private String flags = "";
     private float margin = -1.0f;	// <0.0f -> not initialized
     private float buying_price = 0.0f;
@@ -385,10 +384,6 @@ public class GenericArticle {
     public String getReplacePharma() {
         return replace_pharma_code;
     }
-
-    public void setReplaceEan(String ean) { this.replace_ean_code = ean; }
-
-    public String getReplaceEan() { return replace_ean_code; }
 
     public void setShippingStatus(int shipping_status) { this.shipping_status = shipping_status; }
 
