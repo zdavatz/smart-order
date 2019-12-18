@@ -290,8 +290,8 @@ public class ShoppingRose {
     }
 
     private int sortCustomerPreference(GenericArticle a1, GenericArticle a2) {
-        boolean is1Preferred = m_user_preference.isEanPreferred(a1.getEanCode());
-        boolean is2Preferred = m_user_preference.isEanPreferred(a2.getEanCode());
+        boolean is1Preferred = m_user_preference.isEanPreferred(a1.getAuthorGln());
+        boolean is2Preferred = m_user_preference.isEanPreferred(a2.getAuthorGln());
         if (is1Preferred && !is2Preferred) {
             return -1;
         } else if (!is1Preferred && is2Preferred) {
@@ -394,10 +394,10 @@ public class ShoppingRose {
             // Remove the key article itself
             list_of_similar_articles.removeIf(a -> a.getEanCode().equals(ean_code));
 
-            boolean isCase6 = !m_user_preference.isEanPreferred(article.getEanCode()) &&
+            boolean isCase6 = !m_user_preference.isEanPreferred(article.getAuthorGln()) &&
                 list_of_similar_articles
                     .stream()
-                    .anyMatch(a -> m_user_preference.isEanPreferred(a.getEanCode()) && a.isOriginal());
+                    .anyMatch(a -> m_user_preference.isEanPreferred(a.getAuthorGln()) && a.isOriginal());
             boolean isCase7 = isOrangeOrRed && m_user_preference.isPreferenceEmpty();
             boolean isCase8 = article.isNotaArticle();
 
@@ -521,6 +521,15 @@ public class ShoppingRose {
                 return 2;
             }
         }
+
+        // UseCase 4 in PDF
+        if (m_user_preference.isEanPreferred(ga.getAuthorGln())
+            && ga.getShippingStatus() == 1
+        ) {
+            return 0;
+        }
+
+        // UseCase 4
         if (m_user_preference.isPreferenceEmpty()
             && isPreferredByRose(ga)
             && ga.getShippingStatus() == 1
@@ -528,13 +537,14 @@ public class ShoppingRose {
             return 0;
         }
 
+        // UseCase 5
         if (!m_user_preference.isPreferenceEmpty()
-            && !m_user_preference.isEanPreferred(article.getGtin())
+            && !m_user_preference.isEanPreferred(ga.getAuthorGln())
             && ga.getShippingStatus() == 1
         ) {
             boolean hasPreferredAlternative = article.alternatives
                 .stream()
-                .anyMatch(a -> m_user_preference.isEanPreferred(a.getGtin()));
+                .anyMatch(a -> m_user_preference.isEanPreferred(a.getAuthorGlnCode()));
             if (hasPreferredAlternative) {
                 return 1;
             }
@@ -543,7 +553,7 @@ public class ShoppingRose {
         if (!m_user_preference.isPreferenceEmpty() && isOrangeOrRed) {
             boolean hasBetterAlternative = article.alternatives
                 .stream()
-                .anyMatch(ra -> ra.isOriginal() && m_user_preference.isEanPreferred(ra.getGtin()));
+                .anyMatch(ra -> ra.isOriginal() && m_user_preference.isEanPreferred(ra.getAuthorGlnCode()));
             if (hasBetterAlternative) {
                 return 2;
             }
@@ -566,7 +576,7 @@ public class ShoppingRose {
         }
         String ean = article.getEanCode();
         String name = GenericArticle.eanNameMap.get(ean);
-        if (m_user_preference.isEanPreferred(ean) || "mepha".equals(name)) {
+        if (m_user_preference.isEanPreferred(article.getAuthorGln()) || "mepha".equals(name)) {
             if (!article.isBiotechnologica()) {
                 return true;
             }
@@ -627,6 +637,7 @@ public class ShoppingRose {
                 rose_article.setLastOrder(article.getLastOrder());
                 rose_article.setIsOriginal(article.isOriginal());
                 rose_article.setCoreAssortment(generateCoreAssort(article));
+                rose_article.setAuthorGlnCode(article.getAuthorGln());
 
                 // article points to object which was inserted last...
                 if (m_map_similar_articles.containsKey(ean_code)) {
@@ -684,6 +695,7 @@ public class ShoppingRose {
                                     ra.setNotaStatus(a.getNotaStatus());
                                     ra.setLastOrder(a.getLastOrder());
                                     ra.setIsOriginal(a.isOriginal());
+                                    ra.setAuthorGlnCode(a.getAuthorGln());
 
                                     ra.setCoreAssortment(generateCoreAssort(a));
                                     ra.setAlt(null);

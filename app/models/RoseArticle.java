@@ -127,6 +127,8 @@ public class RoseArticle {
 
     private Boolean isOriginal = false;
 
+    private String author_gln_code = "";
+
     @JsonIgnore
     public String getGtin() { return gtin; }
 
@@ -174,6 +176,9 @@ public class RoseArticle {
 
     @JsonIgnore
     public boolean isNota() { return is_nota; }
+
+    @JsonIgnore
+    public String getAuthorGlnCode() { return author_gln_code; }
 
     public void setGtin(String gtin) {
         this.gtin = gtin;
@@ -248,4 +253,8 @@ public class RoseArticle {
     public void setAlt(Integer alt) { this.alt = alt; }
 
     public void setIsOriginal(Boolean isOriginal) { this.isOriginal = isOriginal; }
+
+    public void setAuthorGlnCode(String gln) {
+        this.author_gln_code = gln;
+    }
 }
