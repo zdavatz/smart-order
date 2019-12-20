@@ -47,6 +47,7 @@ public class ShoppingRose {
     private Map<String, GenericArticle> m_shopping_basket = null;
 
     private String m_customer_gln_code = "";
+    private String m_customer_id = "";
 
     private MessageDigest m_message_digest;
 
@@ -61,6 +62,7 @@ public class ShoppingRose {
         m_rose_ids_map = rd.rose_ids_map();
         // "Normalize" id
         if (customer_id.length()==6) {
+            m_customer_id = customer_id;
             if (m_rose_ids_map!=null && m_rose_ids_map.containsKey(customer_id))
                 m_customer_gln_code = m_rose_ids_map.get(customer_id);
         } else if (customer_id.length()==13) {
@@ -126,10 +128,14 @@ public class ShoppingRose {
         m_auth_keys_list= rd.auth_keys_list();
         // Retrieve user-related information
         HashMap<String, User> user_map = rd.user_map();
-        for (User user : user_map.values()) {
-            if (user.gln_code.equals(m_customer_gln_code)) {
-                m_user_preference = user;
-                break;
+        if (user_map.containsKey(m_customer_id)) {
+            m_user_preference = user_map.get(m_customer_id);
+        } else {
+            for (User user : user_map.values()) {
+                if (user.gln_code.equals(m_customer_gln_code)) {
+                    m_user_preference = user;
+                    break;
+                }
             }
         }
         if (m_user_preference == null) {
