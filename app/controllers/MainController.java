@@ -363,9 +363,6 @@ public class MainController extends Controller {
                                         if (checkSimilarity2(size, s, unit, u, 0.901f)) {
                                             // Allow only *same* dosages
                                             list_a.add(a);
-                                        } else if (checkSimilarity3(size, s,unit, u, 1.01f)) {
-                                            // Relax search criteria, allow also "similar" dosages (+/- 50%)
-                                            list_a.add(a);
                                         }
                                     }
                                 }
@@ -480,18 +477,6 @@ public class MainController extends Controller {
         if (!unit_1.isEmpty() && !unit_2.isEmpty())
             check_units = unit_1.equals(unit_2);    // Units/dosage must be the same
         return check_size && check_units;
-    }
-
-    private boolean checkSimilarity3(String size_1, String size_2, String unit_1, String unit_2, float search_window) {
-        boolean check_units = false;
-        if (checkSimilarity2(size_1, size_2, unit_1, unit_2, 0.901f))
-            return true;
-        if (!unit_1.isEmpty() && !unit_2.isEmpty()) {
-            unit_1 = unit_1.replaceAll("[^0-9.]", "").replaceAll("\\.{2,}", ".");
-            unit_2 = unit_2.replaceAll("[^0-9.]", "").replaceAll("\\.{2,}", ".");
-            check_units = basicSimilarityCheck(unit_1, unit_2, search_window);
-        }
-        return check_units;
     }
 
     /**
