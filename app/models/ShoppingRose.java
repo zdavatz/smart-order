@@ -351,8 +351,8 @@ public class ShoppingRose {
     }
 
     private int sortDosage(GenericArticle a1, GenericArticle a2, String dosage) {
-        int value1 = a1.getPackUnit().equals(dosage) ? 1 : -1;
-        int value2 = a2.getPackUnit().equals(dosage) ? 1 : -1;
+        int value1 = a1.getPackUnit().toLowerCase().equals(dosage.toLowerCase()) ? 1 : -1;
+        int value2 = a2.getPackUnit().toLowerCase().equals(dosage.toLowerCase()) ? 1 : -1;
         // Returns
         //  = 0 if value1 = value2
         // 	< 0 if value1 < value2

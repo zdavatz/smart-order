@@ -384,7 +384,7 @@ public class MainController extends Controller {
                 }
             });
         }
-        // Add all special originals (checksimilarity3)
+
         if (original_list_a.size()>0) {
             // Sort according to smart criterion
             Collections.sort(original_list_a, new Comparator<GenericArticle>() {
@@ -464,7 +464,7 @@ public class MainController extends Controller {
     }
 
     private boolean checkSimilarity(String size_1, String size_2, String unit_1, String unit_2) {
-        if (size_1.equals(size_2) && unit_1.equals(unit_2))
+        if (size_1.toLowerCase().equals(size_2.toLowerCase()) && unit_1.toLowerCase().equals(unit_2.toLowerCase()))
             return true;
         return false;
     }
@@ -475,7 +475,7 @@ public class MainController extends Controller {
         if (!size_1.isEmpty() && !size_2.isEmpty())
             check_size = basicSimilarityCheck(size_1, size_2, search_window);
         if (!unit_1.isEmpty() && !unit_2.isEmpty())
-            check_units = unit_1.equals(unit_2);    // Units/dosage must be the same
+            check_units = unit_1.toLowerCase().equals(unit_2.toLowerCase());    // Units/dosage must be the same
         return check_size && check_units;
     }
 
