@@ -400,13 +400,6 @@ public class ShoppingRose {
             // Remove the key article itself
             list_of_similar_articles.removeIf(a -> a.getEanCode().equals(ean_code));
 
-            boolean isCase6 = !m_user_preference.isEanPreferred(article.getAuthorGln()) &&
-                list_of_similar_articles
-                    .stream()
-                    .anyMatch(a -> m_user_preference.isEanPreferred(a.getAuthorGln()) && a.isOriginal());
-            boolean isCase7 = isOrangeOrRed && m_user_preference.isPreferenceEmpty();
-            boolean isCase8 = article.isNotaArticle();
-
             if (list_of_similar_articles.size() > 0) {
                 Collections.sort(list_of_similar_articles, new Comparator<GenericArticle>() {
                     @Override
@@ -430,36 +423,22 @@ public class ShoppingRose {
                      */
                     public int compare(GenericArticle a1, GenericArticle a2) {
                         int c = 0;
-                        // v1.3 Case 6.
-                        if (isCase6) {
-                            if (c == 0) {
-                                c = sortCustomerPreference(a1, a2);
-                            }
-                            if (c == 0) {
-                                c = sortOriginals(a1, a2);
-                            }
-                        }
-                        if (isCase7) {
-                            if (c == 0) {
-                                c = sortRosePreference(a1, a2);
-                            }
-                        }
-                        if (isCase8) {
-                            if (c == 0) {
-                                c = sortSameArticleWithDifferentSize(article, a1, a2);
-                            }
-                            if (c == 0) {
-                                c = sortCustomerPreference(a1, a2);
-                            }
-                            if (c == 0) {
-                                c = sortOriginals(a1, a2);
-                            }
-                            if (c == 0) {
-                                c = sortRosePreference(a1, a2);
-                            }
+                        if (c == 0) {
+                            c = sortCustomerPreference(a1, a2);
                         }
 
-                        // PRIO 1: Lieferbarkeit
+                        if (c == 0) {
+                            c = sortOriginals(a1, a2);
+                        }
+
+                        if (c == 0) {
+                            c = sortSameArticleWithDifferentSize(article, a1, a2);
+                        }
+
+                        if (c == 0) {
+                            c = sortRosePreference(a1, a2);
+                        }
+
                         if (c == 0) {
                             c = sortShippingStatus(a1, a2, quantity);
                         }
