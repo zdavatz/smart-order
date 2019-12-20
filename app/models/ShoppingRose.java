@@ -47,6 +47,7 @@ public class ShoppingRose {
     private Map<String, GenericArticle> m_shopping_basket = null;
 
     private String m_customer_gln_code = "";
+    private String m_customer_id = "";
 
     private MessageDigest m_message_digest;
 
@@ -61,6 +62,7 @@ public class ShoppingRose {
         m_rose_ids_map = rd.rose_ids_map();
         // "Normalize" id
         if (customer_id.length()==6) {
+            m_customer_id = customer_id;
             if (m_rose_ids_map!=null && m_rose_ids_map.containsKey(customer_id))
                 m_customer_gln_code = m_rose_ids_map.get(customer_id);
         } else if (customer_id.length()==13) {
@@ -126,10 +128,14 @@ public class ShoppingRose {
         m_auth_keys_list= rd.auth_keys_list();
         // Retrieve user-related information
         HashMap<String, User> user_map = rd.user_map();
-        for (User user : user_map.values()) {
-            if (user.gln_code.equals(m_customer_gln_code)) {
-                m_user_preference = user;
-                break;
+        if (user_map.containsKey(m_customer_id)) {
+            m_user_preference = user_map.get(m_customer_id);
+        } else {
+            for (User user : user_map.values()) {
+                if (user.gln_code.equals(m_customer_gln_code)) {
+                    m_user_preference = user;
+                    break;
+                }
             }
         }
         if (m_user_preference == null) {
@@ -345,8 +351,8 @@ public class ShoppingRose {
     }
 
     private int sortDosage(GenericArticle a1, GenericArticle a2, String dosage) {
-        int value1 = a1.getPackUnit().equals(dosage) ? 1 : -1;
-        int value2 = a2.getPackUnit().equals(dosage) ? 1 : -1;
+        int value1 = a1.getPackUnit().toLowerCase().equals(dosage.toLowerCase()) ? 1 : -1;
+        int value2 = a2.getPackUnit().toLowerCase().equals(dosage.toLowerCase()) ? 1 : -1;
         // Returns
         //  = 0 if value1 = value2
         // 	< 0 if value1 < value2
@@ -394,13 +400,6 @@ public class ShoppingRose {
             // Remove the key article itself
             list_of_similar_articles.removeIf(a -> a.getEanCode().equals(ean_code));
 
-            boolean isCase6 = !m_user_preference.isEanPreferred(article.getAuthorGln()) &&
-                list_of_similar_articles
-                    .stream()
-                    .anyMatch(a -> m_user_preference.isEanPreferred(a.getAuthorGln()) && a.isOriginal());
-            boolean isCase7 = isOrangeOrRed && m_user_preference.isPreferenceEmpty();
-            boolean isCase8 = article.isNotaArticle();
-
             if (list_of_similar_articles.size() > 0) {
                 Collections.sort(list_of_similar_articles, new Comparator<GenericArticle>() {
                     @Override
@@ -424,36 +423,22 @@ public class ShoppingRose {
                      */
                     public int compare(GenericArticle a1, GenericArticle a2) {
                         int c = 0;
-                        // v1.3 Case 6.
-                        if (isCase6) {
-                            if (c == 0) {
-                                c = sortCustomerPreference(a1, a2);
-                            }
-                            if (c == 0) {
-                                c = sortOriginals(a1, a2);
-                            }
-                        }
-                        if (isCase7) {
-                            if (c == 0) {
-                                c = sortRosePreference(a1, a2);
-                            }
-                        }
-                        if (isCase8) {
-                            if (c == 0) {
-                                c = sortSameArticleWithDifferentSize(article, a1, a2);
-                            }
-                            if (c == 0) {
-                                c = sortCustomerPreference(a1, a2);
-                            }
-                            if (c == 0) {
-                                c = sortOriginals(a1, a2);
-                            }
-                            if (c == 0) {
-                                c = sortRosePreference(a1, a2);
-                            }
+                        if (c == 0) {
+                            c = sortCustomerPreference(a1, a2);
                         }
 
-                        // PRIO 1: Lieferbarkeit
+                        if (c == 0) {
+                            c = sortOriginals(a1, a2);
+                        }
+
+                        if (c == 0) {
+                            c = sortSameArticleWithDifferentSize(article, a1, a2);
+                        }
+
+                        if (c == 0) {
+                            c = sortRosePreference(a1, a2);
+                        }
+
                         if (c == 0) {
                             c = sortShippingStatus(a1, a2, quantity);
                         }

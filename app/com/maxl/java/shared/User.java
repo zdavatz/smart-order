@@ -45,7 +45,7 @@ public class User {
     }
 
     public Set<String> getPreferences() {
-         return neu_map
+        return neu_map
             .keySet()
             .stream()
             .filter(k -> neu_map.getOrDefault(k, 0) == 1)
