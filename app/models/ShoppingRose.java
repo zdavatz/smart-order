@@ -520,15 +520,15 @@ public class ShoppingRose {
             }
         }
 
-        if (m_user_preference.getPreferenceCount() >= 2) {
-            return 2;
-        }
-
         // UseCase 4 in PDF
         if (m_user_preference.isEanPreferred(ga.getAuthorGln())
             && ga.getShippingStatus() == 1
         ) {
             return 0;
+        }
+
+        if (m_user_preference.getPreferenceCount() >= 2) {
+            return 2;
         }
 
         // UseCase 4
