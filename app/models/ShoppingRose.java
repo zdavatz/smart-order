@@ -35,9 +35,7 @@ public class ShoppingRose {
 
     private HashMap<String, Float> m_sales_figures_map = null;
     private HashMap<String, String> m_rose_ids_map = null;
-    private HashMap<String, String> m_rose_direct_subst_map = null;
     private HashMap<String, List<NotaPosition>> m_rose_nota_map = null;
-    private ArrayList<String> m_auto_generika_list = null;
     private ArrayList<String> m_auth_keys_list = null;
     private HashMap<String, List<GenericArticle>> m_map_similar_articles = null;
     private HashMap<String, Pair<Integer, Integer>> m_stock_map = null;
@@ -118,10 +116,6 @@ public class ShoppingRose {
         RoseData rd = RoseData.getInstance();
         // Load sales figures file
         m_sales_figures_map = rd.sales_figs_map();
-        // Load auto generika file
-        m_auto_generika_list = rd.autogenerika_list();
-        // Load direct substition map
-        m_rose_direct_subst_map = rd.rose_direct_subst_map();
         // Load nota position amp
         m_rose_nota_map = rd.rose_nota_map();
         // Retrieve authorization keys
@@ -287,10 +281,6 @@ public class ShoppingRose {
         return 10;
     }
 
-    private boolean isAutoGenerikum(String ean) {
-        return m_auto_generika_list.contains(ean);
-    }
-
     private boolean isPreferredByRose(GenericArticle article) {
         return rosePreference(article) < 10;
     }
@@ -353,20 +343,6 @@ public class ShoppingRose {
     private int sortDosage(GenericArticle a1, GenericArticle a2, String dosage) {
         int value1 = a1.getPackUnit().toLowerCase().equals(dosage.toLowerCase()) ? 1 : -1;
         int value2 = a2.getPackUnit().toLowerCase().equals(dosage.toLowerCase()) ? 1 : -1;
-        // Returns
-        //  = 0 if value1 = value2
-        // 	< 0 if value1 < value2
-        //  > 0 if value1 > value2
-        return -Integer.valueOf(value1)
-                .compareTo(value2);
-    }
-
-    private int sortAutoGenerika(GenericArticle a1, GenericArticle a2) {
-        int value1 = isAutoGenerikum(a1.getEanCode()) ? 1 : -1;
-        int value2 = isAutoGenerikum(a2.getEanCode()) ? 1 : -1;
-
-        // System.out.println("AG: " + a1.getSupplier() + " -> " + value1 + " | " + a2.getSupplier() + " -> " + value2);
-
         // Returns
         //  = 0 if value1 = value2
         // 	< 0 if value1 < value2
@@ -454,10 +430,6 @@ public class ShoppingRose {
                         if (c == 0) {
                             c = sortSize(a1, a2, size);
                         }
-                        // PRIO 5: AG - Autogenerikum
-                        if (c == 0) {
-                            c = sortAutoGenerika(a1, a2);
-                        }
                         // PRIO 6: ZRP - Generikum Präferenz zur Rose
                         if (c == 0) {
                             c = sortRosePreference(a1, a2);
@@ -484,20 +456,9 @@ public class ShoppingRose {
         m_map_similar_articles = new HashMap<>(similar_articles);
     }
 
-    public String hasDirectSubstitute(String pharma_code) {
-        if (!pharma_code.isEmpty()) {
-            if (m_rose_direct_subst_map != null && m_rose_direct_subst_map.containsKey(pharma_code))
-                return m_rose_direct_subst_map.get(pharma_code);
-        }
-        return null;
-    }
-
     private String generatePreferences(GenericArticle ga) {
         String preference_str = "";
 
-        if (isAutoGenerikum(ga.getEanCode())) {
-            preference_str += "AG";
-        }
         if (isPreferredByRose(ga)) {
             if (!preference_str.isEmpty())
                 preference_str += ", ";
@@ -653,7 +614,6 @@ public class ShoppingRose {
                         if (!alter_ean_code.equals(ean_code)) {
                             if (article.isOriginal()
                                     || (article.isGenerikum() && a.isGenerikum())
-                                    || (article.isGenerikum() && !isAutoGenerikum(alter_ean_code))
                                     || a.isReplacementArticle()) {
 
                                 if (a.isAvailable() && !a.isOffMarket()) {

@@ -40,8 +40,6 @@ public final class RoseData {
     private HashMap<String, User> rose_user_map;
     private HashMap<String, Float> rose_sales_figs_map;
     private HashMap<String, String> rose_ids_map;
-    private HashMap<String, String> rose_direct_subst_map;
-    private ArrayList<String> rose_autogenerika_list;
     private ArrayList<String> rose_auth_keys_list;
     private HashMap<String, List<NotaPosition>> rose_nota_map;
     private HashMap<String, Pair<Integer, Integer>> rose_stock_map;
@@ -78,14 +76,6 @@ public final class RoseData {
         return this.rose_ids_map;
     }
 
-    public HashMap<String, String> rose_direct_subst_map() {
-        return this.rose_direct_subst_map;
-    }
-
-    public ArrayList<String> autogenerika_list() {
-        return this.rose_autogenerika_list;
-    }
-
     public ArrayList<String> auth_keys_list() {
         return this.rose_auth_keys_list;
     }
@@ -109,10 +99,6 @@ public final class RoseData {
             rose_sales_figs_map = loadRoseSalesFigures(rose_path + file_name);
         else if (file_name.equals("rose_ids.ser.clear"))
             rose_ids_map = loadRoseIds(rose_path + file_name);
-        else if (file_name.equals("rose_direct_subst.ser.clear"))
-            rose_direct_subst_map = loadRoseDirectSubst(rose_path + file_name);
-        else if (file_name.equals("rose_autogenerika.ser.clear"))
-            rose_autogenerika_list = loadRoseAutoGenerika(rose_path + file_name);
         else if (file_name.equals("rose_nota.ser.clear"))
             rose_nota_map = loadRoseNotaMap(rose_path + file_name);
         else if (file_name.equals("rose_auth_keys.txt"))
@@ -136,14 +122,6 @@ public final class RoseData {
 
         // System.out.print("# Loading rose_ids.ser.clear... ");
         rose_ids_map = loadRoseIds(rose_path + "rose_ids.ser.clear");
-        // System.out.println("OK");
-
-        // System.out.print("# Loading rose_direct_subst.ser.clear... ");
-        rose_direct_subst_map = loadRoseDirectSubst(rose_path + "rose_direct_subst.ser.clear");
-        // System.out.println("OK");
-
-        // System.out.print("# Loading rose_autogenerika.ser.clear... ");
-        rose_autogenerika_list = loadRoseAutoGenerika(rose_path + "rose_autogenerika.ser.clear");
         // System.out.println("OK");
 
         // System.out.print("# Loading rose_nota.ser.clear... ");
@@ -231,79 +209,6 @@ public final class RoseData {
             }
         }
         return rose_ids_map;
-    }
-
-    /**
-     * Loads Rose direct substitutions map
-     * Format: from -> to
-     *
-     * @param: ser_file_name
-     * @return: rose ids map
-     */
-    @SuppressWarnings("unchecked")
-    private HashMap<String, String> loadRoseDirectSubst(String ser_file_name) {
-        HashMap<String, String> rose_direct_subst_map = new HashMap<>();
-
-        String json_file_path = ser_file_name.replace(".ser.clear", ".json");
-        File json_file = new File(json_file_path);
-        boolean json_success = false;
-        if (json_file.exists()) {
-            System.out.println("Using json file instead of .ser.clear: " + json_file_path);
-            ObjectMapper mapper = new ObjectMapper();
-            try {
-                rose_direct_subst_map = mapper.readValue(json_file,
-                    new TypeReference<HashMap<String, String>>() { } );
-                json_success = true;
-            } catch (Exception e) {
-                System.out.println("Exception in loadRoseDirectSubst: " + e.getMessage());
-            }
-        }
-
-        if (!json_success) {
-            System.out.println("JSON file not found or not success, fallback to ser file: " + json_file_path);
-            byte[] serialized_object = FileOps.readBytesFromFile(ser_file_name);
-            if (serialized_object != null) {
-                rose_direct_subst_map = (HashMap<String, String>) FileOps.deserialize(serialized_object);
-            }
-        }
-
-        return rose_direct_subst_map;
-    }
-
-    /**
-     * Loads Rose list of autogenerika
-     *
-     * @param ser_file_name
-     * @return
-     */
-    @SuppressWarnings("unchecked")
-    private ArrayList<String> loadRoseAutoGenerika(String ser_file_name) {
-        ArrayList<String> auto_generika_list = new ArrayList<>();
-
-        String json_file_path = ser_file_name.replace(".ser.clear", ".json");
-        File json_file = new File(json_file_path);
-        boolean json_success = false;
-        if (json_file.exists()) {
-            System.out.println("Using json file instead of .ser.clear: " + json_file_path);
-            ObjectMapper mapper = new ObjectMapper();
-            try {
-                auto_generika_list = mapper.readValue(json_file,
-                    new TypeReference<ArrayList<String>>() { } );
-                json_success = true;
-            } catch (Exception e) {
-                System.out.println("Exception in loadRoseAutoGenerika: " + e.getMessage());
-            }
-        }
-
-        if (!json_success) {
-            System.out.println("JSON file not found or not success, fallback to ser file: " + json_file_path);
-            byte[] serialized_object = FileOps.readBytesFromFile(ser_file_name);
-            if (serialized_object != null) {
-                auto_generika_list = (ArrayList<String>) FileOps.deserialize(serialized_object);
-            }
-        }
-
-        return auto_generika_list;
     }
 
     /**
