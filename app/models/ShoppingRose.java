@@ -412,25 +412,17 @@ public class ShoppingRose {
                         }
 
                         if (c == 0) {
-                            c = sortRosePreference(a1, a2);
-                        }
-
-                        if (c == 0) {
                             c = sortShippingStatus(a1, a2, quantity);
                         }
-                        // PRIO 2: Original
                         if (c == 0) {
                             c = sortOriginals(a1, a2);
                         }
-                        // PRIO 3:
                         if (c == 0) {
                             c = sortDosage(a1, a2, dosage);
                         }
-                        // PRIO 4:
                         if (c == 0) {
                             c = sortSize(a1, a2, size);
                         }
-                        // PRIO 6: ZRP - Generikum Präferenz zur Rose
                         if (c == 0) {
                             c = sortRosePreference(a1, a2);
                         }
