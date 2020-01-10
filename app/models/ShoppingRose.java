@@ -53,7 +53,7 @@ public class ShoppingRose {
      * Constructor!
      * @param customer_id
      */
-    public ShoppingRose(String customer_id) {
+    public ShoppingRose(String customer_id) throws Exception {
         // Get rose id map
         RoseData rd = RoseData.getInstance();
 
@@ -66,10 +66,11 @@ public class ShoppingRose {
         } else if (customer_id.length()==13) {
             m_customer_gln_code = customer_id;
         }
-        if (!m_customer_gln_code.isEmpty())
+        if (!m_customer_gln_code.isEmpty()) {
             loadRoseData();
-        else
+        } else {
             System.out.println(">> Error: customer glncode or roseid is missing or wrong!");
+        }
 
         m_stock_map = rd.rose_stock_map();
         if (m_stock_map==null)
@@ -81,8 +82,9 @@ public class ShoppingRose {
     }
 
     public boolean checkAuthKey(String auth_key) {
-        if (m_auth_keys_list!=null)
+        if (m_auth_keys_list!=null) {
             return m_auth_keys_list.contains(auth_key);
+        }
         return false;
     }
 
@@ -112,7 +114,7 @@ public class ShoppingRose {
         article.setShippingStatus(shipping_status);
     }
 
-    private void loadRoseData() {
+    private void loadRoseData() throws Exception {
         RoseData rd = RoseData.getInstance();
         // Load sales figures file
         m_sales_figures_map = rd.sales_figs_map();
@@ -134,6 +136,7 @@ public class ShoppingRose {
         }
         if (m_user_preference == null) {
             System.out.println(">> Error: Cannot find customer preferences");
+            throw new Exception("Customer not found");
         }
     }
 

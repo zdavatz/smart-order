@@ -118,7 +118,12 @@ public class MainController extends Controller {
     @Inject ActorSystem actorSystem;
 
     public Result getSmartBasket(String pretty, String auth_key, String gln_code, String basket, String nota) {
-        ShoppingRose shopping_cart = new ShoppingRose(gln_code);
+        ShoppingRose shopping_cart;
+        try {
+            shopping_cart = new ShoppingRose(gln_code);
+        } catch (Exception e) {
+            return ok("[]");
+        }
 
         if (!shopping_cart.checkAuthKey(auth_key)) {
             return ok("[]");
