@@ -11,3 +11,4 @@ sqlite/amiko_db_full_idx_fr.db
 *.clear
 rose/rose_db_new_full.db
 rose/rose_auth_keys.txt
+/cockpit/*.json
