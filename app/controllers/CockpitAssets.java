@@ -26,8 +26,9 @@ public class CockpitAssets extends Controller {
 
     public Result at(String filePath) {
         try {
-            File directory = new File("cockpit");
-            File targetFile = new File("cockpit" + File.separator + filePath);
+            String baseDir = System.getProperty("user.dir");
+            File directory = new File(baseDir, "cockpit");
+            File targetFile = new File(directory.getAbsolutePath(), filePath);
 
             if (!targetFile.getCanonicalPath().startsWith(directory.getCanonicalPath())) {
                 return Results.forbidden();
