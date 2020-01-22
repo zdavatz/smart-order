@@ -21,13 +21,19 @@ package controllers;
 
 import java.io.*;
 import play.mvc.*;
+import models.RoseData;
 
 public class CockpitAssets extends Controller {
 
-    public Result at(String filePath) {
+    public Result at(String filePath, String authKey) {
+        final RoseData rd = RoseData.getInstance();
+        if (!rd.auth_keys_list().contains(authKey)) {
+            return Results.forbidden();
+        }
         try {
-            File directory = new File("cockpit");
-            File targetFile = new File("cockpit" + File.separator + filePath);
+            String baseDir = System.getProperty("user.dir");
+            File directory = new File(baseDir, "cockpit");
+            File targetFile = new File(directory.getAbsolutePath(), filePath);
 
             if (!targetFile.getCanonicalPath().startsWith(directory.getCanonicalPath())) {
                 return Results.forbidden();
