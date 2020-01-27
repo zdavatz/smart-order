@@ -1,0 +1,165 @@
+swagger: '2.0'
+info:
+  description: |
+    API for Smart order
+  version: 1.0.0
+  title: Smart Order
+  license:
+    name: GPLv3
+    url: http://www.gnu.org/licenses/
+schemes:
+- http
+- https
+host: so.zurrose.ch
+basePath: /
+
+paths:
+  /gtin:
+    get:
+      parameters:
+      - in: query
+        name: gtin
+        type: string
+        required: true
+      produces:
+        - application/json
+      responses:
+        200:
+          description: ""
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/RoseArticleWithAlternatives'
+
+  /smart/full:
+    get:
+      produces:
+        - application/json
+      parameters:
+        - in: query
+          name: pretty
+          type: string
+          default: "off"
+        - in: query
+          name: authkey
+          type: string
+          required: true
+        - in: query
+          name: glncode
+          type: string
+          required: true
+        - in: query
+          name: basket
+          type: string
+          required: false
+        - in: query
+          name: nota
+          type: string
+          required: false
+          description: |
+            Either "de" or "fr"
+      responses:
+        200:
+          description: ''
+          schema:
+            $ref: '#/definitions/RoseOrder'
+
+definitions:
+  RoseArticleWithAlternatives:
+    allOf:
+    - $ref: '#/definitions/RoseArticle'
+    - type: object
+      required:
+        - alternatives
+      properties:
+        alternatives:
+          type: array
+          items:
+            $ref: '#/definitions/RoseArticle'
+  RoseArticle:
+    type: object
+    additionalProperties: false
+    required:
+      - gtin
+      - pharma
+      - title
+      - title_FR
+      - replaces_article
+      - core_assort
+      - supplier
+      - quantity
+      - swissmed
+      - rose_price
+      - public_price
+      - prefs
+      - avail_date
+      - shipping
+      - off_market
+      - dlk_flag
+      - npl
+      - is_nota
+      - nota_status
+      - last_order
+      - alt
+    properties:
+      gtin:
+        type: string
+      pharma:
+        type: string
+      title:
+        type: string
+      title_FR:
+        type: string
+      replaces_article:
+        type: string
+      core_assort:
+        type: string
+      supplier:
+        type: string
+      quantity:
+        type: integer
+      swissmed:
+        type: string
+      rose_price:
+        type: number
+      public_price:
+        type: number
+      prefs:
+        type: string
+      avail_date:
+        type: string
+      shipping:
+        type: string
+      off_market:
+        type: boolean
+      dlk_flag:
+        type: boolean
+      npl:
+        type: boolean
+      is_nota:
+        type: boolean
+      nota_status:
+        type: string
+      last_order:
+        type: string
+      alt:
+        type: integer
+  RoseOrder:
+    type: object
+    additionalProperties: false
+    required:
+      - hash
+      - time
+      - glncode
+      - order
+    properties:
+      hash:
+        type: string
+      time:
+        type: string
+      glncode:
+        type: string
+      order:
+        type: array
+        items:
+          $ref: '#/definitions/RoseArticleWithAlternatives'
