@@ -13,6 +13,12 @@ schemes:
 host: so.zurrose.ch
 basePath: /
 
+securityDefinitions:
+  authkey:
+    type: apiKey
+    name: authkey
+    in: query
+
 paths:
   /gtin:
     get:
@@ -33,6 +39,8 @@ paths:
 
   /smart/full:
     get:
+      security:
+      - authkey: []
       produces:
         - application/json
       parameters:
@@ -40,10 +48,6 @@ paths:
           name: pretty
           type: string
           default: "off"
-        - in: query
-          name: authkey
-          type: string
-          required: true
         - in: query
           name: glncode
           type: string
