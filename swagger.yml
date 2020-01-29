@@ -68,6 +68,75 @@ paths:
           schema:
             $ref: '#/definitions/RoseOrder'
 
+  /cockpit/chargenrueckrufe_de.json:
+    get:
+      security:
+      - authkey: []
+      produces:
+        - application/json
+      responses:
+        200:
+          description: ''
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Chargenrueckrufe'
+
+  /cockpit/chargenrueckrufe_fr.json:
+    get:
+      security:
+      - authkey: []
+      produces:
+        - application/json
+      responses:
+        200:
+          description: ''
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Chargenrueckrufe'
+  /cockpit/dhcp_hcp_de.json:
+    get:
+      security:
+      - authkey: []
+      produces:
+        - application/json
+      responses:
+        200:
+          description: ''
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Chargenrueckrufe'
+
+  /cockpit/dhcp_hcp_fr.json:
+    get:
+      security:
+      - authkey: []
+      produces:
+        - application/json
+      responses:
+        200:
+          description: ''
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Chargenrueckrufe'
+
+  /cockpit/drugshortage.json:
+    get:
+      security:
+      - authkey: []
+      produces:
+        - application/json
+      responses:
+        200:
+          description: ''
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/DrugStorage'
+
 definitions:
   RoseArticleWithAlternatives:
     allOf:
@@ -167,3 +236,87 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/RoseArticleWithAlternatives'
+
+  Chargenrueckrufe:
+    type: object
+    additionalProperties: false
+    required:
+      - _id
+      - title
+      - url
+      - date
+      - type
+      - lang
+      - desc
+      - pdf
+      - prep
+    properties:
+      _id:
+        type: string
+      title:
+        type: string
+      url:
+        type: string
+        format: uri
+      date:
+        type: string
+        format: "dd.mm.yyyy"
+      type:
+        type: string
+      lang:
+        type: string
+      desc:
+        type: string
+      pdf:
+        type: string
+        format: uri
+      prep:
+        type: array
+        items:
+          type: object
+          additionalProperties: false
+          required:
+            - prop
+            - field
+          properties:
+            prop:
+              type: string
+            field:
+              type: string
+
+  DrugStorage:
+    type: object
+    required:
+      - id
+      - bezeichnung
+      - detailsLink
+      - gtin
+      - pharmacode
+      - firma
+      - datumLetzteMutation
+      - tageSeitSrsterMeldung
+      - status
+      - datumLieferfahigkeit
+    properties:
+      id:
+        type: integer
+      bezeichnung:
+        type: string
+      detailsLink:
+        type: string
+        format: uri
+      gtin:
+        type: string
+      pharmacode:
+        type: string
+      firma:
+        type: string
+      datumLetzteMutation:
+        type: string
+        format: "dd.mm.yyyy"
+      tageSeitSrsterMeldung:
+        type: string
+      status:
+        type: string
+      datumLieferfahigkeit:
+        type: string
