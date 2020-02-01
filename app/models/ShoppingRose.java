@@ -609,7 +609,8 @@ public class ShoppingRose {
                         if (!alter_ean_code.equals(ean_code)) {
                             if (article.isOriginal()
                                     || (article.isGenerikum() && a.isGenerikum())
-                                    || a.isReplacementArticle()) {
+                                    || a.isReplacementArticle()
+                                    || (article.isGenerikum() && article.getShippingStatus() > 1 && a.isOriginal() && a.getShippingStatus() == 1)) {
 
                                 if (a.isAvailable() && !a.isOffMarket()) {
                                     RoseArticle ra = new RoseArticle();

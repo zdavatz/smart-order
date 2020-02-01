@@ -339,19 +339,18 @@ public class MainController extends Controller {
                                 // s AND size -> stückzahl, e.g. 12
                                 // u AND unit -> dosierung, e.g. 100mg
                                 boolean have_same_title = article.isSimilarByTitle(a);
-                                boolean is_original_but_not_green = article.isOriginal() && article.getShippingStatus() > 1;
+                                boolean is_not_green = article.getShippingStatus() > 1;
+                                boolean is_original_but_not_green = article.isOriginal() && is_not_green;
                                 boolean is_original_alternative_and_green = a.isOriginal() && a.getShippingStatus() == 1;
 
                                 if (is_original_but_not_green && is_original_alternative_and_green && have_same_title) {
                                     // Add it to the list of originals
                                     original_list_a.add(a);
-                                } else {
-                                    if (!a.isOriginal()) {
-                                        if (checkSimilarity2(size, s, unit, u, 0.901f)) {
-                                            // Allow only *same* dosages
-                                            list_a.add(a);
-                                        }
-                                    }
+                                } else if (!a.isOriginal() && checkSimilarity2(size, s, unit, u, 0.901f)) {
+                                    // Allow only *same* dosages
+                                    list_a.add(a);
+                                } else if (is_not_green && is_original_alternative_and_green) {
+                                    original_list_a.add(a);
                                 }
                                 /*
                                 if ((size.contains(s) || s.contains(size)) && (unit.contains(u) || u.contains(unit)) )
