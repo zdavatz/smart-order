@@ -1,0 +1,74 @@
+#!/usr/bin/env node
+
+var fs = require('fs');
+var Path = require('path');
+
+if (process.argv.length <= 2) {
+  console.log('Usage: update-swagger [schema folder]');
+  console.log('The schema folder should be from ymeteor\'s public/schema folder');
+  process.exit(1);
+  return;
+}
+
+
+var schemaFolder = Path.resolve(process.argv[2]);
+console.log('Process schema files from: ' + schemaFolder);
+
+var template = fs.readFileSync(Path.join(__dirname, '..', 'swagger.yml.template'), 'utf8');
+
+function replaceTemplate(filename, placeholder, template) {
+  var schemaString, schema;
+  try {
+    schemaString = fs.readFileSync(Path.join(schemaFolder, filename), 'utf8');
+  } catch (e) {
+    console.log('Cannot read schema file: ' + filename);
+    console.log('Are you sure you have the correct schema folder path?');
+    throw e;
+  }
+  try {
+    schema = JSON.parse(schemaString);
+  } catch (e) {
+    console.log('Cannot parse schema file: ' + filename);
+    throw e;
+  }
+  return template.replace('{{' + placeholder + '}}', leftpad(4, encodeYaml(schema)));
+};
+
+function leftpad(count, string) {
+  return string
+    .split('\n')
+    .map(x => new Array(count).fill(' ').join('') + x)
+    .join('\n');
+}
+
+function encodeYaml(obj) {
+  // simple yaml encode
+  var text = '';
+  for (var key in obj) {
+    var value = obj[key];
+    text += "'" + key + "': ";
+    if (typeof value === 'string') {
+      text += value;
+    } else if (typeof value === 'object') {
+      text += '\n' + leftpad(2, encodeYaml(value));
+    } else {
+      // Not supported
+    }
+    text += '\n';
+  }
+  return text.trim();
+}
+
+var replaced =
+  replaceTemplate('chargenrueckrufe_de_schema.json', 'chargenrueckrufe_de',
+  replaceTemplate('chargenrueckrufe_fr_schema.json', 'chargenrueckrufe_fr',
+  replaceTemplate('dhcp_hcp_de_schema.json', 'dhcp_hcp_de',
+  replaceTemplate('dhcp_hcp_fr_schema.json', 'dhcp_hcp_fr',
+  replaceTemplate('drugshortage_schema.json', 'drugshortage',
+  template)))));
+
+var exportPath = Path.join(__dirname, '..', 'swagger.yml');
+fs.writeFileSync(exportPath, replaced, { encoding: 'utf8' });
+
+console.log('Done. Swagger file written to:');
+console.log(exportPath);

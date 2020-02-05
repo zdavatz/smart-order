@@ -1,0 +1,249 @@
+swagger: '2.0'
+info:
+  description: |
+    API for Smart order
+  version: 1.0.0
+  title: Smart Order
+  license:
+    name: GPLv3
+    url: http://www.gnu.org/licenses/
+schemes:
+- http
+- https
+host: so.zurrose.ch
+basePath: /
+
+securityDefinitions:
+  authkey:
+    type: apiKey
+    name: authkey
+    in: query
+
+paths:
+  /gtin:
+    get:
+      parameters:
+      - in: query
+        name: gtin
+        type: string
+        required: true
+      produces:
+        - application/json
+      responses:
+        200:
+          description: ""
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/RoseArticleWithAlternatives'
+
+  /smart/full:
+    get:
+      security:
+      - authkey: []
+      produces:
+        - application/json
+      parameters:
+        - in: query
+          name: pretty
+          type: string
+          default: "off"
+        - in: query
+          name: glncode
+          type: string
+          required: true
+        - in: query
+          name: basket
+          type: string
+          required: false
+        - in: query
+          name: nota
+          type: string
+          required: false
+          description: |
+            Either "de" or "fr"
+      responses:
+        200:
+          description: ''
+          schema:
+            $ref: '#/definitions/RoseOrder'
+
+  /cockpit/chargenrueckrufe_de.json:
+    get:
+      security:
+      - authkey: []
+      produces:
+        - application/json
+      responses:
+        200:
+          description: ''
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Chargenrueckrufe_de'
+
+  /cockpit/chargenrueckrufe_fr.json:
+    get:
+      security:
+      - authkey: []
+      produces:
+        - application/json
+      responses:
+        200:
+          description: ''
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Chargenrueckrufe_fr'
+  /cockpit/dhcp_hcp_de.json:
+    get:
+      security:
+      - authkey: []
+      produces:
+        - application/json
+      responses:
+        200:
+          description: ''
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Dhcp_hcp_de'
+
+  /cockpit/dhcp_hcp_fr.json:
+    get:
+      security:
+      - authkey: []
+      produces:
+        - application/json
+      responses:
+        200:
+          description: ''
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Dhcp_hcp_fr'
+
+  /cockpit/drugshortage.json:
+    get:
+      security:
+      - authkey: []
+      produces:
+        - application/json
+      responses:
+        200:
+          description: ''
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/DrugStorage'
+
+definitions:
+  RoseArticleWithAlternatives:
+    allOf:
+    - $ref: '#/definitions/RoseArticle'
+    - type: object
+      required:
+        - alternatives
+      properties:
+        alternatives:
+          type: array
+          items:
+            $ref: '#/definitions/RoseArticle'
+  RoseArticle:
+    type: object
+    additionalProperties: false
+    required:
+      - gtin
+      - pharma
+      - title
+      - title_FR
+      - replaces_article
+      - core_assort
+      - supplier
+      - quantity
+      - swissmed
+      - rose_price
+      - public_price
+      - prefs
+      - avail_date
+      - shipping
+      - off_market
+      - dlk_flag
+      - npl
+      - is_nota
+      - nota_status
+      - last_order
+      - alt
+    properties:
+      gtin:
+        type: string
+      pharma:
+        type: string
+      title:
+        type: string
+      title_FR:
+        type: string
+      replaces_article:
+        type: string
+      core_assort:
+        type: string
+      supplier:
+        type: string
+      quantity:
+        type: integer
+      swissmed:
+        type: string
+      rose_price:
+        type: number
+      public_price:
+        type: number
+      prefs:
+        type: string
+      avail_date:
+        type: string
+      shipping:
+        type: string
+      off_market:
+        type: boolean
+      dlk_flag:
+        type: boolean
+      npl:
+        type: boolean
+      is_nota:
+        type: boolean
+      nota_status:
+        type: string
+      last_order:
+        type: string
+      alt:
+        type: integer
+  RoseOrder:
+    type: object
+    additionalProperties: false
+    required:
+      - hash
+      - time
+      - glncode
+      - order
+    properties:
+      hash:
+        type: string
+      time:
+        type: string
+      glncode:
+        type: string
+      order:
+        type: array
+        items:
+          $ref: '#/definitions/RoseArticleWithAlternatives'
+
+  Chargenrueckrufe_de:
+{{chargenrueckrufe_de}}
+  Chargenrueckrufe_fr:
+{{chargenrueckrufe_fr}}
+  Dhcp_hcp_de:
+{{dhcp_hcp_de}}
+  Dhcp_hcp_fr:
+{{dhcp_hcp_fr}}
+  DrugStorage:
+{{drugshortage}}
