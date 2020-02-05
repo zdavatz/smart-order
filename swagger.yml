@@ -80,7 +80,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/Chargenrueckrufe'
+              $ref: '#/definitions/Chargenrueckrufe_de'
 
   /cockpit/chargenrueckrufe_fr.json:
     get:
@@ -94,7 +94,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/Chargenrueckrufe'
+              $ref: '#/definitions/Chargenrueckrufe_fr'
   /cockpit/dhcp_hcp_de.json:
     get:
       security:
@@ -107,7 +107,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/Chargenrueckrufe'
+              $ref: '#/definitions/Dhcp_hcp_de'
 
   /cockpit/dhcp_hcp_fr.json:
     get:
@@ -121,7 +121,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/Chargenrueckrufe'
+              $ref: '#/definitions/Dhcp_hcp_fr'
 
   /cockpit/drugshortage.json:
     get:
@@ -237,86 +237,161 @@ definitions:
         items:
           $ref: '#/definitions/RoseArticleWithAlternatives'
 
-  Chargenrueckrufe:
-    type: object
-    additionalProperties: false
-    required:
-      - _id
-      - title
-      - url
-      - date
-      - type
-      - lang
-      - desc
-      - pdf
-      - prep
-    properties:
-      _id:
-        type: string
-      title:
-        type: string
-      url:
-        type: string
-        format: uri
-      date:
-        type: string
-        format: "dd.mm.yyyy"
-      type:
-        type: string
-      lang:
-        type: string
-      desc:
-        type: string
-      pdf:
-        type: string
-        format: uri
-      prep:
-        type: array
-        items:
-          type: object
-          additionalProperties: false
-          required:
-            - prop
-            - field
-          properties:
-            prop:
-              type: string
-            field:
-              type: string
-
+  Chargenrueckrufe_de:
+    'type': object
+    'properties': 
+      '_id': 
+        'type': string
+        'format': integer
+      'title': 
+        'type': string
+      'url': 
+        'type': string
+        'format': uri
+      'date': 
+        'type': string
+        'format': date
+      'type': 
+        'type': string
+      'lang': 
+        'type': string
+      'desc': 
+        'type': string
+      'pdf': 
+        'type': string
+        'format': uri
+      'prep': 
+        'type': array
+        'items': 
+          'type': object
+  Chargenrueckrufe_fr:
+    'type': object
+    'properties': 
+      '_id': 
+        'type': string
+        'format': integer
+      'title': 
+        'type': string
+      'url': 
+        'type': string
+        'format': uri
+      'date': 
+        'type': string
+        'format': date
+      'type': 
+        'type': string
+      'lang': 
+        'type': string
+      'desc': 
+        'type': string
+      'pdf': 
+        'type': string
+        'format': uri
+      'prep': 
+        'type': array
+        'items': 
+          'type': object
+  Dhcp_hcp_de:
+    'type': object
+    'properties': 
+      '_id': 
+        'type': string
+        'format': integer
+      'title': 
+        'type': string
+      'url': 
+        'type': string
+        'format': uri
+      'date': 
+        'type': string
+        'format': date
+      'type': 
+        'type': string
+      'lang': 
+        'type': string
+      'desc': 
+        'type': string
+      'pdf': 
+        'type': string
+        'format': uri
+      'prep': 
+        'type': array
+        'items': 
+          'type': object
+  Dhcp_hcp_fr:
+    'type': object
+    'properties': 
+      '_id': 
+        'type': string
+        'format': integer
+      'title': 
+        'type': string
+      'url': 
+        'type': string
+        'format': uri
+      'date': 
+        'type': string
+        'format': date
+      'type': 
+        'type': string
+      'lang': 
+        'type': string
+      'desc': 
+        'type': string
+      'pdf': 
+        'type': string
+        'format': uri
+      'prep': 
+        'type': array
+        'items': 
+          'type': object
   DrugStorage:
-    type: object
-    required:
-      - id
-      - bezeichnung
-      - detailsLink
-      - gtin
-      - pharmacode
-      - firma
-      - datumLetzteMutation
-      - tageSeitSrsterMeldung
-      - status
-      - datumLieferfahigkeit
-    properties:
-      id:
-        type: integer
-      bezeichnung:
-        type: string
-      detailsLink:
-        type: string
-        format: uri
-      gtin:
-        type: string
-      pharmacode:
-        type: string
-      firma:
-        type: string
-      datumLetzteMutation:
-        type: string
-        format: "dd.mm.yyyy"
-      tageSeitSrsterMeldung:
-        type: string
-      status:
-        type: string
-      datumLieferfahigkeit:
-        type: string
+    'type': object
+    'properties': 
+      'id': 
+        'type': string
+        'format': integer
+      'bezeichnung': 
+        'type': string
+      'detailsLink': 
+        'type': string
+        'format': uri
+      'gtin': 
+        'type': string
+        'format': integer
+      'pharmacode': 
+        'type': string
+        'format': integer
+      'firma': 
+        'type': string
+      'datumLetzteMutation': 
+        'type': string
+        'format': date
+      'tageSeitErsterMeldung': 
+        'type': string
+        'format': date
+      'status': 
+        'type': string
+      'datumLieferfahigkeit': 
+        'type': string
+        'format': date
+      'company': 
+        'type': object
+        'properties': 
+          'Bewertung': 
+            'type': integer
+          'Firma': 
+            'type': string
+          'Anzahl registrierte Produkte Total': 
+            'type': integer
+          'Anzahl offene Engpässe': 
+            'type': integer
+      'colorCode': 
+        'type': object
+        'properties': 
+          '#': 
+            'type': integer
+          'Bewertung': 
+            'type': string
+          'Art der Meldung': 
+            'type': string
