@@ -432,8 +432,6 @@ public class ShoppingRose {
                         return c;
                     }
                 });
-                // Assert
-                assert (list_of_similar_articles.size() > 0);
             }
 
             m_map_similar_articles.put(ean_code, list_of_similar_articles);
