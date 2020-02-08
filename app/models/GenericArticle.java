@@ -88,6 +88,16 @@ public class GenericArticle {
             new SimpleEntry<>("7601001394834", "spirig"))
             .collect(Collectors.toMap(SimpleEntry::getKey, SimpleEntry::getValue));
 
+    public static final String eanOfName(String name) {
+        for (Map.Entry<String, String> entry : eanNameMap.entrySet()) {
+            String value = entry.getValue();
+            if (value.equals(name)) {
+                return entry.getKey();
+            }
+        }
+        return null;
+    }
+
     public GenericArticle() {
         //
     }
@@ -465,6 +475,11 @@ public class GenericArticle {
     public void setLastOrder(String order) { last_order = order; }
 
     public String getLastOrder() { return last_order; }
+
+    public boolean isMepha() {
+        String ean = this.getEanCode();
+        return "mepha".equals(GenericArticle.eanNameMap.get(ean));
+    }
 
     /**
      * Compares two strings (titles)

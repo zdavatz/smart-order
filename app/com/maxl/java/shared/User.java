@@ -59,4 +59,8 @@ public class User {
         }
         return this.getPreferences().contains(name);
     }
+
+    public boolean isNamePreferred(String name) {
+        return this.getPreferences().contains(name);
+    }
 }

@@ -506,6 +506,16 @@ public class ShoppingRose {
             }
         }
 
+        // Use Case 14
+        if ((m_user_preference.isPreferenceEmpty() || m_user_preference.isNamePreferred("mepha"))
+            && ga.isMepha() 
+            && article.isNota()
+        ) {
+            boolean hasSameArticleWithDifferentSize = article.alternatives
+                .stream()
+                .anyMatch(a -> article.isSimilarByTitle(a));
+            return 1;
+        }
         if (!m_user_preference.isPreferenceEmpty() && isOrangeOrRed) {
             boolean hasBetterAlternative = article.alternatives
                 .stream()
