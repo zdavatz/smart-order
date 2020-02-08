@@ -28,6 +28,8 @@ import play.db.NamedDatabase;
 import play.db.Database;
 import play.libs.Json;
 import play.mvc.*;
+import play.data.DynamicForm;
+import play.data.Form;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -107,6 +109,16 @@ public class MainController extends Controller {
         String res = rose_articles.thenApply(f -> Json.prettyPrint(toJson(f))).join();
         String duration = String.format("Duration: %dms\n\n", (System.currentTimeMillis() - starttime));
         return ok(duration + res);
+    }
+
+    public Result getSmartBasketPost() {
+        DynamicForm form = Form.form().bindFromRequest();
+
+        if (form.data().size() == 0) {
+            return badRequest("Expceting some data");
+        }
+
+        return getSmartBasket(form.get("pretty"), form.get("authkey"), form.get("glncode"), form.get("basket"), form.get("nota"));
     }
 
     /**
