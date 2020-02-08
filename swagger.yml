@@ -67,6 +67,35 @@ paths:
           description: ''
           schema:
             $ref: '#/definitions/RoseOrder'
+    post:
+      security:
+      - authkey: []
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: pretty
+          type: string
+          default: "off"
+        - in: body
+          name: glncode
+          type: string
+          required: true
+        - in: body
+          name: basket
+          type: string
+          required: false
+        - in: body
+          name: nota
+          type: string
+          required: false
+          description: |
+            Either "de" or "fr"
+      responses:
+        200:
+          description: ''
+          schema:
+            $ref: '#/definitions/RoseOrder'
 
   /cockpit/chargenrueckrufe_de.json:
     get:
