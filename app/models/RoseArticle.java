@@ -257,4 +257,15 @@ public class RoseArticle {
     public void setAuthorGlnCode(String gln) {
         this.author_gln_code = gln;
     }
+
+    public boolean isSimilarByTitle(RoseArticle a) {
+        // Tokenize titles first
+        String[] t1 = this.getTitle().split("\\s+");
+        String[] t2 = a.getTitle().split("\\s+");
+        if (t1.length>0 && t2.length>0) {
+            if (t1[0].toLowerCase().equals(t2[0].toLowerCase()))
+                return true;
+        }
+        return false;
+    }
 }
