@@ -370,6 +370,7 @@ public class ShoppingRose {
         String size = article.getPackSize();
         String dosage = article.getPackUnit();
         boolean isOrangeOrRed = article.getShippingStatus() == 4 || article.getShippingStatus() == 5;
+
         // Loop through all entries and sort/filter
         for (Map.Entry<String, List<GenericArticle>> entry : m_map_similar_articles.entrySet()) {
             // Ean code of "key" article
@@ -378,6 +379,11 @@ public class ShoppingRose {
             LinkedList<GenericArticle> list_of_similar_articles = new LinkedList<GenericArticle>(entry.getValue());
             // Remove the key article itself
             list_of_similar_articles.removeIf(a -> a.getEanCode().equals(ean_code));
+
+            boolean hasOtherPackageSizeOfTheSameProduct = list_of_similar_articles
+                .stream()
+                .allMatch(a -> sortSameArticleWithDifferentSize(article, a, a) != 0 || a.isNotaArticle());
+            boolean isUseCase15 = m_user_preference.isEanPreferred(article.getAuthorGln()) && article.isNotaArticle() && hasOtherPackageSizeOfTheSameProduct;
 
             if (list_of_similar_articles.size() > 0) {
                 Collections.sort(list_of_similar_articles, new Comparator<GenericArticle>() {
@@ -402,6 +408,15 @@ public class ShoppingRose {
                      */
                     public int compare(GenericArticle a1, GenericArticle a2) {
                         int c = 0;
+                        if (isUseCase15) {
+                            if (c == 0) {
+                                c = sortOriginals(a1, a2);
+                            }
+                            if (c == 0) {
+                                c = sortSameArticleWithDifferentSize(article, a1, a2);
+                            }
+                        }
+
                         if (c == 0) {
                             c = sortCustomerPreference(a1, a2);
                         }
@@ -516,6 +531,16 @@ public class ShoppingRose {
                 .anyMatch(a -> article.isSimilarByTitle(a));
             return 1;
         }
+
+        boolean hasOtherPackageSizeOfTheSameProduct = article
+            .alternatives
+            .stream()
+            .allMatch(a -> !article.isSimilarByTitle(a) || a.isNota());
+        boolean isUseCase15 = m_user_preference.isEanPreferred(ga.getAuthorGln()) && article.isNota() && hasOtherPackageSizeOfTheSameProduct;
+        if (isUseCase15) {
+            return 2;
+        }
+
         if (!m_user_preference.isPreferenceEmpty() && isOrangeOrRed) {
             boolean hasBetterAlternative = article.alternatives
                 .stream()
