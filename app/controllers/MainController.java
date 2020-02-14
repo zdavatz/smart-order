@@ -358,7 +358,7 @@ public class MainController extends Controller {
                                 if (is_original_but_not_green && is_original_alternative_and_green && have_same_title) {
                                     // Add it to the list of originals
                                     original_list_a.add(a);
-                                } else if (!a.isOriginal() && checkSimilarity2(size, s, unit, u, 0.901f)) {
+                                } else if (!a.isOriginal() && checkSimilarity(size, s, unit, u, 0.901f)) {
                                     // Allow only *same* dosages
                                     list_a.add(a);
                                 } else if (is_not_green && is_original_alternative_and_green) {
@@ -461,13 +461,7 @@ public class MainController extends Controller {
                 && s2 > (s1-f1) && s2 < (s1+f1);
     }
 
-    private boolean checkSimilarity(String size_1, String size_2, String unit_1, String unit_2) {
-        if (size_1.toLowerCase().equals(size_2.toLowerCase()) && unit_1.toLowerCase().equals(unit_2.toLowerCase()))
-            return true;
-        return false;
-    }
-
-    private boolean checkSimilarity2(String size_1, String size_2, String unit_1, String unit_2, float search_window) {
+    private boolean checkSimilarity(String size_1, String size_2, String unit_1, String unit_2, float search_window) {
         boolean check_size = false;
         boolean check_units = false;
         if (!size_1.isEmpty() && !size_2.isEmpty())
@@ -477,41 +471,9 @@ public class MainController extends Controller {
         return check_size && check_units;
     }
 
-    /**
-     * Extracts dosage/unit/prescription strength from package title
-     * @param pack_title
-     * @return extracted dosage
-     */
-    private String parseUnitFromTitle(String pack_title) {
-        String dosage = "";
-        Pattern p = Pattern.compile("(\\d+)(\\.\\d+)?\\s*(ml|mg|mcg|g|mmol|mcg/h|mg/ml)");
-        Matcher m = p.matcher(pack_title);
-        if (m.find()) {
-            dosage = m.group(1);
-            String q = m.group(2);
-            if (q!=null && !q.isEmpty()) {
-                dosage += q;
             }
-            dosage += (" " + m.group(3));
         }
-        return dosage;
-    }
-
-    /**
-     * Extracts package size from title
-     *
-     */
-    private int parseSizeFromTitle(String pack_title) {
-        String size = "";
-        Pattern p = Pattern.compile("(\\d+)\\s*(stk)");
-        Matcher m = p.matcher(pack_title);
-        if (m.find()) {
-            size = m.group(1);
         }
-        if (!size.isEmpty())
-            return Integer.valueOf(size);
-        else
-            return 0;
     }
 
     /** ----------------------------------------------------------------------------
@@ -680,63 +642,6 @@ public class MainController extends Controller {
             article.setPackTitleFR(result.getString(23));    // KEY_TITLE_FR
         } catch (SQLException e) {
             System.err.printf(">> RoseDb: SQLException in cursorToArticle -> %s%n", article.getId());
-        }
-
-        return article;
-    }
-
-    private GenericArticle extendedCursorToArticle(ResultSet result, String code) {
-        GenericArticle article = new GenericArticle();
-        //  KEY_ROWID, KEY_TITLE, KEY_AUTH, KEY_ATC, KEY_PACKAGES
-        try {
-            article.setId(result.getLong(1));               // KEY_ROWID
-            article.setPackTitle(result.getString(2));      // KEY_TITLE
-            article.setSupplier(result.getString(3));       // KEY_AUTH
-            // Extract ATC Code
-            String atc_code_str = result.getString(4);      // KEY_ATCCODE
-            String a[] = atc_code_str.split(";");
-            if (a.length>0)
-                article.setAtcCode(a[0]);
-            String pack_info = result.getString(5);         // KEY_PACK_INFO
-            String packages = result.getString(6);          // KEY_PACKAGES
-            // Extract row which contains 'code'
-            String packs[] = packages.split("\n");          // rows of type str|str|str|....
-            int row = 0;
-            for (String p : packs) {
-                if (p.contains(code)) {
-                    String s[] = p.split("\\|");
-                    if (s.length>10) {
-                        String pack_title = s[0];
-                        article.setPackTitle(capitalizeFully(pack_title, 1));
-                        // Parse units and dosage/size from title
-                        String unit = parseUnitFromTitle(pack_title);
-                        int size = parseSizeFromTitle(pack_title);
-                        article.setPackUnit(unit);
-                        article.setPackSize(Integer.toString(size));
-                        article.setEanCode(s[9]);
-                        article.setPharmaCode(s[10]);
-                        article.setPublicPrice(s[4]);
-                        break;
-                    }
-                }
-                row++;
-            }
-            // Extracts row'th row from pack info string
-            String info[] = pack_info.split("\n");
-            if (info.length>=row) {
-                String r = info[row];
-                String m = r.substring(r.indexOf("[")+1, r.indexOf("]"));
-                if (m.endsWith(", O]"))
-                    article.setFlags(m);
-                else
-                    article.setFlags(m);
-            }
-            // Set availability to ORANGE (= not on stock hence aipsdb fallback!)
-            // This should be RARE!
-            article.setAvailability("-2");
-
-        } catch (SQLException e) {
-            System.err.println(">> AipsDb: SQLException in extendedCursorToArticle");
         }
 
         return article;
