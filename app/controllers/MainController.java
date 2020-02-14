@@ -468,12 +468,32 @@ public class MainController extends Controller {
             check_size = basicSimilarityCheck(size_1, size_2, search_window);
         if (!unit_1.isEmpty() && !unit_2.isEmpty())
             check_units = unit_1.toLowerCase().equals(unit_2.toLowerCase());    // Units/dosage must be the same
+        if (!check_units) {
+            // Sometimes the dosage does not have an unit, e.g. instead of "2.5mg" it's just "2.5".
+            // In this case it can be any unit.
+            float u1f = takeFloat(unit_1);
+            float u2f = takeFloat(unit_2);
+            if (Float.toString(u1f).equals(unit_1) || Float.toString(u2f).equals(unit_2)) {
+                // One of them is without unit
+                check_units = u1f == u2f;
+            }
+        }
         return check_size && check_units;
     }
 
+    private float takeFloat(String input) {
+        // e.g. "12.34mg" -> 12.34
+        // e.g. "xx" -> -1
+        String acc = "";
+        for (char c : input.toCharArray()) {
+            if (Character.isDigit(c) || c == '.') {
+                acc += c;
             }
         }
+        if (acc.equals("")) {
+            return -1;
         }
+        return Float.parseFloat(acc);
     }
 
     /** ----------------------------------------------------------------------------
