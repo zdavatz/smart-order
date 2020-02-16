@@ -469,29 +469,36 @@ public class MainController extends Controller {
         if (!unit_1.isEmpty() && !unit_2.isEmpty())
             check_units = unit_1.toLowerCase().equals(unit_2.toLowerCase());    // Units/dosage must be the same
         if (!check_units) {
-            // Sometimes the dosage does not have an unit, e.g. instead of "2.5mg" it's just "2.5".
-            // In this case it can be any unit.
-            float u1f = takeFloat(unit_1);
-            float u2f = takeFloat(unit_2);
-            if (Float.toString(u1f).equals(unit_1) || Float.toString(u2f).equals(unit_2)) {
-                // One of them is without unit
-                check_units = u1f == u2f;
+            check_units = takeDosage(unit_1).equals(takeDosage(unit_2));
+        }
+        if (!check_units) {
+            if (unit_1.toLowerCase().endsWith("ds") || unit_2.toLowerCase().endsWith("ds")) {
+                check_units = takeDosage(unit_1).equals(takeDosage(unit_2));
             }
         }
         return check_size && check_units;
     }
 
-    private float takeFloat(String input) {
-        // e.g. "12.34mg" -> 12.34
-        // e.g. "xx" -> -1
+    private String takeDosage(String input) {
+        // e.g. "12.34ds" -> "12.34ds"
+        // e.g. "1/12.34ds" -> "12.34ds"
+        // e.g. "1/12mg" -> "12mg"
+        String[] splitted = input.toLowerCase().split("/");
+        return splitted.length >= 2 ? splitted[1] : splitted[0];
+    }
+    private Float takeDosageDs(String input) {
+        String dosage = takeDosage(input);
+        if (dosage.toLowerCase().endsWith("ds")) {
+            dosage = dosage.toLowerCase().replaceAll("ds", "").trim();
+        }
         String acc = "";
-        for (char c : input.toCharArray()) {
+        for (char c : dosage.toCharArray()) {
             if (Character.isDigit(c) || c == '.') {
                 acc += c;
             }
         }
         if (acc.equals("")) {
-            return -1;
+            return -1.0f;
         }
         return Float.parseFloat(acc);
     }
