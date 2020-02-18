@@ -638,10 +638,9 @@ public class ShoppingRose {
                     List<GenericArticle> la = m_map_similar_articles.get(ean_code);
                     for (GenericArticle a : la) {
                         String alter_ean_code = a.getEanCode();
-
                         if (!alter_ean_code.equals(ean_code)) {
-                            if (article.isOriginal()
-                                    || (article.isGenerikum() && a.isGenerikum())
+                            if (a.isOriginal()
+                                    || article.isGenerikum()
                                     || a.isReplacementArticle()
                                     || (article.isGenerikum() && article.getShippingStatus() > 1 && a.isOriginal() && a.getShippingStatus() == 1)) {
 

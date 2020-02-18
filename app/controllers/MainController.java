@@ -358,7 +358,7 @@ public class MainController extends Controller {
                                 if (is_original_but_not_green && is_original_alternative_and_green && have_same_title) {
                                     // Add it to the list of originals
                                     original_list_a.add(a);
-                                } else if (!a.isOriginal() && checkSimilarity(size, s, unit, u, 0.901f)) {
+                                } else if (!article.isOriginal() && checkSimilarity(size, s, unit, u, 0.901f)) {
                                     // Allow only *same* dosages
                                     list_a.add(a);
                                 } else if (is_not_green && is_original_alternative_and_green) {
@@ -375,8 +375,9 @@ public class MainController extends Controller {
                             u = u.replaceAll("[^A-Za-z]", "");
                             String unit_clean = unit.replaceAll("[^A-Za-z]", "");
                             // System.out.println(a.getPackTitle() + " -> " + a.getAvailability() + " | " + s + "=" + size + " | " + u + "=" + unit_clean);
-                            if (u.equals(unit_clean) && s.equals(size) && !a.isOffMarket())
+                            if (u.equals(unit_clean) && s.equals(size) && !a.isOffMarket()) {
                                 list_a.add(a);
+                            }
                         }
                     }
                 }
@@ -472,9 +473,7 @@ public class MainController extends Controller {
             check_units = takeDosage(unit_1).equals(takeDosage(unit_2));
         }
         if (!check_units) {
-            if (unit_1.toLowerCase().endsWith("ds") || unit_2.toLowerCase().endsWith("ds")) {
-                check_units = takeDosage(unit_1).equals(takeDosage(unit_2));
-            }
+            check_units = compareDosage(unit_1, unit_2);
         }
         return check_size && check_units;
     }
@@ -486,21 +485,27 @@ public class MainController extends Controller {
         String[] splitted = input.toLowerCase().split("/");
         return splitted.length >= 2 ? splitted[1] : splitted[0];
     }
-    private Float takeDosageDs(String input) {
+    private Float takeNumOnly(String input) {
         String dosage = takeDosage(input);
-        if (dosage.toLowerCase().endsWith("ds")) {
-            dosage = dosage.toLowerCase().replaceAll("ds", "").trim();
-        }
         String acc = "";
         for (char c : dosage.toCharArray()) {
             if (Character.isDigit(c) || c == '.') {
                 acc += c;
+            } else {
+                break;
             }
         }
         if (acc.equals("")) {
             return -1.0f;
         }
         return Float.parseFloat(acc);
+    }
+
+    private boolean compareDosage(String u1, String u2) {
+        if (u1.toLowerCase().endsWith("ds") || u2.toLowerCase().endsWith("ds")) {
+            return takeNumOnly(u1).equals(takeNumOnly(u2));
+        }
+        return false;
     }
 
     /** ----------------------------------------------------------------------------
