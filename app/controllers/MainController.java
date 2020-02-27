@@ -470,39 +470,32 @@ public class MainController extends Controller {
         if (!unit_1.isEmpty() && !unit_2.isEmpty())
             check_units = unit_1.toLowerCase().equals(unit_2.toLowerCase());    // Units/dosage must be the same
         if (!check_units) {
-            check_units = takeDosage(unit_1).equals(takeDosage(unit_2));
-        }
-        if (!check_units) {
             check_units = compareDosage(unit_1, unit_2);
         }
         return check_size && check_units;
     }
 
-    private String takeDosage(String input) {
-        // e.g. "12.34ds" -> "12.34ds"
-        // e.g. "1/12.34ds" -> "12.34ds"
-        // e.g. "1/12mg" -> "12mg"
-        String[] splitted = input.toLowerCase().split("/");
-        return splitted.length >= 2 ? splitted[1] : splitted[0];
-    }
-    private Float takeNumOnly(String input) {
-        String dosage = takeDosage(input);
+    private String takeNumOnly(String input) {
+        String dosage = input;
         String acc = "";
         for (char c : dosage.toCharArray()) {
-            if (Character.isDigit(c) || c == '.') {
+            if (Character.isDigit(c) || c == '.' || c == '/') {
                 acc += c;
             } else {
                 break;
             }
         }
-        if (acc.equals("")) {
-            return -1.0f;
-        }
-        return Float.parseFloat(acc);
+        return acc;
     }
 
     private boolean compareDosage(String u1, String u2) {
-        if (u1.toLowerCase().endsWith("ds") || u2.toLowerCase().endsWith("ds")) {
+        u1 = u1.trim();
+        u2 = u2.trim();
+        String numOnly1 = takeNumOnly(u1);
+        String numOnly2 = takeNumOnly(u2);
+        boolean is1WithoutUnit = u1.toLowerCase().endsWith("ds") || numOnly1.equals(u1);
+        boolean is2WithoutUnit = u2.toLowerCase().endsWith("ds") || numOnly2.equals(u2);
+        if (is1WithoutUnit || is2WithoutUnit) {
             return takeNumOnly(u1).equals(takeNumOnly(u2));
         }
         return false;
