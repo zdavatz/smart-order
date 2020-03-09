@@ -72,20 +72,22 @@ paths:
       - authkey: []
       produces:
         - application/json
+      consumes:
+        - application/x-www-form-urlencoded
       parameters:
-        - in: body
+        - in: formData
           name: pretty
           type: string
           default: "off"
-        - in: body
+        - in: formData
           name: glncode
           type: string
           required: true
-        - in: body
+        - in: formData
           name: basket
           type: string
           required: false
-        - in: body
+        - in: formData
           name: nota
           type: string
           required: false
@@ -222,16 +224,32 @@ definitions:
         type: integer
       swissmed:
         type: string
+        description: |
+          A comma separated list of the following values. All of them are optional.
+          - Category: A / B / C / D / E
+          - SL
+          - LIM[limitationPoints]
+          - SB 20% / SB 10%
+          - O / G / K
+        example: E, SL, LIM20, SB 20%, G
       rose_price:
         type: number
       public_price:
         type: number
       prefs:
         type: string
+        description: |
+          Either an empty string or "ZRP"
       avail_date:
         type: string
       shipping:
         type: string
+        enum:
+          - green
+          - gold
+          - orange
+          - red
+          - black
       off_market:
         type: boolean
       dlk_flag:
