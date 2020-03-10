@@ -227,6 +227,7 @@ definitions:
         description: |
           A comma separated list of the following values. All of them are optional.
           - Category: A / B / C / D / E
+          - BioT (Biotechnologica according to Swissmedic)
           - SL
           - LIM[limitationPoints]
           - SB 20% / SB 10%
