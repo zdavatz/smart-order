@@ -127,9 +127,12 @@ public class ShoppingRose {
         if (user_map.containsKey(m_customer_id)) {
             m_user_preference = user_map.get(m_customer_id);
         } else {
-            for (User user : user_map.values()) {
+            for (Map.Entry<String, User> entry : user_map.entrySet()) {
+                String key = entry.getKey();
+                User user = entry.getValue();
                 if (user.gln_code.equals(m_customer_gln_code)) {
                     m_user_preference = user;
+                    m_customer_id = key;
                     break;
                 }
             }
@@ -138,6 +141,10 @@ public class ShoppingRose {
             System.out.println(">> Error: Cannot find customer preferences");
             throw new Exception("Customer not found");
         }
+    }
+
+    public String getCustomerId() {
+        return m_customer_id;
     }
 
     /**
@@ -489,6 +496,30 @@ public class ShoppingRose {
             }
         }
 
+        RoseData rd = RoseData.getInstance();
+        if (rd.isMedixUser(m_customer_id)) {
+            // UseCase 19
+            if (GenericArticle.eanNameMap.get(ga.getEanCode()) != null ||
+                (ga.isOriginal() && this.generateCoreAssort(ga))
+            ) {
+                if (ga.getShippingStatus() == 1) {
+                    // Green
+                    return 0;
+                }
+            }
+
+            // UseCase 20
+            if (ga.getShippingStatus() != 1) {
+                // orange or red
+                return 4;
+            }
+
+            // UseCase 21
+            if (ga.isOriginal() && !this.generateCoreAssort(ga)) {
+                return 0;
+            }
+        }
+
         // UseCase 4 in PDF
         if (m_user_preference.isEanPreferred(ga.getAuthorGln())
             && ga.getShippingStatus() == 1
@@ -523,7 +554,7 @@ public class ShoppingRose {
 
         // Use Case 14
         if ((m_user_preference.isPreferenceEmpty() || m_user_preference.isNamePreferred("mepha"))
-            && ga.isMepha() 
+            && ga.isMepha()
             && article.isNota()
         ) {
             boolean hasSameArticleWithDifferentSize = article.alternatives

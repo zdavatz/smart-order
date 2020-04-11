@@ -78,28 +78,6 @@ public class FileOps {
         bw.close();
     }
 
-    static public Map<String,String> readFromCsvToMap(String filename) {
-        Map<String, String> map = new TreeMap<>();
-        try {
-            File file = new File(filename);
-            if (!file.exists())
-                return null;
-
-            FileInputStream fis = new FileInputStream(filename);
-            BufferedReader br = new BufferedReader(new InputStreamReader(fis, "UTF-8"));
-            String line;
-            while ((line = br.readLine()) != null) {
-                String token[] = line.split("\\|\\|");
-                map.put(token[0] + "-" + token[1], token[2]);
-            }
-            br.close();
-        } catch (Exception e) {
-            System.err.println(">> Error in reading csv file: " + filename);
-        }
-
-        return map;
-    }
-
     static public ArrayList<String> readFromTxtToList(String path) {
         File file = new File(path);
         if (!file.exists())

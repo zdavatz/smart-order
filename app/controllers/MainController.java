@@ -245,7 +245,7 @@ public class MainController extends Controller {
         String hash = shopping_cart.randomHashCode(timestamp);
 
         String customer_gln = shopping_cart.getCustomerGlnCode();
-        RoseOrder rose_order = new RoseOrder(hash, timestamp, customer_gln);
+        RoseOrder rose_order = new RoseOrder(hash, timestamp, customer_gln, shopping_cart.getCustomerId());
 
         rose_order.setListArticles(list_of_rose_articles);
 

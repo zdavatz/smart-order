@@ -40,6 +40,7 @@ public final class RoseData {
     private HashMap<String, User> rose_user_map;
     private HashMap<String, Float> rose_sales_figs_map;
     private HashMap<String, String> rose_ids_map;
+    private HashSet<String> medix_user_set;
     private ArrayList<String> rose_auth_keys_list;
     private HashMap<String, List<NotaPosition>> rose_nota_map;
     private HashMap<String, Pair<Integer, Integer>> rose_stock_map;
@@ -76,6 +77,10 @@ public final class RoseData {
         return this.rose_ids_map;
     }
 
+    public boolean isMedixUser(String gln_code) {
+        return this.medix_user_set.contains(gln_code);
+    }
+
     public ArrayList<String> auth_keys_list() {
         return this.rose_auth_keys_list;
     }
@@ -105,6 +110,8 @@ public final class RoseData {
             rose_auth_keys_list = loadRoseAuthKeys(rose_path + file_name);
         else if (file_name.equals("rose_stock.csv"))
             rose_stock_map = loadRoseStockMaps(rose_path + file_name);
+        else if (file_name.equals("medix_kunden.csv"))
+            medix_user_set = loadMedixUsers(rose_path + file_name);
         else if (file_name.equals("rose_settings.json"))
             loadRoseSettingsFile(rose_path + file_name);
 
@@ -135,6 +142,8 @@ public final class RoseData {
         // System.out.print("# Loading rose_stock.csv... ");
         rose_stock_map = loadRoseStockMaps(rose_path + "rose_stock.csv");
         // System.out.println("OK");
+
+        medix_user_set = loadMedixUsers(rose_path + "medix_kunden.csv");
 
         loadRoseSettingsFile(rose_path + "rose_settings.json");
     }
@@ -298,6 +307,33 @@ public final class RoseData {
        } catch(IOException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Loads Rose settings JSON file
+     */
+    @SuppressWarnings("unchecked")
+    public HashSet<String> loadMedixUsers(String file_name) {
+        HashSet<String> medixSet = new HashSet<>();
+        try {
+            File file = new File(file_name);
+            if (!file.exists())
+                return null;
+
+            FileInputStream fis = new FileInputStream(file_name);
+            BufferedReader br = new BufferedReader(new InputStreamReader(fis, "UTF-8"));
+            String line;
+            while ((line = br.readLine()) != null) {
+                String token[] = line.split(";", -1);
+                if (token.length >= 1) {
+                    String gln = token[0];
+                    medixSet.add(gln);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println(">> Error in reading csv file: " + file_name);
+        }
+        return medixSet;
     }
 
     /**
