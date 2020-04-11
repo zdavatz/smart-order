@@ -31,10 +31,11 @@ import java.util.List;
  */
 public class RoseOrder {
 
-    public RoseOrder(String hash, String timestamp, String glncode) {
+    public RoseOrder(String hash, String timestamp, String glncode, String customerId) {
         this.hash = hash;
         this.timestamp = timestamp;
         this.glncode = glncode;
+        this.customerId = customerId;
     }
 
     @JsonProperty("hash")
@@ -46,8 +47,20 @@ public class RoseOrder {
     @JsonProperty("glncode")
     private String glncode;
 
+    @JsonIgnore
+    private String customerId;
+
     @JsonProperty("order")
     private List<RoseArticle> list_of_rose_articles;
+
+    @JsonProperty("special_group")
+    private String specialGroup() {
+        RoseData rd = RoseData.getInstance();
+        if (rd.isMedixUser(this.customerId)) {
+            return "medix";
+        }
+        return null;
+    }
 
     public void setHash(String hash) {
         this.hash = hash;
