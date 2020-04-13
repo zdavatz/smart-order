@@ -22,6 +22,7 @@ package models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.maxl.java.shared.User;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -56,7 +57,8 @@ public class RoseOrder {
     @JsonProperty("special_group")
     private String specialGroup() {
         RoseData rd = RoseData.getInstance();
-        if (rd.isMedixUser(this.customerId)) {
+        User user = rd.user_map().get(this.customerId);
+        if (user != null && user.isMedixUser()) {
             return "medix";
         }
         return null;

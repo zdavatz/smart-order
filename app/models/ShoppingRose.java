@@ -497,7 +497,7 @@ public class ShoppingRose {
         }
 
         RoseData rd = RoseData.getInstance();
-        if (rd.isMedixUser(m_customer_id)) {
+        if (m_user_preference.isMedixUser()) {
             // UseCase 19
             if (GenericArticle.eanNameMap.get(ga.getEanCode()) != null ||
                 (ga.isOriginal() && this.generateCoreAssort(ga))

@@ -273,6 +273,7 @@ definitions:
       - time
       - glncode
       - order
+      - special_group
     properties:
       hash:
         type: string
@@ -284,6 +285,10 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/RoseArticleWithAlternatives'
+      special_group:
+        type: string
+        description: "medix" or null
+        example: "medix"
 
   Chargenrueckrufe_de:
     'type': object

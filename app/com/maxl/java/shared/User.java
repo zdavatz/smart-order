@@ -32,12 +32,17 @@ public class User {
     public HashMap<String, Integer> neu_map;
     public String street;
     public String zip;
+    public String special_group;
 
     public User() {
     }
 
     public boolean isPreferenceEmpty() {
         return this.getPreferences().isEmpty();
+    }
+
+    public boolean isMedixUser() {
+        return this.special_group.contains("medix");
     }
 
     public Integer getPreferenceCount() {
