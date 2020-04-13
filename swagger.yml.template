@@ -2,7 +2,7 @@ swagger: '2.0'
 info:
   description: |
     API for Smart order
-  version: 1.0.0
+  version: 1.0.1
   title: Smart Order
   license:
     name: GPLv3
@@ -227,6 +227,7 @@ definitions:
         description: |
           A comma separated list of the following values. All of them are optional.
           - Category: A / B / C / D / E
+          - BioT (Biotechnologica according to Swissmedic)
           - SL
           - LIM[limitationPoints]
           - SB 20% / SB 10%
@@ -272,6 +273,7 @@ definitions:
       - time
       - glncode
       - order
+      - special_group
     properties:
       hash:
         type: string
@@ -283,6 +285,10 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/RoseArticleWithAlternatives'
+      special_group:
+        type: string
+        description: "medix" or null
+        example: "medix"
 
   Chargenrueckrufe_de:
 {{chargenrueckrufe_de}}
