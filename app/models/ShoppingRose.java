@@ -672,6 +672,7 @@ public class ShoppingRose {
                         if (!alter_ean_code.equals(ean_code)) {
                             if (a.isOriginal()
                                     || article.isGenerikum()
+                                    || (!a.isOriginal() && !a.isGenerikum()) // Case which it is neither original / generikum #69
                                     || a.isReplacementArticle()
                                     || (article.isGenerikum() && article.getShippingStatus() > 1 && a.isOriginal() && a.getShippingStatus() == 1)) {
 
