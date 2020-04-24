@@ -456,19 +456,20 @@ public class MainController extends Controller {
     private boolean basicSimilarityCheck(String a1, String a2, float s) {
         float s1 = Float.valueOf(a1);
         float s2 = Float.valueOf(a2);
-        float f1 = s1*s;
-        float f2 = s2*s;
-        return s1 > (s2-f2) && s1 < (s2+f2)
-                && s2 > (s1-f1) && s2 < (s1+f1);
+        float bigger = Float.max(s1, s2);
+        float smaller = Float.min(s1, s2);
+        return smaller >= bigger * (1.0f - s);
     }
 
     private boolean checkSimilarity(String size_1, String size_2, String unit_1, String unit_2, float search_window) {
         boolean check_size = false;
         boolean check_units = false;
-        if (!size_1.isEmpty() && !size_2.isEmpty())
+        if (!size_1.isEmpty() && !size_2.isEmpty()) {
             check_size = basicSimilarityCheck(size_1, size_2, search_window);
-        if (!unit_1.isEmpty() && !unit_2.isEmpty())
+        }
+        if (!unit_1.isEmpty() && !unit_2.isEmpty()) {
             check_units = unit_1.toLowerCase().equals(unit_2.toLowerCase());    // Units/dosage must be the same
+        }
         if (!check_units) {
             check_units = compareDosage(unit_1, unit_2);
         }
