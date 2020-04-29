@@ -596,8 +596,7 @@ public class ShoppingRose {
         if (article.isNplArticle()) {
             return true;
         }
-        String ean = article.getEanCode();
-        String name = GenericArticle.eanNameMap.get(ean);
+        String name = GenericArticle.eanNameMap.get(article.getAuthorGln());
         if (m_user_preference.isEanPreferred(article.getAuthorGln()) || "mepha".equals(name)) {
             if (!article.isBiotechnologica()) {
                 return true;
