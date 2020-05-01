@@ -427,6 +427,12 @@ public class ShoppingRose {
                         if (c == 0) {
                             c = sortCustomerPreference(a1, a2);
                         }
+                        if (m_user_preference.isMedixUser()) {
+                            // https://github.com/zdavatz/smart-order/issues/73
+                            if (c == 0) {
+                                c = sortRosePreference(a1, a2);
+                            }
+                        }
 
                         if (c == 0) {
                             c = sortOriginals(a1, a2);
