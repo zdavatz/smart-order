@@ -40,7 +40,7 @@ public class ShoppingRose {
     private HashMap<String, List<GenericArticle>> m_map_similar_articles = null;
     private HashMap<String, Pair<Integer, Integer>> m_stock_map = null;
     private float m_total_dlk_costs = 0.0f;
-    private User m_user_preference = null;
+    public User m_user_preference = null;
 
     private Map<String, GenericArticle> m_shopping_basket = null;
 
