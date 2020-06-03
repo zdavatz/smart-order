@@ -22,6 +22,7 @@ package controllers;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import com.maxl.java.shared.NotaPosition;
+import com.maxl.java.shared.User;
 import models.*;
 import myactors.OrderLogActor;
 import play.db.NamedDatabase;
@@ -220,7 +221,7 @@ public class MainController extends Controller {
                         String hashed_key = shopping_cart.randomHashCode(pharma + ean);
                         shopping_basket.put(hashed_key /*ean*/, article);
                         // Find all alternatives using the article's EAN code -> ROSE_DB_ATC_ONLY
-                        LinkedList<GenericArticle> la = listSimilarArticles(article);
+                        LinkedList<GenericArticle> la = listSimilarArticles(article, shopping_cart);
                         if (la != null) {
                             // Check if ean code is already part of the map, if not add to map
                             if (!map_of_similar_articles.containsKey(ean)) {
@@ -328,6 +329,9 @@ public class MainController extends Controller {
      * @return list of similar articles
      */
     private LinkedList<GenericArticle> listSimilarArticles(GenericArticle article) {
+        return listSimilarArticles(article, null);
+    }
+    private LinkedList<GenericArticle> listSimilarArticles(GenericArticle article, ShoppingRose shopping_cart) {
         LinkedList<GenericArticle> list_a = new LinkedList<>();
         LinkedList<GenericArticle> original_list_a = new LinkedList<>();
 
@@ -351,10 +355,20 @@ public class MainController extends Controller {
                                 // s AND size -> stückzahl, e.g. 12
                                 // u AND unit -> dosierung, e.g. 100mg
                                 boolean have_same_title = article.isSimilarByTitle(a);
-                                boolean is_not_green = article.getShippingStatus() > 1;
+                                boolean is_green = article.getShippingStatus() == 1;
+                                boolean is_not_green = !is_green;
                                 boolean is_original_but_not_green = article.isOriginal() && is_not_green;
                                 boolean is_original_alternative_and_green = a.isOriginal() && a.getShippingStatus() == 1;
 
+                                boolean isUseCase5 = false;
+                                if (shopping_cart != null) {
+                                    User preferences = shopping_cart.m_user_preference;
+                                    if (preferences != null) {
+                                        boolean is_selected_article_preferred = preferences.isEanPreferred(article.getAuthorGln());
+                                        boolean is_alternative_preferred = preferences.isEanPreferred(a.getAuthorGln());
+                                        isUseCase5 = is_green && !is_selected_article_preferred && is_alternative_preferred;
+                                    }
+                                }
                                 if (is_original_but_not_green && is_original_alternative_and_green && have_same_title) {
                                     // Add it to the list of originals
                                     original_list_a.add(a);
@@ -363,6 +377,8 @@ public class MainController extends Controller {
                                     list_a.add(a);
                                 } else if (is_not_green && is_original_alternative_and_green) {
                                     original_list_a.add(a);
+                                } else if (isUseCase5) {
+                                    list_a.add(a);
                                 }
                                 /*
                                 if ((size.contains(s) || s.contains(size)) && (unit.contains(u) || u.contains(unit)) )
