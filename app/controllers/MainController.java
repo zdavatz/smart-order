@@ -377,7 +377,7 @@ public class MainController extends Controller {
                                     list_a.add(a);
                                 } else if (is_not_green && is_original_alternative_and_green) {
                                     original_list_a.add(a);
-                                } else if (isUseCase5) {
+                                } else if (isUseCase5 && checkSimilarity(size, s, unit, u , 0.901f)) {
                                     list_a.add(a);
                                 }
                                 /*
