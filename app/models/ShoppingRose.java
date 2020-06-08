@@ -49,6 +49,8 @@ public class ShoppingRose {
 
     private MessageDigest m_message_digest;
 
+    private int m_result_limit = 0; // 0 = no limit
+
     /**
      * Constructor!
      * @param customer_id
@@ -460,6 +462,12 @@ public class ShoppingRose {
                         return c;
                     }
                 });
+
+                if (m_result_limit > 0) {
+                    // Return only m_max_articles
+                    if (list_of_similar_articles.size() > m_result_limit)
+                        list_of_similar_articles = new LinkedList<>(list_of_similar_articles.subList(0, m_result_limit));
+                }
             }
 
             m_map_similar_articles.put(ean_code, list_of_similar_articles);
@@ -475,6 +483,10 @@ public class ShoppingRose {
     public void updateMapSimilarArticles(Map<String, List<GenericArticle>> similar_articles) {
         // Make a copy of the hash map
         m_map_similar_articles = new HashMap<>(similar_articles);
+    }
+
+    public void setResultsLimit(int limit) {
+        m_result_limit = limit;
     }
 
     private String generatePreferences(GenericArticle ga) {
