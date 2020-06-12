@@ -433,7 +433,27 @@ public class GenericArticle {
 
     public boolean isAvailable() { return !isNotAvailable(); }
 
-    public boolean isNotAvailable()  { return availability.matches("(.*)[0-9]{4}"); } // { return availability.contains(".2153"); }
+    public boolean isNotAvailable()  {
+        try {
+            DateFormat df = new SimpleDateFormat("dd.MM.yyyy");
+            // Get current date
+            Calendar now = Calendar.getInstance();
+            // Get Ausstandsdatum
+            Calendar avail = Calendar.getInstance();
+            avail.setTime(df.parse(availability));
+            // Difference in ms -> days
+            long diff_ms = avail.getTime().getTime() - now.getTime().getTime();
+            long diff_days = diff_ms / (1000 * 60 * 60 * 24);
+            if (diff_days < 10 * 365)   // This are 10 years! Neg. difference are also accepted.
+                return true;
+            else {
+                return false;
+            }
+
+        } catch (ParseException e) {
+            return false;
+        }
+    }
 
     public boolean isOffMarket() { return availability.equals("-1"); }
 

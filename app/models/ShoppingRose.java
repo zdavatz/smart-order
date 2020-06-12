@@ -244,9 +244,14 @@ public class ShoppingRose {
             return 4;   // ORANGE
 
         if (curstock < 0)
-                return 5; //  RED (ein negativer Lagerbestand soll schlechter als Lagerbestand = 0 behandelt werden)
+            return 5; //  RED (ein negativer Lagerbestand soll schlechter als Lagerbestand = 0 behandelt werden)
 
-        if (mstock >= 0) {
+        // Usecase 11.2
+        if (curstock <= 0 && article.isNotAvailable()) {
+            return 5;
+        }
+
+        if (mstock >= 0 || (curstock > 0 && article.isNotAvailable()) /* UseCase 11.1 */) {
             if (curstock >= mstock && curstock >= quantity && mstock >= quantity)
                 return 1;    // GREEN
             else if (curstock < mstock && curstock >= quantity && mstock > quantity)
