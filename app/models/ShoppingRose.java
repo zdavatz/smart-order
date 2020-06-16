@@ -235,6 +235,11 @@ public class ShoppingRose {
             return 4;
         }
 
+        // Usecase 11.2
+        if (curstock <= 0 && article.isNotAvailable()) {
+            return 5;
+        }
+
         // @maxl 18.Jan.2016: empirical rule (see emails)
         if (mstock < 0 && curstock >= 0)
             mstock = 12;
@@ -245,11 +250,6 @@ public class ShoppingRose {
 
         if (curstock < 0)
             return 5; //  RED (ein negativer Lagerbestand soll schlechter als Lagerbestand = 0 behandelt werden)
-
-        // Usecase 11.2
-        if (curstock <= 0 && article.isNotAvailable()) {
-            return 5;
-        }
 
         if (mstock >= 0 || (curstock > 0 && article.isNotAvailable()) /* UseCase 11.1 */) {
             if (curstock >= mstock && curstock >= quantity && mstock >= quantity)
