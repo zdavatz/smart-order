@@ -444,10 +444,10 @@ public class GenericArticle {
             // Difference in ms -> days
             long diff_ms = avail.getTime().getTime() - now.getTime().getTime();
             long diff_days = diff_ms / (1000 * 60 * 60 * 24);
-            if (diff_days < 10 * 365)   // This are 10 years! Neg. difference are also accepted.
-                return true;
-            else {
+            if (diff_days < 10 * 365) {   // This are 10 years! Neg. difference are also accepted.
                 return false;
+            } else {
+                return true;
             }
 
         } catch (ParseException e) {
