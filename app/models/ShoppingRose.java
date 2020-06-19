@@ -235,6 +235,21 @@ public class ShoppingRose {
             return 4;
         }
 
+        // Usecase 11
+        Integer daysTilAvailable = article.numberOfDaysTilAvailable();
+        if (curstock > quantity * 3) {
+            return 1;
+        }
+        if (curstock > 0 && curstock < quantity * 3) {
+            return 2;
+        }
+        if (curstock <= 0 && daysTilAvailable <= 2) {
+            return 4;
+        }
+        if (curstock <= 0 && daysTilAvailable > 2) {
+            return 5;
+        }
+
         // Usecase 11.2
         if (curstock <= 0 && article.isNotAvailable()) {
             return 5;
