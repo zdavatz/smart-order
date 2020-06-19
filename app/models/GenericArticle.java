@@ -26,6 +26,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Map;
 import java.util.AbstractMap.*;
 import java.util.stream.Stream;
@@ -431,27 +432,47 @@ public class GenericArticle {
         return this.getFlagsArray().contains("BioT");
     }
 
-    public boolean isAvailable() { return !isNotAvailable(); }
-
-    public boolean isNotAvailable()  {
+    public boolean isAvailable() {
         try {
             DateFormat df = new SimpleDateFormat("dd.MM.yyyy");
             // Get current date
             Calendar now = Calendar.getInstance();
             // Get Ausstandsdatum
-            Calendar avail = Calendar.getInstance();
-            avail.setTime(df.parse(availability));
+            Date parsed = df.parse(availability);
             // Difference in ms -> days
-            long diff_ms = avail.getTime().getTime() - now.getTime().getTime();
+            long diff_ms = parsed.getTime() - now.getTime().getTime();
             long diff_days = diff_ms / (1000 * 60 * 60 * 24);
             if (diff_days < 10 * 365) {   // This are 10 years! Neg. difference are also accepted.
-                return false;
-            } else {
                 return true;
+            } else {
+                return false;
             }
 
         } catch (ParseException e) {
-            return false;
+            return true;
+        }
+    }
+
+    public boolean isNotAvailable()  {
+        return !this.isAvailable();
+    }
+
+    public Integer numberOfDaysTilAvailable() {
+        try {
+            DateFormat df = new SimpleDateFormat("dd.MM.yyyy");
+            // Get current date
+            Calendar now = Calendar.getInstance();
+            // Get Ausstandsdatum
+            Date parsed = df.parse(availability);
+            // Difference in ms -> days
+            long diff_ms = parsed.getTime() - now.getTime().getTime();
+            long diff_days = diff_ms / (1000 * 60 * 60 * 24);
+            if (diff_days < 0) {
+                return 0; // available now
+            }
+            return (int) diff_days;
+        } catch (ParseException e) {
+            return -1; // Cannot parse
         }
     }
 
