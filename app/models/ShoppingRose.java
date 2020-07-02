@@ -72,6 +72,12 @@ public class ShoppingRose {
             loadRoseData();
         } else {
             System.out.println(">> Error: customer glncode or roseid is missing or wrong!");
+            System.out.println(">> Input: " + customer_id);
+            if (customer_id.length() == 6) {
+                System.out.println(">> Searched in rose_ids.json");
+            } else {
+                System.out.println(">> glncode has to be either 6 or 13 characters.");
+            }
         }
 
         m_stock_map = rd.rose_stock_map();
