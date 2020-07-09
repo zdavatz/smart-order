@@ -230,17 +230,6 @@ public class ShoppingRose {
         int curstock = stockInfo.first; // Current
         int mstock = stockInfo.second;  // Minumum
 
-        // Diese Artikel sind ausser handel -> SCHWARZ
-        if (article.isOffMarket() && curstock <= 0)
-            return 10;
-        // Diese Artikel fehlen auf unbestimmte Zeit -> ROT
-        if (article.isNotAvailable() && curstock <= 0)
-            return 5;
-        // Beschaffungsartikel sind immer ORANGE
-        if (article.isNotInStockData() /* || article.getSupplier().toLowerCase().contains("voigt") */) {
-            return 4;
-        }
-
         // Usecase 11
         Integer daysTilAvailable = article.numberOfDaysTilAvailable();
         if (curstock > quantity * 3) {
@@ -250,15 +239,20 @@ public class ShoppingRose {
             return 2;
         }
         if (curstock <= 0 && daysTilAvailable <= 2) {
-            return 4;
+            return 2;
         }
-        if (curstock <= 0 && daysTilAvailable > 2) {
-            return 5;
+        if (curstock > 0 && article.isNotAvailable()) {
+
         }
 
-        // Usecase 11.2
+        if (curstock <= 0 && (article.isOffMarket() || article.isNotInStockData())) {
+            return 3;
+        }
+        if (curstock <= 0 && daysTilAvailable > 2) {
+            return 3;
+        }
         if (curstock <= 0 && article.isNotAvailable()) {
-            return 5;
+            return 3;
         }
 
         // @maxl 18.Jan.2016: empirical rule (see emails)
@@ -267,22 +261,33 @@ public class ShoppingRose {
 
         // @maxl 2.Feb.2018
         if (curstock == 0)
-            return 4;   // ORANGE
+            return 2;   // ORANGE
 
         if (curstock < 0)
-            return 5; //  RED (ein negativer Lagerbestand soll schlechter als Lagerbestand = 0 behandelt werden)
+            return 3; //  RED (ein negativer Lagerbestand soll schlechter als Lagerbestand = 0 behandelt werden)
 
         if (mstock >= 0 || (curstock > 0 && article.isNotAvailable()) /* UseCase 11.1 */) {
             if (curstock >= mstock && curstock >= quantity && mstock >= quantity)
                 return 1;    // GREEN
             else if (curstock < mstock && curstock >= quantity && mstock > quantity)
-                return 2;    // YELLOW/GOLD
+                return 2;    // ORANGE
             else if (curstock > mstock && curstock >= quantity && mstock < quantity)
-                return 3;    // YELLOW/GOLD
+                return 2;    // ORANGE
             else if (curstock <= mstock && curstock < quantity)
-                return 4;    // ORANGE
+                return 2;    // ORANGE
             else
-                return 5;    // RED
+                return 3;    // RED
+        }
+
+        // Diese Artikel sind ausser handel -> SCHWARZ
+        if (article.isOffMarket() && curstock <= 0)
+            return 10;
+        // Diese Artikel fehlen auf unbestimmte Zeit -> ROT
+        if (article.isNotAvailable() && curstock <= 0)
+            return 3;
+        // Beschaffungsartikel sind immer ORANGE
+        if (article.isNotInStockData() /* || article.getSupplier().toLowerCase().contains("voigt") */) {
+            return 2;
         }
 
         return 10;           // BLACK
@@ -293,12 +298,8 @@ public class ShoppingRose {
             case 1:
                 return new Pair<>("green", 1);
             case 2:
-                return new Pair<>("gold", 2);
-            case 3:
-                return new Pair<>("gold", 3);
-            case 4:
                 return new Pair<>("orange", 4);
-            case 5:
+            case 3:
                 return new Pair<>("red", 5);
         }
         return new Pair<>("black", -1);
