@@ -230,6 +230,13 @@ public class ShoppingRose {
         int curstock = stockInfo.first; // Current
         int mstock = stockInfo.second;  // Minumum
 
+                // Diese Artikel sind ausser handel -> SCHWARZ
+        if (article.isOffMarket() && curstock <= 0)
+            return 10;
+        // Diese Artikel fehlen auf unbestimmte Zeit -> ROT
+        if (article.isNotAvailable() && curstock <= 0)
+            return 3;
+
         // Usecase 11
         Integer daysTilAvailable = article.numberOfDaysTilAvailable();
         if (curstock > quantity * 3) {
@@ -279,12 +286,6 @@ public class ShoppingRose {
                 return 3;    // RED
         }
 
-        // Diese Artikel sind ausser handel -> SCHWARZ
-        if (article.isOffMarket() && curstock <= 0)
-            return 10;
-        // Diese Artikel fehlen auf unbestimmte Zeit -> ROT
-        if (article.isNotAvailable() && curstock <= 0)
-            return 3;
         // Beschaffungsartikel sind immer ORANGE
         if (article.isNotInStockData() /* || article.getSupplier().toLowerCase().contains("voigt") */) {
             return 2;
