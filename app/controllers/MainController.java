@@ -308,6 +308,7 @@ public class MainController extends Controller {
         rose_article.setNettoPriceList(generic_article.isNplArticle());
         rose_article.setIsOriginal(generic_article.isOriginal());
         rose_article.setAuthorGlnCode(generic_article.getAuthorGln());
+        rose_article.setStock(generic_article.getItemsOnStock());
         rose_article.alternatives = new LinkedList<>();
 
         return rose_article;

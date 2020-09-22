@@ -109,6 +109,13 @@ public class RoseArticle {
     private String last_order;
 
     /**
+     * @example ">20"
+     * @example "only 11 pieces"
+     */
+    @JsonProperty("stock")
+    private String stock_string;
+
+    /**
      * The default number of alternatives to display by GUI
      */
     @JsonProperty("alt")
@@ -249,6 +256,16 @@ public class RoseArticle {
     public void setNotaStatus(String status) { this.nota_status = status; }
 
     public void setLastOrder(String last_order) { this.last_order = last_order; }
+
+    public void setStock(int stock) {
+        if (stock > 100) {
+            this.stock_string = "> 100";
+        } else if (stock > 20) {
+            this.stock_string = "> 20";
+        } else {
+            this.stock_string = "nur noch " + stock + " Stück";
+        }
+    }
 
     public void setAlt(Integer alt) { this.alt = alt; }
 
