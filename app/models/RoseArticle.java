@@ -263,7 +263,7 @@ public class RoseArticle {
         } else if (stock > 20) {
             this.stock_string = "> 20";
         } else {
-            this.stock_string = + stock +;
+            this.stock_string = "nur noch " + stock + " Stück";
         }
     }
 
