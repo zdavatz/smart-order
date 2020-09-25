@@ -81,6 +81,7 @@ public class GenericArticle {
     private boolean is_nota_article = false;
     private String nota_status = "";
     private String last_order = "";
+    private String dispose_flag = "";
 
     public static final Map<String, String> eanNameMap = Stream.of(
             new SimpleEntry<>("7601001396685", "mepha"),
@@ -516,6 +517,17 @@ public class GenericArticle {
     public void setLastOrder(String order) { last_order = order; }
 
     public String getLastOrder() { return last_order; }
+
+    public void setDisposeFlagString(String flag) {
+        this.dispose_flag = flag;
+    }
+
+    public Boolean getDisposeFlag() {
+        if (this.dispose_flag == null) {
+            return false;
+        }
+        return "ja".equals(this.dispose_flag.toLowerCase());
+    }
 
     public boolean isMepha() {
         String ean = this.getEanCode();

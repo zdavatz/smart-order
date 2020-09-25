@@ -690,6 +690,8 @@ public class MainController extends Controller {
             article.setExfactoryPrice(result.getString(21)); // KEY_ROSE_BASIS_PRICE
             article.setDlkFlag(result.getBoolean(22));
             article.setPackTitleFR(result.getString(23));    // KEY_TITLE_FR
+            article.setDisposeFlagString(result.getString(25));
+
         } catch (SQLException e) {
             System.err.printf(">> RoseDb: SQLException in cursorToArticle -> %s%n", article.getId());
         }
