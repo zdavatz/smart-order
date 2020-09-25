@@ -245,6 +245,11 @@ public class ShoppingRose {
         if (curstock > 0 && curstock < quantity * 3) {
             return 4; // Half green
         }
+        if (!article.getDisposeFlag() && !article.getSupplier().toLowerCase().contains("voigt")) {
+            // Usecase 11:
+            // Beschaffungsartikel (exkl. Voigt)
+            return 2;
+        }
         if (curstock <= 0 && daysTilAvailable <= 2) {
             return 2;
         }
