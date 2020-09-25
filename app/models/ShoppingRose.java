@@ -230,7 +230,7 @@ public class ShoppingRose {
         int curstock = stockInfo.first; // Current
         int mstock = stockInfo.second;  // Minumum
 
-                // Diese Artikel sind ausser handel -> SCHWARZ
+        // Diese Artikel sind ausser handel -> SCHWARZ
         if (article.isOffMarket() && curstock <= 0)
             return 10;
         // Diese Artikel fehlen auf unbestimmte Zeit -> ROT
@@ -243,13 +243,18 @@ public class ShoppingRose {
             return 1;
         }
         if (curstock > 0 && curstock < quantity * 3) {
+            return 4; // Half green
+        }
+        if (!article.getDisposeFlag() && !article.getSupplier().toLowerCase().contains("voigt")) {
+            // Usecase 11:
+            // Beschaffungsartikel (exkl. Voigt)
             return 2;
         }
         if (curstock <= 0 && daysTilAvailable <= 2) {
             return 2;
         }
         if (curstock > 0 && article.isNotAvailable()) {
-
+            return 2;
         }
 
         if (curstock <= 0 && (article.isOffMarket() || article.isNotInStockData())) {
@@ -294,16 +299,18 @@ public class ShoppingRose {
         return 10;           // BLACK
     }
 
-    private Pair<String, Integer> shippingStatusColor(int status) {
+    private String shippingStatusColor(int status) {
         switch (status) {
             case 1:
-                return new Pair<>("green", 1);
+                return "green";
             case 2:
-                return new Pair<>("orange", 4);
+                return "orange";
             case 3:
-                return new Pair<>("red", 5);
+                return "red";
+            case 4:
+                return "half-green";
         }
-        return new Pair<>("black", -1);
+        return "black";
     }
 
     private int rosePreference(GenericArticle article) {
@@ -678,7 +685,7 @@ public class ShoppingRose {
 
                 // Shipping status
                 int shipping_ = shippingStatus(article, quantity);
-                Pair<String, Integer> shipping_status = shippingStatusColor(shipping_);
+                String shipping_status = shippingStatusColor(shipping_);
 
                 rose_article.setGtin(ean_code);
                 rose_article.setPharma(pharm_code);
@@ -695,7 +702,7 @@ public class ShoppingRose {
                 rose_article.setSwissmed(flags_str);
                 rose_article.setPreferences(preference_str);
                 rose_article.setAvailDate(article.getAvailDate());
-                rose_article.setShippingStatus(shipping_status.first);
+                rose_article.setShippingStatus(shipping_status);
                 rose_article.setOffMarket(article.isOffMarket());
                 rose_article.setDlkFlag(article.getDlkFlag());
                 rose_article.setNettoPriceList(article.isNplArticle());
@@ -755,7 +762,7 @@ public class ShoppingRose {
                                     ra.setSwissmed(flags_str);
                                     ra.setPreferences(preference_str);
                                     ra.setAvailDate(a.getAvailDate());
-                                    ra.setShippingStatus(shipping_status.first);
+                                    ra.setShippingStatus(shipping_status);
                                     ra.setOffMarket(a.isOffMarket());
                                     ra.setDlkFlag(a.getDlkFlag());
                                     ra.setNettoPriceList(a.isNplArticle());
