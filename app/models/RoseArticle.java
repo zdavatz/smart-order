@@ -271,6 +271,18 @@ public class RoseArticle {
     public void setLastOrder(String last_order) { this.last_order = last_order; }
 
     public void configureStockProperties(int zurRoseStock) {
+        RoseData rd = RoseData.getInstance();
+        HashMap<String, Pair<Integer, Integer>> stockMap = rd.rose_stock_map();
+        Pair<Integer, Integer> pair = stockMap.get(this.pharma);
+        Integer voigtStock = pair == null ? 0 : pair.second;
+
+        if (pair != null) {
+            // the zurRoseStock argument is read from the sqlite database, which data may not be the most updated.
+            // We have to get data from rose_stock.csv just in case
+            zurRoseStock = pair.first;
+        }
+        Integer totalStock = zurRoseStock + voigtStock;
+
         if (zurRoseStock > 100) {
             this.stock_string = "> 100";
         } else if (zurRoseStock > 20) {
@@ -278,11 +290,6 @@ public class RoseArticle {
         } else {
             this.stock_string = "" + zurRoseStock;
         }
-        RoseData rd = RoseData.getInstance();
-        HashMap<String, Pair<Integer, Integer>> stockMap = rd.rose_stock_map();
-        Pair<Integer, Integer> pair = stockMap.get(this.pharma);
-        Integer voigtStock = pair == null ? 0 : pair.second;
-        Integer totalStock = zurRoseStock + voigtStock;
 
         if (totalStock > 100) {
             stock_gui_de = "mehr als 100 Stück";
