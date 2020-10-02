@@ -28,6 +28,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.LinkedList;
 
 class PriceSerializer extends JsonSerializer<BigDecimal> {
@@ -114,6 +115,18 @@ public class RoseArticle {
      */
     @JsonProperty("stock")
     private String stock_string;
+
+    @JsonProperty("stock_gui_de")
+    private String stock_gui_de;
+
+    @JsonProperty("stock_gui_fr")
+    private String stock_gui_fr;
+
+    @JsonProperty("stock_zurrose")
+    private Integer stock_zurrose;
+
+    @JsonProperty("stock_voigt")
+    private Integer stock_voigt;
 
     /**
      * The default number of alternatives to display by GUI
@@ -257,14 +270,35 @@ public class RoseArticle {
 
     public void setLastOrder(String last_order) { this.last_order = last_order; }
 
-    public void setStock(int stock) {
-        if (stock > 100) {
+    public void configureStockProperties(int zurRoseStock) {
+        if (zurRoseStock > 100) {
             this.stock_string = "> 100";
-        } else if (stock > 20) {
+        } else if (zurRoseStock > 20) {
             this.stock_string = "> 20";
         } else {
-            this.stock_string = "" + stock;
+            this.stock_string = "" + zurRoseStock;
         }
+        RoseData rd = RoseData.getInstance();
+        HashMap<String, Pair<Integer, Integer>> stockMap = rd.rose_stock_map();
+        Pair<Integer, Integer> pair = stockMap.get(this.pharma);
+        Integer voigtStock = pair == null ? 0 : pair.second;
+        Integer totalStock = zurRoseStock + voigtStock;
+
+        if (totalStock > 100) {
+            stock_gui_de = "mehr als 100 Stück";
+            stock_gui_fr = "plus de 100 pièces";
+        } else if (totalStock > 20) {
+            stock_gui_de = "mehr als 20 Stück";
+            stock_gui_fr = "plus de 20 pièces";
+        } else if (totalStock > 0) {
+            stock_gui_de = "nur noch " + totalStock + " Stück";
+            stock_gui_fr = "" + totalStock + " pièces seulement";
+        } else {
+            stock_gui_de = "derzeit nicht auf Lager";
+            stock_gui_fr = "pas actuellement en stock";
+        }
+        stock_zurrose = zurRoseStock;
+        stock_voigt = voigtStock;
     }
 
     public void setAlt(Integer alt) { this.alt = alt; }
