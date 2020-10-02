@@ -709,7 +709,7 @@ public class ShoppingRose {
                 rose_article.setNota(article.isNotaArticle());
                 rose_article.setNotaStatus(article.getNotaStatus());
                 rose_article.setLastOrder(article.getLastOrder());
-                rose_article.setStock(article.getItemsOnStock());
+                rose_article.configureStockProperties(article.getItemsOnStock());
                 rose_article.setIsOriginal(article.isOriginal());
                 rose_article.setCoreAssortment(generateCoreAssort(article));
                 rose_article.setAuthorGlnCode(article.getAuthorGln());
@@ -771,7 +771,7 @@ public class ShoppingRose {
                                     ra.setLastOrder(a.getLastOrder());
                                     ra.setIsOriginal(a.isOriginal());
                                     ra.setAuthorGlnCode(a.getAuthorGln());
-                                    ra.setStock(a.getItemsOnStock());
+                                    ra.configureStockProperties(a.getItemsOnStock());
 
                                     ra.setCoreAssortment(generateCoreAssort(a));
                                     ra.setAlt(null);
