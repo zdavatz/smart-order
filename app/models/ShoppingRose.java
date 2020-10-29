@@ -180,12 +180,13 @@ public class ShoppingRose {
      * @param pharma_code
      * @return
      */
-    private Pair<Integer, Integer> getItemsOnStock(String pharma_code) {
+    private Pair<Integer, Integer> getItemsOnStock(GenericArticle article) {
+        String pharma_code = article.getPharmaCode();
         if (!pharma_code.isEmpty()) {
             if (m_stock_map != null && m_stock_map.containsKey(pharma_code))
                 return m_stock_map.get(pharma_code);
         }
-        return null;
+        return new Pair<>(article.getItemsOnStock(), 0);
     }
 
     private Pair<Integer, Integer> stockInfo(Pair<Integer, Integer> current_stock) {
@@ -223,7 +224,7 @@ public class ShoppingRose {
      */
     private int shippingStatus(GenericArticle article, int quantity) {
         // New on 01.Jun.2017: items on stock are retrieved using the pharmacode
-        Pair<Integer, Integer> itemsOnStock = getItemsOnStock(article.getPharmaCode());    // returns (zur Rose, Voigt)
+        Pair<Integer, Integer> itemsOnStock = getItemsOnStock(article);    // returns (zur Rose, Voigt)
 
         // The following function sums zur Rose and Voigt stocks...
         Pair<Integer, Integer> stockInfo = stockInfo(itemsOnStock);     // returns (current, minimum)
