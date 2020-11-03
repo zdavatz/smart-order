@@ -44,6 +44,9 @@ public final class RoseData {
     private HashMap<String, List<NotaPosition>> rose_nota_map;
     private HashMap<String, Pair<Integer, Integer>> rose_stock_map;
 
+    // Any product with pharma_code in this list has shipping = red
+    private ArrayList<String> rose_stock_blacklist = new ArrayList<String>();
+
     private RoseData() {
         loadAllFiles();
     }
@@ -88,6 +91,10 @@ public final class RoseData {
         return this.rose_nota_map;
     }
 
+    public ArrayList<String> rose_stock_blacklist() {
+        return this.rose_stock_blacklist;
+    }
+
     public void loadFile(String file_name) {
         String rose_path = System.getProperty("user.dir") + Constants.ROSE_DIR;
 
@@ -107,6 +114,8 @@ public final class RoseData {
             rose_stock_map = loadRoseStockMaps(rose_path + file_name);
         else if (file_name.equals("rose_settings.json"))
             loadRoseSettingsFile(rose_path + file_name);
+        else if (file_name.equals("Grippeimpfstoff.csv"))
+            loadRoseStockBlackList(rose_path + file_name);
 
         System.out.println("OK");
     }
@@ -135,6 +144,7 @@ public final class RoseData {
         // System.out.print("# Loading rose_stock.csv... ");
         rose_stock_map = loadRoseStockMaps(rose_path + "rose_stock.csv");
         // System.out.println("OK");
+        rose_stock_blacklist = loadRoseStockBlackList(rose_path + "Grippeimpfstoff.csv");
 
         loadRoseSettingsFile(rose_path + "rose_settings.json");
     }
@@ -298,6 +308,29 @@ public final class RoseData {
        } catch(IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public ArrayList<String> loadRoseStockBlackList(String path) {
+        ArrayList<String> pharma_codes = new ArrayList<>();
+        try {
+            File file = new File(path);
+            if (!file.exists())
+                return null;
+
+            FileInputStream fis = new FileInputStream(path);
+            BufferedReader br = new BufferedReader(new InputStreamReader(fis, "UTF-8"));
+            String line;
+            while ((line = br.readLine()) != null) {
+                String token[] = line.split(";", -1);
+                if (token.length > 0) {
+                    String pharma_code = token[0];
+                    pharma_codes.add(pharma_code);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println(">> Error in reading csv file: " + path);
+        }
+        return pharma_codes;
     }
 
     /**
