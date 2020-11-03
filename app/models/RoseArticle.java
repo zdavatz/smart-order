@@ -272,6 +272,7 @@ public class RoseArticle {
 
     public void configureStockProperties(int zurRoseStock) {
         RoseData rd = RoseData.getInstance();
+        boolean isStockBlackListed = rd.rose_stock_blacklist().contains(this.pharma);
         HashMap<String, Pair<Integer, Integer>> stockMap = rd.rose_stock_map();
         Pair<Integer, Integer> pair = stockMap.get(this.pharma);
         Integer voigtStock = pair == null ? 0 : pair.second;
@@ -306,6 +307,11 @@ public class RoseArticle {
         }
         stock_zurrose = zurRoseStock;
         stock_voigt = voigtStock;
+        if (isStockBlackListed) {
+            this.stock_gui_de = "derzeit nicht auf Lager";
+            this.stock_gui_fr = "pas actuellement en stock";
+            return;
+        }
     }
 
     public void setAlt(Integer alt) { this.alt = alt; }

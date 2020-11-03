@@ -223,6 +223,14 @@ public class ShoppingRose {
      * @return shipping status
      */
     private int shippingStatus(GenericArticle article, int quantity) {
+        // Always return red when it's in black list
+        // https://github.com/zdavatz/smart-order/issues/104
+         RoseData rd = RoseData.getInstance();
+         ArrayList<String> blacklistedPharmaCodes = rd.rose_stock_blacklist();
+         if (blacklistedPharmaCodes.contains(article.getPharmaCode())) {
+            return 3;
+         }
+
         // New on 01.Jun.2017: items on stock are retrieved using the pharmacode
         Pair<Integer, Integer> itemsOnStock = getItemsOnStock(article);    // returns (zur Rose, Voigt)
 
