@@ -114,7 +114,7 @@ public final class RoseData {
             rose_stock_map = loadRoseStockMaps(rose_path + file_name);
         else if (file_name.equals("rose_settings.json"))
             loadRoseSettingsFile(rose_path + file_name);
-        else if (file_name.equals("Grippeimpfstoff.csv"))
+        else if (file_name.equals("Grippeimpfstoff.json"))
             loadRoseStockBlackList(rose_path + file_name);
 
         System.out.println("OK");
@@ -144,7 +144,7 @@ public final class RoseData {
         // System.out.print("# Loading rose_stock.csv... ");
         rose_stock_map = loadRoseStockMaps(rose_path + "rose_stock.csv");
         // System.out.println("OK");
-        rose_stock_blacklist = loadRoseStockBlackList(rose_path + "Grippeimpfstoff.csv");
+        rose_stock_blacklist = loadRoseStockBlackList(rose_path + "Grippeimpfstoff.json");
 
         loadRoseSettingsFile(rose_path + "rose_settings.json");
     }
@@ -305,32 +305,26 @@ public final class RoseData {
             Map<String, Object> rose_settings = mapper.readValue(json_file, typeRef);
 
             Constants.rosePreferences = (LinkedHashMap<String, Integer>) rose_settings.get("rose_preferences");
-       } catch(IOException e) {
+        } catch(IOException e) {
             e.printStackTrace();
         }
     }
 
-    public ArrayList<String> loadRoseStockBlackList(String path) {
-        ArrayList<String> pharma_codes = new ArrayList<>();
+    public ArrayList<String> loadRoseStockBlackList(String json_file_name) {
         try {
-            File file = new File(path);
-            if (!file.exists())
-                return null;
+            ObjectMapper mapper = new ObjectMapper();
+            TypeReference<ArrayList<String>> typeRef = new TypeReference<ArrayList<String>>() {};
 
-            FileInputStream fis = new FileInputStream(path);
-            BufferedReader br = new BufferedReader(new InputStreamReader(fis, "UTF-8"));
-            String line;
-            while ((line = br.readLine()) != null) {
-                String token[] = line.split(";", -1);
-                if (token.length > 0) {
-                    String pharma_code = token[0];
-                    pharma_codes.add(pharma_code);
-                }
-            }
-        } catch (Exception e) {
-            System.err.println(">> Error in reading csv file: " + path);
+            File json_file = Paths.get(json_file_name).toFile();
+            if (!json_file.exists())
+                System.out.println("ERROR: Could not read file " + json_file);
+
+            ArrayList<String> pharma_codes = mapper.readValue(json_file, typeRef);
+            return pharma_codes;
+        } catch(IOException e) {
+            e.printStackTrace();
         }
-        return pharma_codes;
+        return null;
     }
 
     /**
