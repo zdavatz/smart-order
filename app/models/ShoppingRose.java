@@ -318,6 +318,8 @@ public class ShoppingRose {
                 return "red";
             case 4:
                 return "half-green";
+            case 10:
+                return "black";
         }
         return "black";
     }
@@ -752,6 +754,12 @@ public class ShoppingRose {
 
                                     shipping_ = shippingStatus(a, a.getQuantity());
                                     shipping_status = shippingStatusColor(shipping_);
+
+                                    // Don't put product that is red or black in to alternatives
+                                    // https://github.com/zdavatz/smart-order/issues/107
+                                    if (shipping_ == 3 || shipping_ == 10) {
+                                        continue;
+                                    }
 
                                     if (a.isReplacementArticle())
                                         ra.setReplacesArticle(article.getEanCode() + ", " + article.getPackTitle() + ", " + article.getPackTitleFR());
