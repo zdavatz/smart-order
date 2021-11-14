@@ -26,13 +26,13 @@ import models.GenericArticle;
 
 public class User {
 
-    public String city;
-    public String gln_code;
-    public String name1;
-    public HashMap<String, Integer> neu_map;
-    public String street;
-    public String zip;
-    public String special_group;
+    public String city = "";
+    public String gln_code = "";
+    public String name1 = "";
+    public HashMap<String, Integer> neu_map = new HashMap<String, Integer>();
+    public String street = "";
+    public String zip = "";
+    public String special_group = "";
 
     public User() {
     }

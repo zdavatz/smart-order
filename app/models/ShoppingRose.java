@@ -68,17 +68,7 @@ public class ShoppingRose {
         } else if (customer_id.length()==13) {
             m_customer_gln_code = customer_id;
         }
-        if (!m_customer_gln_code.isEmpty()) {
-            loadRoseData();
-        } else {
-            System.out.println(">> Error: customer glncode or roseid is missing or wrong!");
-            System.out.println(">> Input: " + customer_id);
-            if (customer_id.length() == 6) {
-                System.out.println(">> Searched in rose_ids.json");
-            } else {
-                System.out.println(">> glncode has to be either 6 or 13 characters.");
-            }
-        }
+        loadRoseData();
 
         m_stock_map = rd.rose_stock_map();
         if (m_stock_map==null)
@@ -146,8 +136,9 @@ public class ShoppingRose {
             }
         }
         if (m_user_preference == null) {
-            System.out.println(">> Error: Cannot find customer preferences");
-            throw new Exception("Customer not found");
+            // Create empty preference if it's not found
+            // https://github.com/zdavatz/smart-order/issues/110
+            m_user_preference = new User();
         }
     }
 
