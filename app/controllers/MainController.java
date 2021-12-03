@@ -80,7 +80,7 @@ public class MainController extends Controller {
         } catch(MalformedURLException e) {
             e.printStackTrace();
         }
-        Result result = getSmartBasket("on", 0, "1111", "950757", basket, "");
+        Result result = getSmartBasket("on", 0, "1111", "950757", basket, "", "");
         String duration = String.format("Duration: %dms\n", (System.currentTimeMillis() - starttime));
         System.out.println(basket);
         System.out.println("Test duration in [ms] = " + duration);
@@ -123,7 +123,7 @@ public class MainController extends Controller {
             limitInt = Integer.parseInt(form.get("limit"));
         } catch (Exception e) {}
 
-        return getSmartBasket(form.get("pretty"), limitInt, form.get("authkey"), form.get("glncode"), form.get("basket"), form.get("nota"));
+        return getSmartBasket(form.get("pretty"), limitInt, form.get("authkey"), form.get("glncode"), form.get("basket"), form.get("nota"), form.get("override"));
     }
 
     /**
@@ -134,7 +134,9 @@ public class MainController extends Controller {
      */
     @Inject ActorSystem actorSystem;
 
-    public Result getSmartBasket(String pretty, int limit, String auth_key, String gln_code, String basket, String nota) {
+    public Result getSmartBasket(String pretty, int limit, String auth_key, String gln_code, String basket, String nota, String override) {
+        // https://github.com/zdavatz/smart-order/issues/112
+        boolean isDailymed = override.equals("dm");
         ShoppingRose shopping_cart;
         try {
             shopping_cart = new ShoppingRose(gln_code);
@@ -144,6 +146,9 @@ public class MainController extends Controller {
 
         if (!shopping_cart.checkAuthKey(auth_key)) {
             return ok("[]");
+        }
+        if (isDailymed) {
+            shopping_cart.altOverride = 99999;
         }
 
         long startTime = System.currentTimeMillis();
