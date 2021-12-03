@@ -49,6 +49,7 @@ public class ShoppingRose {
 
     private MessageDigest m_message_digest;
 
+    public Integer altOverride = -1;
     private int m_result_limit = 0; // 0 = no limit
 
     /**
@@ -724,79 +725,84 @@ public class ShoppingRose {
                     List<GenericArticle> la = m_map_similar_articles.get(ean_code);
                     for (GenericArticle a : la) {
                         String alter_ean_code = a.getEanCode();
-                        if (!alter_ean_code.equals(ean_code)) {
-                            if (a.isOriginal()
-                                    || article.isGenerikum()
-                                    || (!a.isOriginal() && !a.isGenerikum()) // Case which it is neither original / generikum #69
-                                    || a.isReplacementArticle()
-                                    || (article.isGenerikum() && article.getShippingStatus() > 1 && a.isOriginal() && a.getShippingStatus() == 1)) {
+                        if (alter_ean_code.equals(ean_code)) {
+                            continue;
+                        }
+                        if (a.isOriginal()
+                                || article.isGenerikum()
+                                || (!a.isOriginal() && !a.isGenerikum()) // Case which it is neither original / generikum #69
+                                || a.isReplacementArticle()
+                                || (article.isGenerikum() && article.getShippingStatus() > 1 && a.isOriginal() && a.getShippingStatus() == 1)) {
 
-                                if (a.isAvailable() && !a.isOffMarket()) {
-                                    RoseArticle ra = new RoseArticle();
+                            if (a.isAvailable() && !a.isOffMarket()) {
+                                RoseArticle ra = new RoseArticle();
 
-                                    rose_price = a.getRoseBasisPriceAsFloat();
+                                rose_price = a.getRoseBasisPriceAsFloat();
 
-                                    a.setBuyingPrice(rose_price);
-                                    a.setQuantity(quantity);
+                                a.setBuyingPrice(rose_price);
+                                a.setQuantity(quantity);
 
-                                    flags_str = a.getFlags();
+                                flags_str = a.getFlags();
 
-                                    preference_str = generatePreferences(a);
+                                preference_str = generatePreferences(a);
 
-                                    shipping_ = shippingStatus(a, a.getQuantity());
-                                    shipping_status = shippingStatusColor(shipping_);
+                                shipping_ = shippingStatus(a, a.getQuantity());
+                                shipping_status = shippingStatusColor(shipping_);
 
-                                    // Don't put product that is red or black in to alternatives
-                                    // https://github.com/zdavatz/smart-order/issues/107
-                                    if (shipping_ == 3 || shipping_ == 10) {
-                                        continue;
-                                    }
-
-                                    if (a.isReplacementArticle())
-                                        ra.setReplacesArticle(article.getEanCode() + ", " + article.getPackTitle() + ", " + article.getPackTitleFR());
-
-                                    ra.setGtin(alter_ean_code);
-                                    ra.setPharma(a.getPharmaCode());
-                                    ra.setTitle(a.getPackTitle());
-                                    ra.setTitleFR(a.getPackTitleFR());
-                                    ra.setSize(a.getPackSize());
-                                    ra.setGalen(a.getPackGalen());
-                                    ra.setUnit(a.getPackUnit());
-                                    ra.setSupplier(a.getSupplier());
-                                    ra.setRoseBasisPrice(rose_price);
-                                    ra.setPublicPrice(a.getPublicPriceAsFloat());
-                                    ra.setExfactoryPrice(a.getExfactoryPriceAsFloat());
-                                    ra.setQuantity(a.getQuantity());
-                                    ra.setSwissmed(flags_str);
-                                    ra.setPreferences(preference_str);
-                                    ra.setAvailDate(a.getAvailDate());
-                                    ra.setShippingStatus(shipping_status);
-                                    ra.setOffMarket(a.isOffMarket());
-                                    ra.setDlkFlag(a.getDlkFlag());
-                                    ra.setNettoPriceList(a.isNplArticle());
-                                    ra.setNota(a.isNotaArticle());
-                                    ra.setNotaStatus(a.getNotaStatus());
-                                    ra.setLastOrder(a.getLastOrder());
-                                    ra.setIsOriginal(a.isOriginal());
-                                    ra.setAuthorGlnCode(a.getAuthorGln());
-                                    ra.configureStockProperties(a.getItemsOnStock());
-
-                                    ra.setCoreAssortment(generateCoreAssort(a));
-                                    ra.setAlt(null);
-
-                                    rose_article.alternatives.add(ra);
+                                // Don't put product that is red or black in to alternatives
+                                // https://github.com/zdavatz/smart-order/issues/107
+                                if (shipping_ == 3 || shipping_ == 10) {
+                                    continue;
                                 }
+
+                                if (a.isReplacementArticle())
+                                    ra.setReplacesArticle(article.getEanCode() + ", " + article.getPackTitle() + ", " + article.getPackTitleFR());
+
+                                ra.setGtin(alter_ean_code);
+                                ra.setPharma(a.getPharmaCode());
+                                ra.setTitle(a.getPackTitle());
+                                ra.setTitleFR(a.getPackTitleFR());
+                                ra.setSize(a.getPackSize());
+                                ra.setGalen(a.getPackGalen());
+                                ra.setUnit(a.getPackUnit());
+                                ra.setSupplier(a.getSupplier());
+                                ra.setRoseBasisPrice(rose_price);
+                                ra.setPublicPrice(a.getPublicPriceAsFloat());
+                                ra.setExfactoryPrice(a.getExfactoryPriceAsFloat());
+                                ra.setQuantity(a.getQuantity());
+                                ra.setSwissmed(flags_str);
+                                ra.setPreferences(preference_str);
+                                ra.setAvailDate(a.getAvailDate());
+                                ra.setShippingStatus(shipping_status);
+                                ra.setOffMarket(a.isOffMarket());
+                                ra.setDlkFlag(a.getDlkFlag());
+                                ra.setNettoPriceList(a.isNplArticle());
+                                ra.setNota(a.isNotaArticle());
+                                ra.setNotaStatus(a.getNotaStatus());
+                                ra.setLastOrder(a.getLastOrder());
+                                ra.setIsOriginal(a.isOriginal());
+                                ra.setAuthorGlnCode(a.getAuthorGln());
+                                ra.configureStockProperties(a.getItemsOnStock());
+
+                                ra.setCoreAssortment(generateCoreAssort(a));
+                                ra.setAlt(null);
+
+                                rose_article.alternatives.add(ra);
                             }
                         }
                     }
                 }
-                if (rose_article.alternatives == null) {
-                    rose_article.setAlt(null);
+                if (this.altOverride != -1) {
+                    rose_article.setAlt(this.altOverride);
                 } else {
-                    rose_article.setAlt(Math.min(
-                        rose_article.alternatives.size(),
-                        generateAlt(rose_article, article)
-                    ));
+                    if (rose_article.alternatives == null) {
+                        rose_article.setAlt(null);
+                    } else {
+                        rose_article.setAlt(Math.min(
+                            rose_article.alternatives.size(),
+                            generateAlt(rose_article, article)
+                        ));
+                    }
                 }
                 list_rose_articles.add(rose_article);
             }
