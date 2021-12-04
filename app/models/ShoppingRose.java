@@ -49,7 +49,7 @@ public class ShoppingRose {
 
     private MessageDigest m_message_digest;
 
-    public Integer altOverride = -1;
+    public boolean showAllAlternatives = false;
     private int m_result_limit = 0; // 0 = no limit
 
     /**
@@ -732,7 +732,8 @@ public class ShoppingRose {
                                 || article.isGenerikum()
                                 || (!a.isOriginal() && !a.isGenerikum()) // Case which it is neither original / generikum #69
                                 || a.isReplacementArticle()
-                                || (article.isGenerikum() && article.getShippingStatus() > 1 && a.isOriginal() && a.getShippingStatus() == 1)) {
+                                || (article.isGenerikum() && article.getShippingStatus() > 1 && a.isOriginal() && a.getShippingStatus() == 1)
+                                || this.showAllAlternatives /* #112 */ ) {
 
                             if (a.isAvailable() && !a.isOffMarket()) {
                                 RoseArticle ra = new RoseArticle();
@@ -792,8 +793,8 @@ public class ShoppingRose {
                         }
                     }
                 }
-                if (this.altOverride != -1) {
-                    rose_article.setAlt(this.altOverride);
+                if (this.showAllAlternatives) {
+                    rose_article.setAlt(rose_article.alternatives.size());
                 } else {
                     if (rose_article.alternatives == null) {
                         rose_article.setAlt(null);

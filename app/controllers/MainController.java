@@ -148,7 +148,7 @@ public class MainController extends Controller {
             return ok("[]");
         }
         if (isDailymed) {
-            shopping_cart.altOverride = 99999;
+            shopping_cart.showAllAlternatives = true;
         }
 
         long startTime = System.currentTimeMillis();
