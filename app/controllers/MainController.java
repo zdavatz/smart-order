@@ -372,6 +372,7 @@ public class MainController extends Controller {
                                 boolean is_not_green = !is_green;
                                 boolean is_original_but_not_green = article.isOriginal() && is_not_green;
                                 boolean is_original_alternative_and_green = a.isOriginal() && a.getShippingStatus() == 1;
+                                boolean isSimilar = checkSimilarity(size, s, unit, u, 0.901f);
 
                                 boolean isUseCase5 = false;
                                 if (shopping_cart != null) {
@@ -385,18 +386,20 @@ public class MainController extends Controller {
                                 if (is_original_but_not_green && is_original_alternative_and_green && have_same_title) {
                                     // Add it to the list of originals
                                     original_list_a.add(a);
-                                } else if (!article.isOriginal() && checkSimilarity(size, s, unit, u, 0.901f)) {
+                                } else if (!article.isOriginal() && isSimilar) {
                                     // Allow only *same* dosages
                                     list_a.add(a);
                                 } else if (is_not_green && is_original_alternative_and_green) {
                                     original_list_a.add(a);
-                                } else if (isUseCase5 && checkSimilarity(size, s, unit, u , 0.901f)) {
+                                } else if (isUseCase5 && isSimilar) {
+                                    list_a.add(a);
+                                } else if (shopping_cart.showAllAlternatives && isSimilar) {
+                                    // #112
+                                    // We add all the alternatives to the response,
+                                    // so we don't need to separate origin / generic
+                                    // we add everything to the result array instead of original_list_a
                                     list_a.add(a);
                                 }
-                                /*
-                                if ((size.contains(s) || s.contains(size)) && (unit.contains(u) || u.contains(unit)) )
-                                    list_a.add(a);
-                                */
                             }
                         } else {
                             // If the main article is off the market, get some replacements...
