@@ -62,6 +62,13 @@ paths:
           required: false
           description: |
             Either "de" or "fr"
+        - in: query
+          name: override
+          type: string
+          required: false
+          default: ""
+          description: |
+            Any value other than "dm" is ignored
       responses:
         200:
           description: ''
