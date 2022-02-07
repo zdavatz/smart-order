@@ -136,7 +136,10 @@ public class MainController extends Controller {
 
     public Result getSmartBasket(String pretty, int limit, String auth_key, String gln_code, String basket, String nota, String override) {
         // https://github.com/zdavatz/smart-order/issues/112
-        boolean isDailymed = override.equals("dm");
+        boolean isDailymed = false;
+        if (override != null) {
+            isDailymed = override.equals("dm");
+        }
         ShoppingRose shopping_cart;
         try {
             shopping_cart = new ShoppingRose(gln_code);
