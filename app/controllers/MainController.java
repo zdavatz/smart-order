@@ -182,7 +182,7 @@ public class MainController extends Controller {
         }
 
         // Match ean codes (13 digits) and pharma codes (7 digits)
-        Pattern p = Pattern.compile("\\((\\d{13}|\\d{7}),(\\d+)\\)");
+        Pattern p = Pattern.compile("\\((\\d+),(\\d+)\\)");
         Matcher m = p.matcher(basket);
         ArrayList<String> list_of_articles = new ArrayList<>();
         HashMap<String, Integer> map_of_articles = new HashMap<>();
@@ -190,6 +190,9 @@ public class MainController extends Controller {
             String code = m.group(1);
             String qty = m.group(2);
             if (!code.isEmpty() && !qty.isEmpty()) {
+                if (code.length() < 7) {
+                    code = String.format("%7s", code).replace(" ", "0");
+                }
                 list_of_articles.add(code);
                 map_of_articles.put(code, Integer.valueOf(qty));
             }
