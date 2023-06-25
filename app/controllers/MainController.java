@@ -368,52 +368,42 @@ public class MainController extends Controller {
                     if (!a.getEanCode().equals(article.getEanCode())) {
                         String s = a.getPackSize().toLowerCase();
                         String u = a.getPackUnit().toLowerCase();
-                        if (!article.isOffMarket()) {
-                            if (!a.isOffMarket()) {
-                                // Make sure that articles added to the list are NOT off-the-market
-                                // s AND size -> stückzahl, e.g. 12
-                                // u AND unit -> dosierung, e.g. 100mg
-                                boolean have_same_title = article.isSimilarByTitle(a);
-                                boolean is_green = article.getShippingStatus() == 1;
-                                boolean is_not_green = !is_green;
-                                boolean is_original_but_not_green = article.isOriginal() && is_not_green;
-                                boolean is_original_alternative_and_green = a.isOriginal() && a.getShippingStatus() == 1;
-                                boolean isSimilar = checkSimilarity(size, s, unit, u, 0.901f);
+                        if (!a.isOffMarket()) {
+                            System.out.println("a is in market");
+                            // Make sure that articles added to the list are NOT off-the-market
+                            // s AND size -> stückzahl, e.g. 12
+                            // u AND unit -> dosierung, e.g. 100mg
+                            boolean have_same_title = article.isSimilarByTitle(a);
+                            boolean is_green = article.getShippingStatus() == 1;
+                            boolean is_not_green = !is_green;
+                            boolean is_original_but_not_green = article.isOriginal() && is_not_green;
+                            boolean is_original_alternative_and_green = a.isOriginal() && a.getShippingStatus() == 1;
+                            boolean isSimilar = checkSimilarity(size, s, unit, u, 0.901f);
 
-                                boolean isUseCase5 = false;
-                                if (shopping_cart != null) {
-                                    User preferences = shopping_cart.m_user_preference;
-                                    if (preferences != null) {
-                                        boolean is_selected_article_preferred = preferences.isEanPreferred(article.getAuthorGln());
-                                        boolean is_alternative_preferred = preferences.isEanPreferred(a.getAuthorGln());
-                                        isUseCase5 = is_green && !is_selected_article_preferred && is_alternative_preferred;
-                                    }
-                                }
-                                if (is_original_but_not_green && is_original_alternative_and_green && have_same_title) {
-                                    // Add it to the list of originals
-                                    original_list_a.add(a);
-                                } else if (!article.isOriginal() && isSimilar) {
-                                    // Allow only *same* dosages
-                                    list_a.add(a);
-                                } else if (is_not_green && is_original_alternative_and_green) {
-                                    original_list_a.add(a);
-                                } else if (isUseCase5 && isSimilar) {
-                                    list_a.add(a);
-                                } else if (shopping_cart.showAllAlternatives && isSimilar) {
-                                    // #112
-                                    // We add all the alternatives to the response,
-                                    // so we don't need to separate origin / generic
-                                    // we add everything to the result array instead of original_list_a
-                                    list_a.add(a);
+                            boolean isUseCase5 = false;
+                            if (shopping_cart != null) {
+                                User preferences = shopping_cart.m_user_preference;
+                                if (preferences != null) {
+                                    boolean is_selected_article_preferred = preferences.isEanPreferred(article.getAuthorGln());
+                                    boolean is_alternative_preferred = preferences.isEanPreferred(a.getAuthorGln());
+                                    isUseCase5 = is_green && !is_selected_article_preferred && is_alternative_preferred;
                                 }
                             }
-                        } else {
-                            // If the main article is off the market, get some replacements...
-                            // Remove all numbers first
-                            u = u.replaceAll("[^A-Za-z]", "");
-                            String unit_clean = unit.replaceAll("[^A-Za-z]", "");
-                            // System.out.println(a.getPackTitle() + " -> " + a.getAvailability() + " | " + s + "=" + size + " | " + u + "=" + unit_clean);
-                            if (u.equals(unit_clean) && s.equals(size) && !a.isOffMarket()) {
+                            if (is_original_but_not_green && is_original_alternative_and_green && have_same_title) {
+                                // Add it to the list of originals
+                                original_list_a.add(a);
+                            } else if (!article.isOriginal() && isSimilar) {
+                                // Allow only *same* dosages
+                                list_a.add(a);
+                            } else if (is_not_green && is_original_alternative_and_green) {
+                                original_list_a.add(a);
+                            } else if (isUseCase5 && isSimilar) {
+                                list_a.add(a);
+                            } else if (shopping_cart.showAllAlternatives && isSimilar) {
+                                // #112
+                                // We add all the alternatives to the response,
+                                // so we don't need to separate origin / generic
+                                // we add everything to the result array instead of original_list_a
                                 list_a.add(a);
                             }
                         }
