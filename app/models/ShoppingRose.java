@@ -39,6 +39,7 @@ public class ShoppingRose {
     private ArrayList<String> m_auth_keys_list = null;
     private HashMap<String, List<GenericArticle>> m_map_similar_articles = null;
     private HashMap<String, Pair<Integer, Integer>> m_stock_map = null;
+    private HashMap<String, GenericArticle> m_direct_substitution = new HashMap<String, GenericArticle>();
     private float m_total_dlk_costs = 0.0f;
     public User m_user_preference = null;
 
@@ -525,6 +526,10 @@ public class ShoppingRose {
 
     public void setResultsLimit(int limit) {
         m_result_limit = limit;
+    }
+
+    public void addDirectSubstitution(String pharma_code, GenericArticle article) {
+        m_direct_substitution.put(pharma_code, article);
     }
 
     private String generatePreferences(GenericArticle ga) {

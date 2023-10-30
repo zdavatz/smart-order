@@ -223,9 +223,9 @@ public class MainController extends Controller {
             // Loop through all articles found
             articles.forEach((article) -> {
                 // Make sure the selected article has a price
+                String pharma = article.getPharmaCode();
                 if (article.getRoseBasisPriceAsFloat()>0.0f || article.getPublicPriceAsFloat()>0.0f) {
                     String ean = article.getEanCode();
-                    String pharma = article.getPharmaCode();
                     // Check for ean/pharma code
                     if (map_of_articles.containsKey(ean) || map_of_articles.containsKey(pharma)) {
                         // Set quantities when found
@@ -245,6 +245,16 @@ public class MainController extends Controller {
                             if (!map_of_similar_articles.containsKey(ean)) {
                                 map_of_similar_articles.put(ean, la);
                             }
+                        }
+                    }
+                }
+                if (rd.rose_direct_substitution_map().containsKey(pharma)) {
+                   // Has a direct substitution: https://github.com/zdavatz/smart-order/issues/130
+                    String substitution_pharma_code = rd.rose_direct_substitution_map().get(pharma);
+                    if (!substitution_pharma_code.isEmpty()) {
+                        GenericArticle sub_article = searchSingleEan(substitution_pharma_code);
+                        if (sub_article != null) {
+                            shopping_cart.addDirectSubstitution(substitution_pharma_code, sub_article);
                         }
                     }
                 }
@@ -369,7 +379,6 @@ public class MainController extends Controller {
                         String s = a.getPackSize().toLowerCase();
                         String u = a.getPackUnit().toLowerCase();
                         if (!a.isOffMarket()) {
-                            System.out.println("a is in market");
                             // Make sure that articles added to the list are NOT off-the-market
                             // s AND size -> stückzahl, e.g. 12
                             // u AND unit -> dosierung, e.g. 100mg
