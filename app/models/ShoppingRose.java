@@ -39,6 +39,7 @@ public class ShoppingRose {
     private ArrayList<String> m_auth_keys_list = null;
     private HashMap<String, List<GenericArticle>> m_map_similar_articles = null;
     private HashMap<String, Pair<Integer, Integer>> m_stock_map = null;
+    private HashMap<String, GenericArticle> m_direct_substitution = new HashMap<String, GenericArticle>();
     private float m_total_dlk_costs = 0.0f;
     public User m_user_preference = null;
 
@@ -527,6 +528,10 @@ public class ShoppingRose {
         m_result_limit = limit;
     }
 
+    public void addDirectSubstitution(String pharma_code, GenericArticle article) {
+        m_direct_substitution.put(pharma_code, article);
+    }
+
     private String generatePreferences(GenericArticle ga) {
         String preference_str = "";
 
@@ -661,71 +666,88 @@ public class ShoppingRose {
         return false;
     }
 
+    private RoseArticle genericToRoseArticle(GenericArticle article) {
+        RoseArticle rose_article = new RoseArticle();
+        rose_article.alternatives = new LinkedList<>();
+
+        int quantity = article.getQuantity();
+
+        rose_article.setGtin(article.getEanCode());
+        rose_article.setPharma(article.getPharmaCode());
+        rose_article.setTitle(article.getPackTitle());
+        rose_article.setTitleFR(article.getPackTitleFR());
+        rose_article.setSize(article.getPackSize());
+        rose_article.setGalen(article.getPackGalen());
+        rose_article.setUnit(article.getPackUnit());
+        rose_article.setSupplier(article.getSupplier());
+        rose_article.setRoseBasisPrice(article.getRoseBasisPriceAsFloat());
+        rose_article.setPublicPrice(article.getPublicPriceAsFloat());
+        rose_article.setExfactoryPrice(article.getExfactoryPriceAsFloat());
+        rose_article.setQuantity(article.getQuantity());
+        rose_article.setSwissmed(article.getFlags());
+        rose_article.setPreferences(generatePreferences(article));
+        rose_article.setAvailDate(article.getAvailDate());
+        rose_article.setShippingStatus(shippingStatusColor(shippingStatus(article, quantity)));
+        rose_article.setOffMarket(article.isOffMarket());
+        rose_article.setDlkFlag(article.getDlkFlag());
+        rose_article.setNettoPriceList(article.isNplArticle());
+        rose_article.setNota(article.isNotaArticle());
+        rose_article.setNotaStatus(article.getNotaStatus());
+        rose_article.setLastOrder(article.getLastOrder());
+        rose_article.configureStockProperties(article.getItemsOnStock());
+        rose_article.setIsOriginal(article.isOriginal());
+        rose_article.setCoreAssortment(generateCoreAssort(article));
+        rose_article.setAuthorGlnCode(article.getAuthorGln());
+        return rose_article;
+    }
+
     public List<RoseArticle> updateShoppingCart() {
 
         List<RoseArticle> list_rose_articles = new ArrayList<>();
+        RoseData rd = RoseData.getInstance();
 
         if (m_shopping_basket!=null && m_shopping_basket.size()>0) {
             // Loop through articles in shopping basket
             for (Map.Entry<String, GenericArticle> entry : m_shopping_basket.entrySet()) {
                 GenericArticle article = entry.getValue();
-
-                RoseArticle rose_article = new RoseArticle();
-                rose_article.alternatives = new LinkedList<>();
-                rose_article.setAlt(2);
-
-                // Set buying price
                 float rose_price = article.getRoseBasisPriceAsFloat();
                 article.setBuyingPrice(rose_price);
 
+                RoseArticle rose_article = genericToRoseArticle(article);
+                rose_article.setAlt(2);
+
                 int quantity = article.getQuantity();
 
-                String pharm_code = article.getPharmaCode();
+                String pharma_code = article.getPharmaCode();
                 String ean_code = article.getEanCode();
-                String flags_str = article.getFlags();
 
-                String preference_str = generatePreferences(article);
-
-                // Shipping status
-                int shipping_ = shippingStatus(article, quantity);
-                String shipping_status = shippingStatusColor(shipping_);
-
-                rose_article.setGtin(ean_code);
-                rose_article.setPharma(pharm_code);
-                rose_article.setTitle(article.getPackTitle());
-                rose_article.setTitleFR(article.getPackTitleFR());
-                rose_article.setSize(article.getPackSize());
-                rose_article.setGalen(article.getPackGalen());
-                rose_article.setUnit(article.getPackUnit());
-                rose_article.setSupplier(article.getSupplier());
-                rose_article.setRoseBasisPrice(rose_price);
-                rose_article.setPublicPrice(article.getPublicPriceAsFloat());
-                rose_article.setExfactoryPrice(article.getExfactoryPriceAsFloat());
-                rose_article.setQuantity(article.getQuantity());
-                rose_article.setSwissmed(flags_str);
-                rose_article.setPreferences(preference_str);
-                rose_article.setAvailDate(article.getAvailDate());
-                rose_article.setShippingStatus(shipping_status);
-                rose_article.setOffMarket(article.isOffMarket());
-                rose_article.setDlkFlag(article.getDlkFlag());
-                rose_article.setNettoPriceList(article.isNplArticle());
-                rose_article.setNota(article.isNotaArticle());
-                rose_article.setNotaStatus(article.getNotaStatus());
-                rose_article.setLastOrder(article.getLastOrder());
-                rose_article.configureStockProperties(article.getItemsOnStock());
-                rose_article.setIsOriginal(article.isOriginal());
-                rose_article.setCoreAssortment(generateCoreAssort(article));
-                rose_article.setAuthorGlnCode(article.getAuthorGln());
+                // Direct substitution:
+                // https://github.com/zdavatz/smart-order/issues/130
+                HashMap<String, String> direct_substitution_map = rd.rose_direct_substitution_map();
+                boolean should_skip_alternatives_due_to_direct_substitution = false;
+                String substitution_pharma_code = direct_substitution_map.get(pharma_code);
+                if (substitution_pharma_code != null) {
+                    if (substitution_pharma_code.isEmpty()) {
+                        should_skip_alternatives_due_to_direct_substitution = true;
+                    } else {
+                        GenericArticle a = m_direct_substitution.get(substitution_pharma_code);
+                        RoseArticle sub = genericToRoseArticle(a);
+                        sub.setAlt(null);
+                        rose_article.alternatives.add(sub);
+                    }
+                }
 
                 // article points to object which was inserted last...
-                if (m_map_similar_articles.containsKey(ean_code)) {
+                if (!should_skip_alternatives_due_to_direct_substitution && m_map_similar_articles.containsKey(ean_code)) {
                     sortSimilarArticles(article);
 
                     // Loop through all alternatives 'a' of 'article'
                     List<GenericArticle> la = m_map_similar_articles.get(ean_code);
                     for (GenericArticle a : la) {
-                        String alter_ean_code = a.getEanCode();
-                        if (alter_ean_code.equals(ean_code)) {
+                        if (a.getEanCode().equals(ean_code)) {
+                            continue;
+                        }
+                        if (a.getPharmaCode().equals(substitution_pharma_code)) {
                             continue;
                         }
                         if (a.isOriginal()
@@ -736,19 +758,14 @@ public class ShoppingRose {
                                 || this.showAllAlternatives /* #112 */ ) {
 
                             if (a.isAvailable() && !a.isOffMarket()) {
-                                RoseArticle ra = new RoseArticle();
+                                RoseArticle ra = genericToRoseArticle(a);
 
                                 rose_price = a.getRoseBasisPriceAsFloat();
 
                                 a.setBuyingPrice(rose_price);
                                 a.setQuantity(quantity);
 
-                                flags_str = a.getFlags();
-
-                                preference_str = generatePreferences(a);
-
-                                shipping_ = shippingStatus(a, a.getQuantity());
-                                shipping_status = shippingStatusColor(shipping_);
+                                int shipping_ = shippingStatus(a, a.getQuantity());
 
                                 // Don't put product that is red or black in to alternatives
                                 // https://github.com/zdavatz/smart-order/issues/107
@@ -759,33 +776,6 @@ public class ShoppingRose {
                                 if (a.isReplacementArticle())
                                     ra.setReplacesArticle(article.getEanCode() + ", " + article.getPackTitle() + ", " + article.getPackTitleFR());
 
-                                ra.setGtin(alter_ean_code);
-                                ra.setPharma(a.getPharmaCode());
-                                ra.setTitle(a.getPackTitle());
-                                ra.setTitleFR(a.getPackTitleFR());
-                                ra.setSize(a.getPackSize());
-                                ra.setGalen(a.getPackGalen());
-                                ra.setUnit(a.getPackUnit());
-                                ra.setSupplier(a.getSupplier());
-                                ra.setRoseBasisPrice(rose_price);
-                                ra.setPublicPrice(a.getPublicPriceAsFloat());
-                                ra.setExfactoryPrice(a.getExfactoryPriceAsFloat());
-                                ra.setQuantity(a.getQuantity());
-                                ra.setSwissmed(flags_str);
-                                ra.setPreferences(preference_str);
-                                ra.setAvailDate(a.getAvailDate());
-                                ra.setShippingStatus(shipping_status);
-                                ra.setOffMarket(a.isOffMarket());
-                                ra.setDlkFlag(a.getDlkFlag());
-                                ra.setNettoPriceList(a.isNplArticle());
-                                ra.setNota(a.isNotaArticle());
-                                ra.setNotaStatus(a.getNotaStatus());
-                                ra.setLastOrder(a.getLastOrder());
-                                ra.setIsOriginal(a.isOriginal());
-                                ra.setAuthorGlnCode(a.getAuthorGln());
-                                ra.configureStockProperties(a.getItemsOnStock());
-
-                                ra.setCoreAssortment(generateCoreAssort(a));
                                 ra.setAlt(null);
 
                                 rose_article.alternatives.add(ra);
