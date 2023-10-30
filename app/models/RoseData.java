@@ -43,6 +43,7 @@ public final class RoseData {
     private ArrayList<String> rose_auth_keys_list;
     private HashMap<String, List<NotaPosition>> rose_nota_map;
     private HashMap<String, Pair<Integer, Integer>> rose_stock_map;
+    private HashMap<String, String> rose_direct_substitution_map;
 
     // Any product with pharma_code in this list has shipping = red
     private ArrayList<String> rose_stock_blacklist = new ArrayList<String>();
@@ -95,6 +96,10 @@ public final class RoseData {
         return this.rose_stock_blacklist;
     }
 
+    public HashMap<String, String> rose_direct_substitution_map() {
+        return this.rose_direct_substitution_map;
+    }
+
     public void loadFile(String file_name) {
         String rose_path = System.getProperty("user.dir") + Constants.ROSE_DIR;
 
@@ -115,7 +120,9 @@ public final class RoseData {
         else if (file_name.equals("rose_settings.json"))
             loadRoseSettingsFile(rose_path + file_name);
         else if (file_name.equals("Grippeimpfstoff.json"))
-            loadRoseStockBlackList(rose_path + file_name);
+            rose_stock_blacklist = loadRoseStockBlackList(rose_path + file_name);
+        else if (file_name.equals("rose_direct_subst.json"))
+            rose_direct_substitution_map = loadDirectSubstitutions(rose_path + file_name);
 
         System.out.println("OK");
     }
@@ -145,6 +152,8 @@ public final class RoseData {
         rose_stock_map = loadRoseStockMaps(rose_path + "rose_stock.csv");
         // System.out.println("OK");
         rose_stock_blacklist = loadRoseStockBlackList(rose_path + "Grippeimpfstoff.json");
+
+        rose_direct_substitution_map = loadDirectSubstitutions(rose_path + "rose_direct_subst.json");
 
         loadRoseSettingsFile(rose_path + "rose_settings.json");
     }
@@ -321,6 +330,23 @@ public final class RoseData {
 
             ArrayList<String> pharma_codes = mapper.readValue(json_file, typeRef);
             return pharma_codes;
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public HashMap<String, String> loadDirectSubstitutions(String json_file_name) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            TypeReference<HashMap<String, String>> typeRef = new TypeReference<HashMap<String, String>>() {};
+
+            File json_file = Paths.get(json_file_name).toFile();
+            if (!json_file.exists())
+                System.out.println("ERROR: Could not read file " + json_file);
+
+            HashMap<String, String> substitutions = mapper.readValue(json_file, typeRef);
+            return substitutions;
         } catch(IOException e) {
             e.printStackTrace();
         }
