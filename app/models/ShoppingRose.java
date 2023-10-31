@@ -724,21 +724,16 @@ public class ShoppingRose {
                 // Direct substitution:
                 // https://github.com/zdavatz/smart-order/issues/130
                 HashMap<String, String> direct_substitution_map = rd.rose_direct_substitution_map();
-                boolean should_skip_alternatives_due_to_direct_substitution = false;
                 String substitution_pharma_code = direct_substitution_map.get(pharma_code);
                 if (substitution_pharma_code != null) {
-                    if (substitution_pharma_code.isEmpty()) {
-                        should_skip_alternatives_due_to_direct_substitution = true;
-                    } else {
+                    if (!substitution_pharma_code.isEmpty()) {
                         GenericArticle a = m_direct_substitution.get(substitution_pharma_code);
                         RoseArticle sub = genericToRoseArticle(a);
                         sub.setAlt(null);
                         rose_article.alternatives.add(sub);
                     }
-                }
-
-                // article points to object which was inserted last...
-                if (!should_skip_alternatives_due_to_direct_substitution && m_map_similar_articles.containsKey(ean_code)) {
+                } else if (m_map_similar_articles.containsKey(ean_code)) {
+                    // article points to object which was inserted last...
                     sortSimilarArticles(article);
 
                     // Loop through all alternatives 'a' of 'article'
