@@ -505,11 +505,12 @@ public class MainController extends Controller {
             check_size = basicSimilarityCheck(size_1, size_2, search_window);
         }
         if (!unit_1.isEmpty() && !unit_2.isEmpty()) {
-            check_units = unit_1.toLowerCase().equals(unit_2.toLowerCase());    // Units/dosage must be the same
+            check_units = unit_1.replaceAll(" ", "").toLowerCase().equals(unit_2.replaceAll(" ", "").toLowerCase());    // Units/dosage must be the same
         }
         if (!check_units) {
-            check_units = compareDosage(unit_1, unit_2);
+            check_units = compareDosageWithoutUnit(unit_1, unit_2);
         }
+        System.out.println("check_size: " + check_size + " check_units: " + check_units);
         return check_size && check_units;
     }
 
@@ -526,7 +527,7 @@ public class MainController extends Controller {
         return acc;
     }
 
-    private boolean compareDosage(String u1, String u2) {
+    private boolean compareDosageWithoutUnit(String u1, String u2) {
         u1 = u1.trim();
         u2 = u2.trim();
         String numOnly1 = takeNumOnly(u1);
@@ -534,7 +535,7 @@ public class MainController extends Controller {
         boolean is1WithoutUnit = u1.toLowerCase().endsWith("ds") || numOnly1.equals(u1);
         boolean is2WithoutUnit = u2.toLowerCase().endsWith("ds") || numOnly2.equals(u2);
         if (is1WithoutUnit || is2WithoutUnit) {
-            return takeNumOnly(u1).equals(takeNumOnly(u2));
+            return numOnly1.equals(numOnly2);
         }
         return false;
     }
